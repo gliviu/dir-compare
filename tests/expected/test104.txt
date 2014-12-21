@@ -1,0 +1,9 @@
+[/] A10->missing(directory)
+[/] missing<-A11(directory)
+[/] A6==A6(directory)
+[/] A7->missing(directory)
+[/] missing<-A8(directory)
+[/] missing<-A9(directory)
+[/] A11->missing(file)
+Entries are different
+total: 7, equal: 1, distinct: 0, only left: 3, only right: 3

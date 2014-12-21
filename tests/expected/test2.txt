@@ -1,0 +1,20 @@
+path,name,state,type,size1,size2,date1,date2
+/,A10,left,directory,,,2014-11-18T21:32:39.000Z,
+/,A11,right,directory,,,,2014-11-18T21:32:13.000Z
+/A11,a2.txt,right,file,,0,,2014-11-18T21:32:13.000Z
+/,A6,equal,directory,,,2014-11-18T21:32:39.000Z,2014-11-18T21:32:13.000Z
+/A6,a1.txt,left,file,0,,2014-11-18T21:32:39.000Z,
+/A6,a3.txt,right,file,,0,,2014-11-18T21:32:13.000Z
+/,A7,left,directory,,,2014-11-18T21:32:39.000Z,
+/A7,a1.txt,left,file,0,,2014-11-18T21:32:39.000Z,
+/,A8,right,directory,,,,2014-11-18T21:32:13.000Z
+/A8,a1.txt,right,file,,0,,2014-11-18T21:32:13.000Z
+/,A9,right,directory,,,,2014-11-18T21:32:13.000Z
+/,A11,left,file,0,,2014-11-18T21:32:39.000Z,
+/,a1.txt,equal,file,0,0,2014-11-18T21:32:39.000Z,2014-11-18T21:32:13.000Z
+/,a2.txt,distinct,file,0,1,2014-11-18T21:32:39.000Z,2014-11-18T21:32:13.000Z
+/,a3.txt,left,file,0,,2014-11-18T21:32:39.000Z,
+/,a4.txt,right,file,,0,,2014-11-18T21:32:13.000Z
+/,a5.txt,left,file,0,,2014-11-18T21:32:39.000Z,
+Entries are different
+total: 17, equal: 2, distinct: 1, only left: 7, only right: 7

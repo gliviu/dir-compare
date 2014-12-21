@@ -1,0 +1,22 @@
+{
+  "name": "dir-compare",
+  "version": "0.0.1",
+  "description": "Compare folders",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "todo"
+  },
+  "keywords": [],
+  "dependencies": {
+    "buffertools": "2.1.2",
+    "colors": "1.0.3",
+    "commander": "2.5.0",
+    "minimatch": "2.0.1"
+  },
+  "devDependencies": {
+    "shelljs": "0.3.0"
+  },
+  "author": "",
+  "license": "MIT"
+}

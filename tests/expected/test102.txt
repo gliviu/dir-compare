@@ -1,0 +1,12 @@
+[/] .A3==.A3(directory)
+[/] A1.e1==A1.e1(directory)
+[/] A2==A2(directory)
+[/A2] A4==A4(directory)
+[/A2/A4] A5==A5(directory)
+[/A2/A4] A6->missing(directory)
+[/A2/A4] a1.e2.e1->missing(file)
+[/] missing<-a1.txt.e1(file)
+[/] a2.e1==a2.e1(file)
+[/] a9.txt.e1==a9.txt.e1(file)
+Entries are different
+total: 10, equal: 7, distinct: 0, only left: 2, only right: 1

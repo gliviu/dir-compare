@@ -1,0 +1,8 @@
+[/] A11->missing
+[/] a1.txt==a1.txt
+[/] a2.txt<>a2.txt
+[/] a3.txt->missing
+[/] missing<-a4.txt
+[/] a5.txt->missing
+Entries are different
+total: 6, equal: 1, distinct: 1, only left: 3, only right: 1

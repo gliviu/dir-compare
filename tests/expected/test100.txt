@@ -1,0 +1,6 @@
+[/A2/A4] a1.e2.e1->missing
+[/] missing<-a1.txt.e1
+[/] a2.e1==a2.e1
+[/] a9.txt.e1==a9.txt.e1
+Entries are different
+total: 4, equal: 2, distinct: 0, only left: 1, only right: 1

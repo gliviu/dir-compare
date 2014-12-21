@@ -1,0 +1,5 @@
+[/] a1==a1
+[/] a2<>a2
+[/] a3==a3
+Entries are different
+total: 3, equal: 2, distinct: 1, only left: 0, only right: 0

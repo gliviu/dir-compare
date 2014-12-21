@@ -1,0 +1,12 @@
+[/] A10==a10(directory)
+[/] A6==A6(directory)
+[/A6] a1.txt==A1.TXt(file)
+[/] A7==A7(directory)
+[/A7] A1.tXt==a1.txt(file)
+[/] a1.txT==a1.txt(file)
+[/] A11==a11(file)
+[/] A2.Txt==A2.TxT(file)
+[/] a3.TXt==a3.txt(file)
+[/] a5.txt==a5.txt(file)
+Entries are identical
+total: 10, equal: 10, distinct: 0, only left: 0, only right: 0
