@@ -12,21 +12,20 @@ program
 .version('0.0.1')
 .usage('[options] leftdir rightdir')
 .option('-c, --compare-content', 'compare files by content')
-//.option('-t, --compare-time', 'compares files by their modification date')
+.option('-f, --filter [type]', 'file name filter', undefined)
+.option('-x, --exclude [type]', 'file/directory name exclude filter', undefined)
 .option('-S, --skip-subdirs', 'do not recurse into subdirectories')
 .option('-L, --skip-symlinks', 'do not follow symlinks')
 .option('-i, --ignore-case', 'ignores case when comparing file names')
-.option('--nocolors', 'don\'t use console colors')
 .option('-l, --show-left', 'report - show entries occurring in leftdir')
 .option('-r, --show-right', 'report - show entries occurring in rightdir')
 .option('-e, --show-equal', 'report - show identic entries occuring in both dirs')
 .option('-d, --show-distinct', 'report - show distinct entries occuring in both dirs')
 .option('-a, --show-all', 'report - show all entries')
-.option('--csv', 'report - print details as csv')
-.option('--tab', 'report - print in tabulated form')
 .option('-w, --whole-report', 'report - include directories in detailed report')
-.option('-f, --filter [type]', 'file name filter', undefined)
-.option('-x, --exclude [type]', 'file/directory name exclude filter', undefined);
+.option('--csv', 'report - print details as csv')
+.option('--nocolors', 'don\'t use console colors')
+;
 
 program.on('--help', function(){
     console.log('  By default files are compared by size.');
@@ -35,7 +34,13 @@ program.on('--help', function(){
     console.log('    0 - entries are identical');
     console.log('    1 - entries are different');
     console.log('    2 - error occured');
-  });
+    console.log('');
+    console.log('  Examples:');
+    console.log('    compare by content - dircompare -c dir1 dir2');
+    console.log('    exclude filter - dircompare -x .git dir1 dir2');
+    console.log('    include filter - dircompare -f *.js,*.yml dir1 dir2');
+    console.log('    show only different files - dircompare -d dir1 dir2');
+});
 
 program.parse(process.argv);
 
@@ -47,7 +52,7 @@ var run = function(){
         } else{
             var options = {};
 
-            
+
             options.compareContent = program.compareContent;
             options.compareSize = true;
             options.skipSubdirs = program.skipSubdirs;
@@ -92,13 +97,13 @@ var run = function(){
                         }
                     });
                 }
-                
+
                 // csv header
                 if(program.csv){
                     console.log('path,name,state,type,size1,size2,date1,date2');
                 }
                 var statTotal=0, statEqual=0, statLeft=0, statRight=0, statDistinct=0;
-                
+
                 for(var i = 0; i<res.diffSet.length; i++){
                     var detail = res.diffSet[i];
                     var color, show = true;
@@ -138,7 +143,7 @@ var run = function(){
                             break;
                         default:
                             show = true;
-                            color = colors.gray;
+                        color = colors.gray;
                         }
                         if(show){
                             if(program.csv){
@@ -153,11 +158,11 @@ var run = function(){
                 // PRINT STATISTICS
                 console.log(res.same?cequal('Entries are identical'):cdistinct('Entries are different'));
                 console.log(util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
-                                statTotal,
-                                cequal(statEqual),
-                                cdistinct(statDistinct),
-                                cleft(statLeft),
-                                cright(statRight)
+                        statTotal,
+                        cequal(statEqual),
+                        cdistinct(statDistinct),
+                        cleft(statLeft),
+                        cright(statRight)
                 ));
                 if(res.same){
                     process.exit(0);
@@ -169,7 +174,6 @@ var run = function(){
             }
         }
     }catch(e){
-        debugger;
         console.log(e.stack);
         process.exit(2);
     }
@@ -208,8 +212,6 @@ var printPretty = function(detail, color, dircolor, relativePathMaxLength, fileN
         state = '?';
     }
     var spacePad = relativePathMaxLength - path.length;
-//    var tabs = tab(spacePad+2) + tab(detail.level*4);
-    var tabs = tab(spacePad+2);
     var type ='';
     type = detail.type1 ? detail.type1 : detail.type2;
     if(type==='directory'){
@@ -218,17 +220,9 @@ var printPretty = function(detail, color, dircolor, relativePathMaxLength, fileN
     var cmpentrylen = getCompareFile(detail, "??").length;
     var cmpentry = getCompareFile(detail, color(state));
     if(program.wholeReport){
-        if(program.tab){
-            console.log(util.format('%s%s%s%s(%s)', path, tabs, cmpentry, tab(fileNameMaxLength-cmpentrylen+2), type));
-        } else{
-            console.log(util.format('[%s] %s(%s)', path, cmpentry, type));
-        }
+        console.log(util.format('[%s] %s(%s)', path, cmpentry, type));
     } else{
-        if(program.tab){
-            console.log(util.format('%s%s%s', path, tabs, cmpentry));
-          } else{
-              console.log(util.format('[%s] %s', path, cmpentry));
-          }
+        console.log(util.format('[%s] %s', path, cmpentry));
     }
 }
 

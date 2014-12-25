@@ -181,7 +181,6 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
         // compare entry name (-1, 0, 1)
         var cmp;
         if (i1 < entries1.length && i2 < entries2.length) {
-            debugger;
             cmp = options.ignoreCase?compareEntryIgnoreCase(entry1, entry2):compareEntryCaseSensitive(entry1, entry2);
             type1 = getType(fileStat1);
             type2 = getType(fileStat2);
