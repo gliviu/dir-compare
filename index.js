@@ -129,7 +129,6 @@ var getEntries = function (path, options) {
 var defaultCompareFileCallback = function (filePath1, fileStat1, filePath2, fileStat2, options) {
     var same = true;
     var compareSize = options.compareSize === undefined ? true : options.compareSize;
-    var compareDate = options.compareDate === undefined ? false : options.compareDate;
     var compareContent = options.compareContent === undefined ? false : options.compareContent;
     if (compareSize && fileStat1.size != fileStat2.size) {
         same = false;
@@ -197,7 +196,12 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
         // process entry
         if (cmp == 0) {
             if (type1 === type2) {
-                var same = compareFileCallback(p1, fileStat1, p2, fileStat2, options);
+                var same;
+                if(type1==='file'){
+                    same = compareFileCallback(p1, fileStat1, p2, fileStat2, options);
+                } else{
+                    same = true;
+                }
                 resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, result);
                 same ? result.equal++ : result.distinct++;
             } else {
@@ -258,7 +262,6 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
  * Options:
  *  compareSize: true/false - compares files by size
  *  compareContent: true/false - compares files by content
- *  compareDate: true/false - compares files by their modification date
  *  skipSubdirs: true/false - skips sub directories
  *  skipSymlinks: true/false - skips symbolic links
  *  ignoreCase: true/false - ignores case when comparing names.

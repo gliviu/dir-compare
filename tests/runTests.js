@@ -102,6 +102,8 @@ function runTests () {
             // Compare by content
             res = test(testDirPath, 'test200', 'd11', 'd12', '-ac');
             console.log('test200: ' + passed(res));
+            res = test(testDirPath, 'test201', 'd1', 'd2', '-awc');
+            console.log('test201: ' + passed(res));
 
             // Exit code
             res = testExitCode(testDirPath, 'test300', 'd11', 'd11', '', 0);
