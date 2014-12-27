@@ -128,7 +128,7 @@ var getEntries = function (path, options) {
  */
 var defaultCompareFileCallback = function (filePath1, fileStat1, filePath2, fileStat2, options) {
     var same = true;
-    var compareSize = options.compareSize === undefined ? true : options.compareSize;
+    var compareSize = options.compareSize === undefined ? false : options.compareSize;
     var compareContent = options.compareContent === undefined ? false : options.compareContent;
     if (compareSize && fileStat1.size != fileStat2.size) {
         same = false;
@@ -149,8 +149,8 @@ var defaultResultBuilderCallback = function (entry1, entry2, state, level, relat
         name1 : entry1 ? entry1.name : undefined,
         name2 : entry2 ? entry2.name : undefined,
         state : state,
-        type1 : entry1 ? getType(entry1.stat) : undefined,
-        type2 : entry2 ? getType(entry2.stat) : undefined,
+        type1 : entry1 ? getType(entry1.stat) : 'missing',
+        type2 : entry2 ? getType(entry2.stat) : 'missing',
         level : level,
         size1 : entry1 ? entry1.stat.size : undefined,
         size2 : entry2 ? entry2.stat.size : undefined,
@@ -238,12 +238,13 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 };
 
 /**
- * Synchronous comparision. Output format:
+ * Synchronous comparision. 
+ * Output format:
  *  distinct: number of distinct entries
  *  equal: number of equal entries
  *  left: number of entries only in path1
  *  right: number of entries only in path2
- *  differencies: total number of differencies (distinct+left+right)
+ *  differences: total number of differences (distinct+left+right)
  *  same: true if directories are identical
  *  diffSet - List of changes
  *      path1: absolute path not including file/directory name,
@@ -285,8 +286,8 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
         compareFileCallback = defaultCompareFileCallback;
     }
     compare(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, res);
-    res.differencies = res.distinct + res.left + res.right;
-    res.same = res.differencies ? false : true;
+    res.differences = res.distinct + res.left + res.right;
+    res.same = res.differences ? false : true;
 
     return res;
 };

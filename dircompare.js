@@ -33,7 +33,7 @@ program.on('--help', function(){
     console.log('  Exit codes:');
     console.log('    0 - entries are identical');
     console.log('    1 - entries are different');
-    console.log('    2 - error occured');
+    console.log('    2 - error occurred');
     console.log('');
     console.log('  Examples:');
     console.log('    compare by content - dircompare -c dir1 dir2');
@@ -110,7 +110,7 @@ var run = function(){
 
                     if(!program.wholeReport){
                         // show only files
-                        var type = detail.type1?detail.type1:detail.type2;
+                        var type = detail.type1!=='missing'?detail.type1:detail.type2;
                         if(type!=='file'){
                             show = false;
                         }
@@ -213,7 +213,7 @@ var printPretty = function(detail, color, dircolor, relativePathMaxLength, fileN
     }
     var spacePad = relativePathMaxLength - path.length;
     var type ='';
-    type = detail.type1 ? detail.type1 : detail.type2;
+    type = detail.type1!=='missing' ? detail.type1 : detail.type2;
     if(type==='directory'){
         type = dircolor(type);
     }
@@ -229,8 +229,8 @@ var printPretty = function(detail, color, dircolor, relativePathMaxLength, fileN
 var getCompareFile = function(detail, state){
     p1 = detail.name1 ? detail.name1 : '';
     p2 = detail.name2 ? detail.name2 : '';
-    var missing1 = detail.type1 ? '' : 'missing';
-    var missing2 = detail.type2 ? '' : 'missing';
+    var missing1 = detail.type1==='missing' ? 'missing' : '';
+    var missing2 = detail.type2==='missing' ? 'missing' : '';
     return util.format('%s%s%s%s%s', missing1, p1, state, missing2, p2);
 }
 
@@ -251,7 +251,7 @@ var printCsv = function(detail, color){
     date2 = detail.date2!=undefined ? detail.date2.toISOString() : '';
 
     var type ='';
-    type = detail.type1 ? detail.type1 : detail.type2;
+    type = detail.type1!=='missing' ? detail.type1 : detail.type2;
 
     var path = detail.relativePath?detail.relativePath:'/';
     var name = (detail.name1?detail.name1:detail.name2);
