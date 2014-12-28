@@ -1,30 +1,33 @@
 {
-  "name": "dir-compare",
-  "version": "0.0.1",
-  "description": "Compare folders",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "todo"
-  },
-  "keywords": [],
-  "dependencies": {
-    "buffertools": "2.1.2",
-    "colors": "1.0.3",
-    "commander": "2.5.0",
-    "minimatch": "2.0.1"
-  },
-  "devDependencies": {
-    "shelljs": "0.3.0",
-    "tar": "1.0.3",
-    "temp": "0.8.1"
-  },
-  "bin": {
-    "dircompare": "dircompare.js"
-  },
-  "scripts": {
-    "test": "node tests/runTests.js"
-  },
-  "author": "",
-  "license": "MIT"
+    "name": "dir-compare",
+    "version": "0.0.1",
+    "description": "Node JS directory compare",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gliviu/dir-compare"
+    },
+    "keywords": ["compare", "directory", "folder"],
+    "dependencies": {
+        "buffertools": "2.1.2",
+        "colors": "1.0.3",
+        "commander": "2.5.0",
+        "minimatch": "2.0.1"
+    },
+    "devDependencies": {
+        "shelljs": "0.3.0",
+        "tar": "1.0.3",
+        "temp": "0.8.1"
+    },
+    "bin": {
+        "dircompare": "dircompare.js"
+    },
+    "scripts": {
+        "test": "node tests/runTests.js"
+    },
+    "author": "Liviu Grigorescu",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/gliviu/dir-compare/issues"
+    }
 }
