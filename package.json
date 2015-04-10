@@ -1,6 +1,6 @@
 {
     "name": "dir-compare",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Node JS directory compare",
     "main": "index.js",
     "repository": {
@@ -9,7 +9,7 @@
     },
     "keywords": ["compare", "directory", "folder"],
     "dependencies": {
-        "buffertools": "2.1.2",
+        "buffer-equal": "0.0.1",
         "colors": "1.0.3",
         "commander": "2.5.0",
         "minimatch": "2.0.1"

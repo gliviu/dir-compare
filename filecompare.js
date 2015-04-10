@@ -1,5 +1,5 @@
 var fs = require('fs');
-var bt = require('buffertools');
+var bufferEqual = require('buffer-equal');
 
 /**
  * Compares two files by content using bufSize as buffer lenth.
@@ -30,7 +30,7 @@ var compareSync = function (path1, path2, bufSize, progressCallback) {
             if (read1 !== read2) {
                 return false;
             }
-            if (!bt.equals(buf1, buf2)) {
+            if (!bufferEqual(buf1, buf2)) {
                 return false;
             }
             len += read1;
