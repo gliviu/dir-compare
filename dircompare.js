@@ -6,6 +6,7 @@ var pth = require('path');
 var fs = require('fs');
 var util = require('util');
 var colors = require('colors');
+var Promise = require('bluebird');
 
 
 program
@@ -25,6 +26,7 @@ program
 .option('-w, --whole-report', 'report - include directories in detailed report')
 .option('--csv', 'report - print details as csv')
 .option('--nocolors', 'don\'t use console colors')
+.option('--async', '[experimental] Use multiple cores. This mode will become default in future versions.')
 ;
 
 program.on('--help', function(){
@@ -67,6 +69,8 @@ var run = function(){
             var cleft = program.nocolors?nocolor:colors.cyan;
             var cright = program.nocolors?nocolor:colors.magenta;
             var cdir = program.nocolors?nocolor:colors.gray;
+            
+            var async = program.async;
 
             var path1 = program.args[0];
             var path2 = program.args[1];
@@ -81,94 +85,104 @@ var run = function(){
             }
             if(!abort){
                 // compare
-                var res = dircompare.compareSync(path1, path2, options);
+            	var comparePromise;
+            	if(async){
+                	comparePromise = dircompare.compare(path1, path2, options);
+            	} else{
+                	comparePromise = new Promise(function(resolve, reject) {
+                		resolve(dircompare.compareSync(path1, path2, options));
+    				})
+            	}
+            	
+            	comparePromise.then(
+						function(res){
+							// PRINT DETAILS
+			                // calculate relative path length for pretty print
+			                var relativePathMaxLength = 0, fileNameMaxLength=0;
+			                if(!program.csv){
+			                    res.diffSet.forEach(function (detail) {
+			                        if(detail.relativePath.length>relativePathMaxLength){
+			                            relativePathMaxLength = detail.relativePath.length;
+			                        }
+			                        var len = getCompareFile(detail, '??').length;
+			                        if(len>fileNameMaxLength){
+			                            fileNameMaxLength = len;
+			                        }
+			                    });
+			                }
 
-                // PRINT DETAILS
-                // calculate relative path length for pretty print
-                var relativePathMaxLength = 0, fileNameMaxLength=0;
-                if(!program.csv){
-                    res.diffSet.forEach(function (detail) {
-                        if(detail.relativePath.length>relativePathMaxLength){
-                            relativePathMaxLength = detail.relativePath.length;
-                        }
-                        var len = getCompareFile(detail, '??').length;
-                        if(len>fileNameMaxLength){
-                            fileNameMaxLength = len;
-                        }
-                    });
-                }
+			                // csv header
+			                if(program.csv){
+			                    console.log('path,name,state,type,size1,size2,date1,date2');
+			                }
+			                var statTotal=0, statEqual=0, statLeft=0, statRight=0, statDistinct=0;
 
-                // csv header
-                if(program.csv){
-                    console.log('path,name,state,type,size1,size2,date1,date2');
-                }
-                var statTotal=0, statEqual=0, statLeft=0, statRight=0, statDistinct=0;
+			                for(var i = 0; i<res.diffSet.length; i++){
+			                    var detail = res.diffSet[i];
+			                    var color, show = true;
 
-                for(var i = 0; i<res.diffSet.length; i++){
-                    var detail = res.diffSet[i];
-                    var color, show = true;
+			                    if(!program.wholeReport){
+			                        // show only files
+			                        var type = detail.type1!=='missing'?detail.type1:detail.type2;
+			                        if(type!=='file'){
+			                            show = false;
+			                        }
+			                    }
+			                    if(show){
+			                        switch (detail.state) {
+			                        case 'equal':
+			                            color = cequal;
+			                            show = program.showAll || program.showEqual?true:false;
+			                            statTotal++;
+			                            statEqual++;
+			                            break;
+			                        case 'left':
+			                            color = cleft;
+			                            show = program.showAll || program.showLeft?true:false; 
+			                            statTotal++;
+			                            statLeft++;
+			                            break;
+			                        case 'right':
+			                            color = cright;
+			                            show = program.showAll || program.showRight?true:false; 
+			                            statTotal++;
+			                            statRight++;
+			                            break;
+			                        case 'distinct':
+			                            color = cdistinct;
+			                            show = program.showAll || program.showDistinct?true:false; 
+			                            statTotal++;
+			                            statDistinct++;
+			                            break;
+			                        default:
+			                            show = true;
+			                        color = colors.gray;
+			                        }
+			                        if(show){
+			                            if(program.csv){
+			                                printCsv(detail, color);
+			                            } else {
+			                                printPretty(detail, color, cdir, relativePathMaxLength, fileNameMaxLength);
+			                            }
+			                        }
+			                    }
+			                }
 
-                    if(!program.wholeReport){
-                        // show only files
-                        var type = detail.type1!=='missing'?detail.type1:detail.type2;
-                        if(type!=='file'){
-                            show = false;
-                        }
-                    }
-                    if(show){
-                        switch (detail.state) {
-                        case 'equal':
-                            color = cequal;
-                            show = program.showAll || program.showEqual?true:false;
-                            statTotal++;
-                            statEqual++;
-                            break;
-                        case 'left':
-                            color = cleft;
-                            show = program.showAll || program.showLeft?true:false; 
-                            statTotal++;
-                            statLeft++;
-                            break;
-                        case 'right':
-                            color = cright;
-                            show = program.showAll || program.showRight?true:false; 
-                            statTotal++;
-                            statRight++;
-                            break;
-                        case 'distinct':
-                            color = cdistinct;
-                            show = program.showAll || program.showDistinct?true:false; 
-                            statTotal++;
-                            statDistinct++;
-                            break;
-                        default:
-                            show = true;
-                        color = colors.gray;
-                        }
-                        if(show){
-                            if(program.csv){
-                                printCsv(detail, color);
-                            } else {
-                                printPretty(detail, color, cdir, relativePathMaxLength, fileNameMaxLength);
-                            }
-                        }
-                    }
-                }
-
-                // PRINT STATISTICS
-                console.log(res.same?cequal('Entries are identical'):cdistinct('Entries are different'));
-                console.log(util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
-                        statTotal,
-                        cequal(statEqual),
-                        cdistinct(statDistinct),
-                        cleft(statLeft),
-                        cright(statRight)
-                ));
-                if(res.same){
-                    process.exit(0);
-                } else{
-                    process.exit(1);
-                }
+			                // PRINT STATISTICS
+			                console.log(res.same?cequal('Entries are identical'):cdistinct('Entries are different'));
+			                console.log(util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
+			                        statTotal,
+			                        cequal(statEqual),
+			                        cdistinct(statDistinct),
+			                        cleft(statLeft),
+			                        cright(statRight)
+			                ));
+			                if(res.same){
+			                    process.exit(0);
+			                } else{
+			                    process.exit(1);
+			                }							
+						});
             } else{
                 process.exit(2);
             }
