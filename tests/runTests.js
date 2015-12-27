@@ -71,7 +71,7 @@ function runTests () {
         }
 
         function onError (err) {
-            console.error('An error occurred:', err)
+            console.error('Error occurred:', err)
         }
 
         function onExtracted () {
@@ -81,7 +81,6 @@ function runTests () {
             test(testDirPath, 'test4', 'd4', 'd4', '-aw');
             test(testDirPath, 'test5', 'd8', 'd9', '-a');
             test(testDirPath, 'test6', 'd8', 'd9', '-aw');
-            test(testDirPath, 'test7', 'd8', 'd9', '-a');
             test(testDirPath, 'test8', 'd1', 'd2', '');
 
             // Filters
@@ -107,7 +106,7 @@ function runTests () {
             // Symlinks
             test(testDirPath, 'test400', 'd13', 'd14', '-awL');
 
-            // Ski subdirs
+            // Skip subdirs
             test(testDirPath, 'test500', 'd1', 'd2', '-aS');
             test(testDirPath, 'test501', 'd1', 'd2', '-awS');
 

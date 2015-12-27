@@ -84,7 +84,7 @@ var run = function(){
             	} else{
                 	comparePromise = new Promise(function(resolve, reject) {
                 		resolve(dircompare.compareSync(path1, path2, options));
-    				})
+    				});
             	}
             	
             	comparePromise.then(
@@ -97,6 +97,7 @@ var run = function(){
 			                    process.exit(1);
 			                }							
 						});
+            	        // TODO: .catch(function(error){print(error); process.exit(2)})
             } else{
                 process.exit(2);
             }

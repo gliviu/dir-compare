@@ -19,7 +19,8 @@
         "shelljs": "0.3.0",
         "tar": "1.0.3",
         "temp": "0.8.1",
-        "istanbul": "0.4.1"
+        "istanbul": "0.4.1",
+        "memory-streams": "0.1.0"
     },
     "bin": {
         "dircompare": "dircompare.js"

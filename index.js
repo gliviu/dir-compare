@@ -99,6 +99,8 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
 
 // TODO: provide async file comparison
 // TODO: add option to get only statistics (not dilenames, ...) for memory optimisation.
+// TODO: remove all 'debugger', 'console.'
+// TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
 var compareAsync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
     'use strict';
     var res = {
@@ -130,7 +132,6 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
 var buildDiffSet = function(res, rawDiffSet, resultBuilderCallback){
 	rawDiffSet.forEach(function(rawDiff){
 		if(!Array.isArray(rawDiff)){
-			debugger
 			resultBuilderCallback(rawDiff.entry1, rawDiff.entry2, rawDiff.state, rawDiff.level, rawDiff.relativePath, rawDiff.options, res);
 		} else{
 			buildDiffSet(res, rawDiff, resultBuilderCallback)
