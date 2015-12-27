@@ -30,49 +30,49 @@ function passed (value) {
 
 var tests = [
              {
-                 name: 'test1', path1: 'd1', path2: 'd2',
+                 name: 'test001_1', path1: 'd1', path2: 'd2',
                  options: {compareSize: true,},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw',
                  exitCode: 1,
              },
              {
-                 name: 'test2', path1: 'd1', path2: 'd2',
+                 name: 'test001_2', path1: 'd1', path2: 'd2',
                  options: {compareSize: true,},
                  displayOptions: {showAll: true, wholeReport: true, csv: true},
                  commandLineOptions: '-aw --csv',
                  exitCode: 1,
              },
              {
-                 name: 'test3', path1: 'd3', path2: 'd4',
+                 name: 'test001_3', path1: 'd3', path2: 'd4',
                  options: {compareSize: true,},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw',
                  exitCode: 1,
              },
              {
-                 name: 'test4', path1: 'd4', path2: 'd4',
+                 name: 'test001_4', path1: 'd4', path2: 'd4',
                  options: {compareSize: true,},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw',
                  exitCode: 0,
              },
              {
-                 name: 'test5', path1: 'd8', path2: 'd9',
+                 name: 'test001_5', path1: 'd8', path2: 'd9',
                  options: {compareSize: true,},
                  displayOptions: {showAll: true},
                  commandLineOptions: '-a',
                  exitCode: 1,
              },
              {
-                 name: 'test6', path1: 'd8', path2: 'd9',
+                 name: 'test001_6', path1: 'd8', path2: 'd9',
                  options: {compareSize: true,},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw',
                  exitCode: 1,
              },
              {
-                 name: 'test8', path1: 'd1', path2: 'd2',
+                 name: 'test001_8', path1: 'd1', path2: 'd2',
                  options: {compareSize: true,},
                  displayOptions: {},
                  commandLineOptions: '',
@@ -83,49 +83,49 @@ var tests = [
              // Filters                                        //
              ////////////////////////////////////////////////////
              {
-                 name: 'test100', path1: 'd6', path2: 'd7',
+                 name: 'test002_0', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, includeFilter: '*.e1'},
                  displayOptions: {showAll: true},
                  commandLineOptions: '-a -f *.e1',
                  exitCode: 1,
              },
              {
-                 name: 'test101', path1: 'd1', path2: 'd10',
+                 name: 'test002_1', path1: 'd1', path2: 'd10',
                  options: {compareSize: true, excludeFilter: '.x'},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw -x .x',
                  exitCode: 1,
              },
              {
-                 name: 'test102', path1: 'd6', path2: 'd7',
+                 name: 'test002_2', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, includeFilter: '*.e1'},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw -f *.e1',
                  exitCode: 1,
              },
              {
-                 name: 'test103', path1: 'd1', path2: 'd2',
+                 name: 'test002_3', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, excludeFilter: '*.txt'},
                  displayOptions: {showAll: true},
                  commandLineOptions: '-a -x *.txt',
                  exitCode: 1,
              },
              {
-                 name: 'test104', path1: 'd1', path2: 'd2',
+                 name: 'test002_4', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, excludeFilter: '*.txt'},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw -x *.txt',
                  exitCode: 1,
              },
              {
-                 name: 'test105', path1: 'd6', path2: 'd7',
+                 name: 'test002_5', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, excludeFilter: '*.e1,*.e2'},
                  displayOptions: {showAll: true},
                  commandLineOptions: '-a -x *.e1,*.e2',
                  exitCode: 1,
              },
              {
-                 name: 'test106', path1: 'd6', path2: 'd7',
+                 name: 'test002_6', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, excludeFilter: '*.e1,*.e2'},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw -x *.e1,*.e2',
@@ -137,14 +137,14 @@ var tests = [
              // Compare by content                             //
              ////////////////////////////////////////////////////
              {
-                 name: 'test200', path1: 'd11', path2: 'd12',
+                 name: 'test003_0', path1: 'd11', path2: 'd12',
                  options: {compareSize: true, compareContent: true},
                  displayOptions: {showAll: true},
                  commandLineOptions: '-ac',
                  exitCode: 1,
              },
              {
-                 name: 'test201', path1: 'd1', path2: 'd2',
+                 name: 'test003_1', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, compareContent: true},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-awc',
@@ -154,31 +154,31 @@ var tests = [
              // Exit code                                      //
              ////////////////////////////////////////////////////
              {
-                 name: 'test300', path1: 'd11', path2: 'd11',
+                 name: 'test004_0', path1: 'd11', path2: 'd11',
                  onlyCommandLine: true,
                  commandLineOptions: '',
                  exitCode: 0,
              },
              {
-                 name: 'test301', path1: 'd11', path2: 'd12',
+                 name: 'test004_1', path1: 'd11', path2: 'd12',
                  onlyCommandLine: true,
                  commandLineOptions: '-c',
                  exitCode: 1,
              },
              {
-                 name: 'test302', path1: 'd11', path2: 'd11',
+                 name: 'test004_2', path1: 'd11', path2: 'd11',
                  onlyCommandLine: true,
                  commandLineOptions: '--WRONGCMD ',
                  exitCode: 2,
              },
              {
-                 name: 'test303', path1: 'd11', path2: '',
+                 name: 'test004_3', path1: 'd11', path2: '',
                  onlyCommandLine: true,
                  commandLineOptions: '',
                  exitCode: 2,
              },
              {
-                 name: 'test304', path1: 'd11', path2: 'miss',
+                 name: 'test004_4', path1: 'd11', path2: 'miss',
                  onlyCommandLine: true,
                  commandLineOptions: '',
                  exitCode: 2,
@@ -188,7 +188,7 @@ var tests = [
              // Symlinks                                      //
              ////////////////////////////////////////////////////
              {
-                 name: 'test400', path1: 'd13', path2: 'd14',
+                 name: 'test005_0', path1: 'd13', path2: 'd14',
                  options: {compareSize: true, skipSymlinks: true},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-awL',
@@ -199,14 +199,14 @@ var tests = [
              // Skip subdirs                                   //
              ////////////////////////////////////////////////////
              {
-                 name: 'test500', path1: 'd1', path2: 'd2',
+                 name: 'test006_0', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, skipSubdirs: true},
                  displayOptions: {showAll: true},
                  commandLineOptions: '-aS',
                  exitCode: 1,
              },
              {
-                 name: 'test501', path1: 'd1', path2: 'd2',
+                 name: 'test006_1', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, skipSubdirs: true},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-awS',
@@ -216,14 +216,14 @@ var tests = [
              // Ignore case                                    //
              ////////////////////////////////////////////////////
              {
-                 name: 'test600', path1: 'd15', path2: 'd16',
+                 name: 'test007_0', path1: 'd15', path2: 'd16',
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-awi',
                  exitCode: 0,
              },
              {
-                 name: 'test601', path1: 'd15', path2: 'd16',
+                 name: 'test007_1', path1: 'd15', path2: 'd16',
                  options: {compareSize: true, ignoreCase: false},
                  displayOptions: {showAll: true, wholeReport: true},
                  commandLineOptions: '-aw',
