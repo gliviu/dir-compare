@@ -13,17 +13,48 @@ var compareSync = require('../index').compareSync;
 var compareAsync = require('../index').compare;
 
 var count = 0, failed = 0, successful = 0;
+var syncCount = 0, syncFailed = 0, syncSuccessful = 0;
+var asyncCount = 0, asyncFailed = 0, asyncSuccessful = 0;
+var cmdLineCount = 0, cmdLineFailed = 0, cmdLineSuccessful = 0;
 
 //Automatically track and cleanup files at exit
 temp.track();
 
-function passed (value) {
+function passed (value, type) {
     count++;
     if (value) {
         successful++;
     } else {
         failed++;
     }
+    
+    if(type==='sync'){
+        syncCount++;
+        if (value) {
+            syncSuccessful++;
+        } else {
+            syncFailed++;
+        }
+    }
+    
+    if(type==='async'){
+        asyncCount++;
+        if (value) {
+            asyncSuccessful++;
+        } else {
+            asyncFailed++;
+        }
+    }
+    
+    if(type==='cmdLine'){
+        cmdLineCount++;
+        if (value) {
+            cmdLineSuccessful++;
+        } else {
+            cmdLineFailed++;
+        }
+    }
+    
     return value ? 'Passed'.green : '!!!!FAILED!!!!'.yellow;
 }
 
@@ -256,7 +287,7 @@ var testSync = function(test, testDirPath){
                 }
                 var res = output === expected;
 
-                console.log(test.name + ' sync: ' + passed(res));
+                console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
                 // Ignore error
                 if (test.name == 'test1') {
@@ -281,7 +312,7 @@ var testAsync = function(test, testDirPath){
                 }
                 var res = output === expected;
 
-                console.log(test.name + ' async: ' + passed(res));
+                console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
                 // Ignore error
                 if (test.name == 'test1') {
@@ -316,7 +347,7 @@ function testCommandLineInternal(test, testDirPath, async) {
             res = (output === expectedOutput) && (exitCode === expectedExitCode);
         }
 
-        console.log(test.name + ' command line ' + (async?'async':'sync') + ': ' + passed(res));
+        console.log(test.name + ' command line ' + (async?'async':'sync') + ': ' + passed(res, 'cmdLine'));
         resolve();
     })
 }
@@ -339,21 +370,30 @@ var runTests = function () {
         }
 
         function onExtracted () {
-            // Run tests sync
-            var syncTestsPromises = [];
-            tests.filter(function(test){return !test.onlyCommandLine;})
-            .forEach(function(test){
-                syncTestsPromises.push(testSync(test, testDirPath));
-            });
-
-            // Run tests async
-            Promise.all(syncTestsPromises).then(function(){
+            Promise.resolve(tests).then(function(tests){
+                // Run sync tests
+                var syncTestsPromises = [];
+                tests.filter(function(test){return !test.onlyCommandLine;})
+                .forEach(function(test){
+                    syncTestsPromises.push(testSync(test, testDirPath));
+                });
+                return Promise.all(syncTestsPromises);
+            }).then(function(){
+                console.log();
+                console.log('Sync tests: ' + syncCount + ', failed: ' + syncFailed.toString().yellow + ', succeeded: ' + syncSuccessful.toString().green);
+                console.log();
+            }).then(function(){
+                // Run async tests
                 var asyncTestsPromises = [];
                 tests.filter(function(test){return !test.onlyCommandLine;})
                 .forEach(function(test){
                     asyncTestsPromises.push(testAsync(test, testDirPath));
                 });
                 return Promise.all(asyncTestsPromises);
+            }).then(function(){
+                console.log();
+                console.log('Async tests: ' + asyncCount + ', failed: ' + asyncFailed.toString().yellow + ', succeeded: ' + asyncSuccessful.toString().green);
+                console.log();
             }).then(function(){
                 // Run command line tests
                 var commandLinePromises = [];
@@ -365,7 +405,10 @@ var runTests = function () {
                 return Promise.all(commandLinePromises);
             }).then(function(){
                 console.log();
-                console.log('Tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
+                console.log('Command line tests: ' + cmdLineCount + ', failed: ' + cmdLineFailed.toString().yellow + ', succeeded: ' + cmdLineSuccessful.toString().green);
+            }).then(function(){
+                console.log();
+                console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
             });
         }
         var extractor = tar.Extract({
