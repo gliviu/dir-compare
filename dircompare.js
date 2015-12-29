@@ -61,6 +61,7 @@ var run = function(){
             options.ignoreCase = program.ignoreCase;
             options.includeFilter = program.filter;
             options.excludeFilter = program.exclude;
+            options.noDiffSet = !(program.showAll || program.showEqual || program.showLeft || program.showRight || program.showDistinct);
 
             
             var async = program.async;

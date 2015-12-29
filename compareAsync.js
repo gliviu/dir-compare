@@ -113,7 +113,8 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			        }
 
 			        // process entry
-			        if (cmp == 0) {
+			        if (cmp === 0) {
+			            // Both left/right exist and have the same name
 			            if (type1 === type2) {
 			                var same;
 			                if(type1==='file'){
@@ -121,16 +122,28 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			                } else{
 			                    same = true;
 			                }
-			                resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+			                if(!options.noDiffSet){
+			                    resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+			                }
 			                same ? statistics.equal++ : statistics.distinct++;
+			                if(type1==='file'){
+			                    same ? statistics.equalFiles++ : statistics.distinctFiles++;
+			                } else{
+			                    same ? statistics.equalDirs++ : statistics.distinctDirs++;
+			                }
 			            } else {
-			                resultBuilderCallback(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
-			                statistics.distinct++;
+			                // File and directory with same name
+			                if(!options.noDiffSet){
+			                    resultBuilderCallback(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
+			                }
+			                statistics.distinct+=2;
+			                statistics.distinctFiles++;
+			                statistics.distinctDirs++;
 			            }
 			            i1++;
 			            i2++;
 			            if(!options.skipSubdirs){
-			                if (type1 == 'directory' && type2 === 'directory') {
+			                if (type1 === 'directory' && type2 === 'directory') {
 			                	var subDiffSet = [];
 			                	diffSet.push(subDiffSet);
 			                	comparePromises.push(compare(p1, p2, level + 1,
@@ -156,10 +169,18 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			                }
 			            }
 			        } else if (cmp < 0) {
-			        	resultBuilderCallback(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
+			            // Right missing
+		                if(!options.noDiffSet){
+		                    resultBuilderCallback(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
+		                }
 			            statistics.left++;
+			            if(type1==='file'){
+			                statistics.leftFiles++;
+			            } else{
+			                statistics.leftDirs++;
+			            }
 			            i1++;
-			            if (type1 == 'directory' && !options.skipSubdirs) {
+			            if (type1 === 'directory' && !options.skipSubdirs) {
 		                	var subDiffSet = [];
 		                	diffSet.push(subDiffSet);
 			            	comparePromises.push(compare(p1, undefined,
@@ -169,12 +190,20 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			            			statistics, subDiffSet));
 			            }
 			        } else {
-	                	var subDiffSet = [];
-	                	diffSet.push(subDiffSet);
-	                	resultBuilderCallback(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet);
+			            // Left missing
+		                if(!options.noDiffSet){
+		                    var subDiffSet = [];
+		                    diffSet.push(subDiffSet);
+		                    resultBuilderCallback(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet);
+		                }
 			            statistics.right++;
+			            if(type2==='file'){
+			                statistics.rightFiles++;
+			            } else{
+			                statistics.rightDirs++;
+			            }
 			            i2++;
-			            if (type2 == 'directory' && !options.skipSubdirs) {
+			            if (type2 === 'directory' && !options.skipSubdirs) {
 		                	var subDiffSet = [];
 		                	diffSet.push(subDiffSet);
 			            	comparePromises.push(compare(undefined, p2,

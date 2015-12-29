@@ -42,38 +42,6 @@ var defaultResultBuilderCallback = function (entry1, entry2, state, level, relat
     });
 }
 
-/**
- * Synchronous comparision. 
- * Output format:
- *  distinct: number of distinct entries
- *  equal: number of equal entries
- *  left: number of entries only in path1
- *  right: number of entries only in path2
- *  differences: total number of differences (distinct+left+right)
- *  same: true if directories are identical
- *  diffSet - List of changes
- *      path1: absolute path not including file/directory name,
- *      path2: absolute path not including file/directory name,
- *      relativePath: common path relative to root,
- *      name1: file/directory name
- *      name2: file/directory name
- *      state: one of equal, left, right, distinct,
- *      type1: one of missing, file, directory
- *      type2: one of missing, file, directory
- *      size1: file size
- *      size2: file size
- *      date1: modification date (stat.mdate)
- *      date2: modification date (stat.mdate)
- *      level: depth
- * Options:
- *  compareSize: true/false - compares files by size
- *  compareContent: true/false - compares files by content
- *  skipSubdirs: true/false - skips sub directories
- *  skipSymlinks: true/false - skips symbolic links
- *  ignoreCase: true/false - ignores case when comparing names.
- *  includeFilter: file name filter
- *  excludeFilter: file/directory name exclude filter
- */
 var compareSync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
     'use strict';
     var statistics = {
@@ -81,6 +49,14 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
         equal : 0,
         left : 0,
         right : 0,
+        distinctFiles : 0,
+        equalFiles : 0,
+        leftFiles : 0,
+        rightFiles : 0,
+        distinctDirs : 0,
+        equalDirs : 0,
+        leftDirs : 0,
+        rightDirs : 0,
         same : undefined
     };
     var diffSet = [];
@@ -109,6 +85,14 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
 		equal : 0,
 		left : 0,
 		right : 0,
+        distinctFiles : 0,
+        equalFiles : 0,
+        leftFiles : 0,
+        rightFiles : 0,
+        distinctDirs : 0,
+        equalDirs : 0,
+        leftDirs : 0,
+        rightDirs : 0,
 		same : undefined,
 		diffSet: [],
     };
@@ -144,6 +128,39 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
 }
 
 
+/**
+ * Options:
+ *  compareSize: true/false - Compares files by size. Defaults to 'false'.
+ *  compareContent: true/false - Compares files by content. Defaults to 'false'.
+ *  skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
+ *  skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
+ *  ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
+ *  noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
+ *  includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ *  
+ * Output format:
+ *  distinct: number of distinct entries
+ *  equal: number of equal entries
+ *  left: number of entries only in path1
+ *  right: number of entries only in path2
+ *  differences: total number of differences (distinct+left+right)
+ *  same: true if directories are identical
+ *  diffSet - List of changes (present if Options.noDiffSet is false)
+ *      path1: absolute path not including file/directory name,
+ *      path2: absolute path not including file/directory name,
+ *      relativePath: common path relative to root,
+ *      name1: file/directory name
+ *      name2: file/directory name
+ *      state: one of equal, left, right, distinct,
+ *      type1: one of missing, file, directory
+ *      type2: one of missing, file, directory
+ *      size1: file size
+ *      size2: file size
+ *      date1: modification date (stat.mdate)
+ *      date2: modification date (stat.mdate)
+ *      level: depth
+ */
 module.exports = {
     compareSync : compareSync,
     compare : compareAsync
