@@ -25,7 +25,7 @@ program
 .option('-w, --whole-report', 'report - include directories in detailed report')
 .option('--csv', 'report - print details as csv')
 .option('--nocolors', 'don\'t use console colors')
-.option('--async', '[experimental] Use multiple cores. This mode will become default in future versions.')
+.option('--async', 'Make use of multiple cores')
 ;
 
 program.on('--help', function(){

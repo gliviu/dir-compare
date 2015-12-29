@@ -51,7 +51,7 @@ var getEntries = function (path, options) {
 /**
  * Compares two directories synchronously.
  */
-var compare = function (path1, path2, level, relativePath, options, compareFileCallback, resultBuilderCallback, result) {
+var compare = function (path1, path2, level, relativePath, options, compareFileCallback, resultBuilderCallback, statistics, diffSet) {
     var entries1 = getEntries(path1, options);
     var entries2 = getEntries(path2, options);
     var i1 = 0, i2 = 0;
@@ -91,36 +91,36 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
                 } else{
                     same = true;
                 }
-                resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, result);
-                same ? result.equal++ : result.distinct++;
+                resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet);
+                same ? statistics.equal++ : statistics.distinct++;
             } else {
-                resultBuilderCallback(entry1, entry2, 'distinct', level, relativePath, options, result);
-                result.distinct++;
+                resultBuilderCallback(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
+                statistics.distinct++;
             }
             i1++;
             i2++;
             if(!options.skipSubdirs){
                 if (type1 == 'directory' && type2 === 'directory') {
-                    compare(p1, p2, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, result);
+                    compare(p1, p2, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
                 } else if (type1 === 'directory') {
-                    compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, result);
+                    compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
                 } else if (type2 === 'directory') {
-                    compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, compareFileCallback, resultBuilderCallback, result);
+                    compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
                 }
             }
         } else if (cmp < 0) {
-            resultBuilderCallback(entry1, undefined, 'left', level, relativePath, options, result);
-            result.left++;
+            resultBuilderCallback(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
+            statistics.left++;
             i1++;
             if (type1 == 'directory' && !options.skipSubdirs) {
-                compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, result);
+                compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
             }
         } else {
-            resultBuilderCallback(undefined, entry2, 'right', level, relativePath, options, result);
-            result.right++;
+            resultBuilderCallback(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet);
+            statistics.right++;
             i2++;
             if (type2 == 'directory' && !options.skipSubdirs) {
-                compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, compareFileCallback, resultBuilderCallback, result);
+                compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
             }
         }
     }

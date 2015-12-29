@@ -24,8 +24,8 @@ var defaultCompareFileCallback = function (filePath1, fileStat1, filePath2, file
 /**
  * Default result builder.
  */
-var defaultResultBuilderCallback = function (entry1, entry2, state, level, relativePath, options, result) {
-    result.diffSet.push({
+var defaultResultBuilderCallback = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet) {
+    diffSet.push({
         path1 : entry1 ? pathUtils.dirname(entry1.path) : undefined,
         path2 : entry2 ? pathUtils.dirname(entry2.path) : undefined,
         relativePath : relativePath,
@@ -76,25 +76,26 @@ var defaultResultBuilderCallback = function (entry1, entry2, state, level, relat
  */
 var compareSync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
     'use strict';
-    var res = {
+    var statistics = {
         distinct : 0,
         equal : 0,
         left : 0,
         right : 0,
-        same : undefined,
-        diffSet : []
+        same : undefined
     };
+    var diffSet = [];
     if (!resultBuilderCallback) {
         resultBuilderCallback = defaultResultBuilderCallback;
     }
     if (!compareFileCallback) {
         compareFileCallback = defaultCompareFileCallback;
     }
-    compareSyncInternal(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, res);
-    res.differences = res.distinct + res.left + res.right;
-    res.same = res.differences ? false : true;
+    compareSyncInternal(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
+    statistics.differences = statistics.distinct + statistics.left + statistics.right;
+    statistics.same = statistics.differences ? false : true;
+    statistics.diffSet = diffSet;
 
-    return res;
+    return statistics;
 };
 
 // TODO: provide async file comparison
@@ -103,7 +104,7 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
 // TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
 var compareAsync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
     'use strict';
-    var res = {
+    var statistics = {
 		distinct : 0,
 		equal : 0,
 		left : 0,
@@ -117,24 +118,27 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
     if (!compareFileCallback) {
         compareFileCallback = defaultCompareFileCallback;
     }
-    var rawDiffSet = [];
+    var asyncDiffSet = [];
     return compareAsyncInternal(path1, path2, 0, '',
-    		options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, res, rawDiffSet).then(
-    				function(result){
-    					res.differences = res.distinct + res.left + res.right;
-    					res.same = res.differences ? false : true;
-    					
-    					buildDiffSet(res, rawDiffSet, resultBuilderCallback);
-    					return res;
+    		options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, asyncDiffSet).then(
+    				function(){
+    					statistics.differences = statistics.distinct + statistics.left + statistics.right;
+    					statistics.same = statistics.differences ? false : true;
+    					var diffSet = [];
+    					rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
+    					statistics.diffSet = diffSet;
+    					return statistics;
     				});
 };
 
-var buildDiffSet = function(res, rawDiffSet, resultBuilderCallback){
-	rawDiffSet.forEach(function(rawDiff){
+// Async diffsets are kept into recursive structures.
+// This method transforms them into one dimensional arrays. 
+var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
+	asyncDiffSet.forEach(function(rawDiff){
 		if(!Array.isArray(rawDiff)){
-			resultBuilderCallback(rawDiff.entry1, rawDiff.entry2, rawDiff.state, rawDiff.level, rawDiff.relativePath, rawDiff.options, res);
+		    diffSet.push(rawDiff);
 		} else{
-			buildDiffSet(res, rawDiff, resultBuilderCallback)
+		    rebuildAsyncDiffSet(statistics, rawDiff, diffSet);
 		}
 	});
 }

@@ -78,7 +78,7 @@ var buildEntry = function(path, entryName){
 /**
  * Compares two directories asynchronously.
  */
-var compare = function (path1, path2, level, relativePath, options, compareFileCallback, resultBuilderCallback, res, diffSet) {
+var compare = function (path1, path2, level, relativePath, options, compareFileCallback, resultBuilderCallback, statistics, diffSet) {
 	return Promise.all([getEntries(path1, options), getEntries(path2, options)]).then(
 			function(entriesResult){
 				var entries1 = entriesResult[0];
@@ -121,11 +121,11 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			                } else{
 			                    same = true;
 			                }
-			                appendEntry(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, diffSet);
-			                same ? res.equal++ : res.distinct++;
+			                resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+			                same ? statistics.equal++ : statistics.distinct++;
 			            } else {
-			            	appendEntry(entry1, entry2, 'distinct', level, relativePath, options, diffSet);
-			                res.distinct++;
+			                resultBuilderCallback(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
+			                statistics.distinct++;
 			            }
 			            i1++;
 			            i2++;
@@ -136,7 +136,7 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			                	comparePromises.push(compare(p1, p2, level + 1,
 			                			relativePath + '/' + entry1.name,
 			                			options, compareFileCallback,
-			                			resultBuilderCallback, res, subDiffSet));
+			                			resultBuilderCallback, statistics, subDiffSet));
 			                } else if (type1 === 'directory') {
 			                	var subDiffSet = [];
 			                	diffSet.push(subDiffSet);
@@ -144,7 +144,7 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			                			level + 1, relativePath + '/'
 			                			+ entry1.name, options,
 			                			compareFileCallback,
-			                			resultBuilderCallback, res, subDiffSet));
+			                			resultBuilderCallback, statistics, subDiffSet));
 			                } else if (type2 === 'directory') {
 			                	var subDiffSet = [];
 			                	diffSet.push(subDiffSet);
@@ -152,12 +152,12 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			                			level + 1, relativePath + '/'
 			                			+ entry2.name, options,
 			                			compareFileCallback,
-			                			resultBuilderCallback, res, subDiffSet));
+			                			resultBuilderCallback, statistics, subDiffSet));
 			                }
 			            }
 			        } else if (cmp < 0) {
-			        	appendEntry(entry1, undefined, 'left', level, relativePath, options, diffSet);
-			            res.left++;
+			        	resultBuilderCallback(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
+			            statistics.left++;
 			            i1++;
 			            if (type1 == 'directory' && !options.skipSubdirs) {
 		                	var subDiffSet = [];
@@ -166,13 +166,13 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			            			level + 1,
 			            			relativePath + '/' + entry1.name, options,
 			            			compareFileCallback, resultBuilderCallback,
-			            			res, subDiffSet));
+			            			statistics, subDiffSet));
 			            }
 			        } else {
 	                	var subDiffSet = [];
 	                	diffSet.push(subDiffSet);
-			        	appendEntry(undefined, entry2, 'right', level, relativePath, options, subDiffSet);
-			            res.right++;
+	                	resultBuilderCallback(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet);
+			            statistics.right++;
 			            i2++;
 			            if (type2 == 'directory' && !options.skipSubdirs) {
 		                	var subDiffSet = [];
@@ -181,24 +181,12 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			            			level + 1,
 			            			relativePath + '/' + entry2.name, options,
 			            			compareFileCallback, resultBuilderCallback,
-			            			res, subDiffSet));
+			            			statistics, subDiffSet));
 			            }
 			        }
 			    }
 			    return Promise.all(comparePromises);
 			});
 };
-
-var appendEntry = function (entry1, entry2, state, level, relativePath, options, diffSet) {
-	if(diffSet===undefined) debugger
-    diffSet.push({
-    	entry1:entry1,
-    	entry2:entry2,
-    	state:state,
-    	level:level,
-    	relativePath:relativePath,
-    	options:options
-    });
-}
 
 module.exports = compare;
