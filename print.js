@@ -41,8 +41,6 @@ var print = function(res, writer, program){
     if(program.csv){
         writer.write('path,name,state,type,size1,size2,date1,date2\n');
     }
-    var statTotal=0, statEqual=0, statLeft=0, statRight=0, statDistinct=0;
-
     if(res.diffSet){
         for(var i = 0; i<res.diffSet.length; i++){
             var detail = res.diffSet[i];
@@ -60,26 +58,18 @@ var print = function(res, writer, program){
                 case 'equal':
                     color = cequal;
                     show = program.showAll || program.showEqual?true:false;
-                    statTotal++;
-                    statEqual++;
                     break;
                 case 'left':
                     color = cleft;
                     show = program.showAll || program.showLeft?true:false; 
-                    statTotal++;
-                    statLeft++;
                     break;
                 case 'right':
                     color = cright;
                     show = program.showAll || program.showRight?true:false; 
-                    statTotal++;
-                    statRight++;
                     break;
                 case 'distinct':
                     color = cdistinct;
                     show = program.showAll || program.showDistinct?true:false; 
-                    statTotal++;
-                    statDistinct++;
                     break;
                 default:
                     show = true;
@@ -97,27 +87,27 @@ var print = function(res, writer, program){
     }
 
     // PRINT STATISTICS
-    var statTotal2, statEqual2, statLeft2, statRight2, statDistinct2;
+    var statTotal, statEqual, statLeft, statRight, statDistinct;
     if(program.wholeReport){
-        statTotal2 = res.equal+res.left+res.right+res.distinct;
-        statEqual2 = res.equal;
-        statLeft2 = res.left;
-        statRight2 = res.right;
-        statDistinct2 = res.distinct;
+        statTotal = res.equal+res.left+res.right+res.distinct;
+        statEqual = res.equal;
+        statLeft = res.left;
+        statRight = res.right;
+        statDistinct = res.distinct;
     } else{
-        statTotal2 = res.equalFiles+res.leftFiles+res.rightFiles+res.distinctFiles;
-        statEqual2 = res.equalFiles;
-        statLeft2 = res.leftFiles;
-        statRight2 = res.rightFiles;
-        statDistinct2 = res.distinctFiles;
+        statTotal = res.equalFiles+res.leftFiles+res.rightFiles+res.distinctFiles;
+        statEqual = res.equalFiles;
+        statLeft = res.leftFiles;
+        statRight = res.rightFiles;
+        statDistinct = res.distinctFiles;
     }
     writer.write(res.same?cequal('Entries are identical\n'):cdistinct('Entries are different\n'));
     writer.write(util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s\n',
-            statTotal2,
-            cequal(statEqual2),
-            cdistinct(statDistinct2),
-            cleft(statLeft2),
-            cright(statRight2)
+            statTotal,
+            cequal(statEqual),
+            cdistinct(statDistinct),
+            cleft(statLeft),
+            cright(statRight)
     ));
 }
 

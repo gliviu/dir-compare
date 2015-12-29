@@ -59,7 +59,10 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
         rightDirs : 0,
         same : undefined
     };
-    var diffSet = [];
+    var diffSet;
+    if(!options.noDiffSet){
+        diffSet = [];
+    }
     if (!resultBuilderCallback) {
         resultBuilderCallback = defaultResultBuilderCallback;
     }
@@ -68,6 +71,8 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
     }
     compareSyncInternal(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
     statistics.differences = statistics.distinct + statistics.left + statistics.right;
+    statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
+    statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs;
     statistics.same = statistics.differences ? false : true;
     statistics.diffSet = diffSet;
 
@@ -78,6 +83,7 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
 // TODO: add option to get only statistics (not dilenames, ...) for memory optimisation.
 // TODO: remove all 'debugger', 'console.'
 // TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
+// TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
 var compareAsync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
     'use strict';
     var statistics = {
@@ -93,8 +99,7 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
         equalDirs : 0,
         leftDirs : 0,
         rightDirs : 0,
-		same : undefined,
-		diffSet: [],
+		same : undefined
     };
     if (!resultBuilderCallback) {
         resultBuilderCallback = defaultResultBuilderCallback;
@@ -102,15 +107,22 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
     if (!compareFileCallback) {
         compareFileCallback = defaultCompareFileCallback;
     }
-    var asyncDiffSet = [];
+    var asyncDiffSet;
+    if(!options.noDiffSet){
+        asyncDiffSet = [];
+    }
     return compareAsyncInternal(path1, path2, 0, '',
     		options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, asyncDiffSet).then(
     				function(){
-    					statistics.differences = statistics.distinct + statistics.left + statistics.right;
+                        statistics.differences = statistics.distinct + statistics.left + statistics.right;
+                        statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
+                        statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs;
     					statistics.same = statistics.differences ? false : true;
-    					var diffSet = [];
-    					rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
-    					statistics.diffSet = diffSet;
+    				    if(!options.noDiffSet){
+    				        var diffSet = [];
+    				        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
+    				        statistics.diffSet = diffSet;
+    				    }
     					return statistics;
     				});
 };
@@ -145,6 +157,16 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *  left: number of entries only in path1
  *  right: number of entries only in path2
  *  differences: total number of differences (distinct+left+right)
+ *  distinctFiles: number of distinct files
+ *  equalFiles: number of equal files
+ *  leftFiles: number of files only in path1
+ *  rightFiles: number of files only in path2
+ *  differencesFiles: total number of different files (distinctFiles+leftFiles+rightFiles)
+ *  distinctDirs: number of distinct directories
+ *  equalDirs: number of equal directories
+ *  leftDirs: number of directories only in path1
+ *  rightDirs: number of directories only in path2
+ *  differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
  *  same: true if directories are identical
  *  diffSet - List of changes (present if Options.noDiffSet is false)
  *      path1: absolute path not including file/directory name,

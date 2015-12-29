@@ -144,23 +144,32 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			            i2++;
 			            if(!options.skipSubdirs){
 			                if (type1 === 'directory' && type2 === 'directory') {
-			                	var subDiffSet = [];
-			                	diffSet.push(subDiffSet);
+			                	var subDiffSet;
+		                        if(!options.noDiffSet){
+		                            subDiffSet = [];
+		                            diffSet.push(subDiffSet);
+		                        }
 			                	comparePromises.push(compare(p1, p2, level + 1,
 			                			relativePath + '/' + entry1.name,
 			                			options, compareFileCallback,
 			                			resultBuilderCallback, statistics, subDiffSet));
 			                } else if (type1 === 'directory') {
-			                	var subDiffSet = [];
-			                	diffSet.push(subDiffSet);
+			                	var subDiffSet;
+                                if(!options.noDiffSet){
+                                    subDiffSet = [];
+                                    diffSet.push(subDiffSet);
+                                }
 			                	comparePromises.push(compare(p1, undefined,
 			                			level + 1, relativePath + '/'
 			                			+ entry1.name, options,
 			                			compareFileCallback,
 			                			resultBuilderCallback, statistics, subDiffSet));
 			                } else if (type2 === 'directory') {
-			                	var subDiffSet = [];
-			                	diffSet.push(subDiffSet);
+			                	var subDiffSet;
+                                if(!options.noDiffSet){
+                                    subDiffSet = [];
+                                    diffSet.push(subDiffSet);
+                                }
 			                	comparePromises.push(compare(undefined, p2,
 			                			level + 1, relativePath + '/'
 			                			+ entry2.name, options,
@@ -181,8 +190,11 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			            }
 			            i1++;
 			            if (type1 === 'directory' && !options.skipSubdirs) {
-		                	var subDiffSet = [];
-		                	diffSet.push(subDiffSet);
+		                	var subDiffSet;
+	                        if(!options.noDiffSet){
+	                            subDiffSet = [];
+	                            diffSet.push(subDiffSet);
+	                        }
 			            	comparePromises.push(compare(p1, undefined,
 			            			level + 1,
 			            			relativePath + '/' + entry1.name, options,
@@ -204,8 +216,11 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
 			            }
 			            i2++;
 			            if (type2 === 'directory' && !options.skipSubdirs) {
-		                	var subDiffSet = [];
-		                	diffSet.push(subDiffSet);
+		                	var subDiffSet;
+		                	if(!options.noDiffSet){
+		                	    subDiffSet = [];
+		                	    diffSet.push(subDiffSet);
+		                	}
 			            	comparePromises.push(compare(undefined, p2,
 			            			level + 1,
 			            			relativePath + '/' + entry2.name, options,
