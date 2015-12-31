@@ -70,10 +70,7 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
         compareFileCallback = defaultCompareFileCallback;
     }
     compareSyncInternal(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
-    statistics.differences = statistics.distinct + statistics.left + statistics.right;
-    statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
-    statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs;
-    statistics.same = statistics.differences ? false : true;
+    completeStatistics(statistics);
     statistics.diffSet = diffSet;
 
     return statistics;
@@ -114,10 +111,7 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
     return compareAsyncInternal(path1, path2, 0, '',
     		options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, asyncDiffSet).then(
     				function(){
-                        statistics.differences = statistics.distinct + statistics.left + statistics.right;
-                        statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
-                        statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs;
-    					statistics.same = statistics.differences ? false : true;
+    				    completeStatistics(statistics);
     				    if(!options.noDiffSet){
     				        var diffSet = [];
     				        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
@@ -126,6 +120,16 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
     					return statistics;
     				});
 };
+
+var completeStatistics = function(statistics){
+    statistics.differences = statistics.distinct + statistics.left + statistics.right;
+    statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
+    statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs;
+    statistics.total = statistics.equal+statistics.differences;
+    statistics.totalFiles = statistics.equalFiles+statistics.differencesFiles;
+    statistics.totalDirs = statistics.equalDirs+statistics.differencesDirs;
+    statistics.same = statistics.differences ? false : true;
+}
 
 // Async diffsets are kept into recursive structures.
 // This method transforms them into one dimensional arrays. 

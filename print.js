@@ -89,13 +89,13 @@ var print = function(res, writer, program){
     // PRINT STATISTICS
     var statTotal, statEqual, statLeft, statRight, statDistinct;
     if(program.wholeReport){
-        statTotal = res.equal+res.left+res.right+res.distinct;
+        statTotal = res.total;
         statEqual = res.equal;
         statLeft = res.left;
         statRight = res.right;
         statDistinct = res.distinct;
     } else{
-        statTotal = res.equalFiles+res.leftFiles+res.rightFiles+res.distinctFiles;
+        statTotal = res.totalFiles;
         statEqual = res.equalFiles;
         statLeft = res.leftFiles;
         statRight = res.rightFiles;

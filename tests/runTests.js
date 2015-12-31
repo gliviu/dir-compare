@@ -58,7 +58,7 @@ function passed (value, type) {
     return value ? 'Passed'.green : '!!!!FAILED!!!!'.yellow;
 }
 
-
+// TODO: test with file and directory with same name
 var tests = [
              {
                  name: 'test001_1', path1: 'd1', path2: 'd2',
@@ -269,16 +269,54 @@ function normalize (str) {
     return str.replace(normalizeDateRegexp, 'x');
 }
 
+var checkStatistics = function(statistics){
+    if (statistics.differences != statistics.left + statistics.right + statistics.distinct) {
+        return false;
+    }
+    if (statistics.differencesFiles != statistics.leftFiles + statistics.rightFiles + statistics.distinctFiles) {
+        return false;
+    }
+    if (statistics.differencesDirs != statistics.leftDirs + statistics.rightDirs + statistics.distinctDirs) {
+        return false;
+    }
+    if (statistics.total != statistics.equal + statistics.differences) {
+        return false;
+    }
+    if (statistics.totalFiles != statistics.equalFiles + statistics.differencesFiles) {
+        return false;
+    }
+    if (statistics.totalDirs != statistics.equalDirs +  + statistics.differencesDirs) {
+        return false;
+    }
+    
+    if (statistics.total != statistics.totalDirs +  + statistics.totalFiles) {
+        return false;
+    }
+    if (statistics.equal != statistics.equalDirs +  + statistics.equalFiles) {
+        return false;
+    }
+    if (statistics.left != statistics.leftDirs +  + statistics.leftFiles) {
+        return false;
+    }
+    if (statistics.right != statistics.rightDirs +  + statistics.rightFiles) {
+        return false;
+    }
+    if (statistics.distinct != statistics.distinctDirs +  + statistics.distinctFiles) {
+        return false;
+    }
+    return true;
+}
+
 var testSync = function(test, testDirPath){
     var path1 = test.path1?testDirPath + '/' + test.path1:'';
     var path2 = test.path2?testDirPath + '/' + test.path2:'';
     return new Promise(function(resolve, reject) {
         resolve(compareSync(path1, path2, test.options));
     }).then(
-            function(res){
+            function(result){
                 // PRINT DETAILS
                 var writer = new Streams.WritableStream();
-                print(res, writer, test.displayOptions);
+                print(result, writer, test.displayOptions);
                 var output = normalize(writer.toString());
                 var expected = normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8'));
 
@@ -288,7 +326,8 @@ var testSync = function(test, testDirPath){
                     console.log(output === expected);
 
                 }
-                var res = output === expected;
+                var statisticsCheck = checkStatistics(result);
+                var res = (output === expected) && statisticsCheck;
 
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
@@ -303,17 +342,18 @@ var testAsync = function(test, testDirPath){
     var path1 = test.path1?testDirPath + '/' + test.path1:'';
     var path2 = test.path2?testDirPath + '/' + test.path2:'';
     return compareAsync(path1, path2, test.options).then(
-            function(res){
+            function(result){
                 // PRINT DETAILS
                 var writer = new Streams.WritableStream();
-                print(res, writer, test.displayOptions);
+                print(result, writer, test.displayOptions);
                 var output = normalize(writer.toString());
                 var expected = normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8'));
 
                 if (test.name == 'test1') {
                     // console.log(output);
                 }
-                var res = output === expected;
+                var statisticsCheck = checkStatistics(result);
+                var res = (output === expected) && statisticsCheck;
 
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
