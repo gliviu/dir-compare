@@ -20,6 +20,7 @@ var cmdLineCount = 0, cmdLineFailed = 0, cmdLineSuccessful = 0;
 //Automatically track and cleanup files at exit
 temp.track();
 
+
 function passed (value, type) {
     count++;
     if (value) {
@@ -58,7 +59,6 @@ function passed (value, type) {
     return value ? 'Passed'.green : '!!!!FAILED!!!!'.yellow;
 }
 
-// TODO: test with file and directory with same name
 var tests = [
              {
                  name: 'test001_1', path1: 'd1', path2: 'd2',
@@ -260,6 +260,57 @@ var tests = [
                  commandLineOptions: '-aw',
                  exitCode: 1,
              },
+             ////////////////////////////////////////////////////
+             // Options handling                               //
+             ////////////////////////////////////////////////////
+             {
+                 name: 'test008_1', path1: 'd1', path2: 'd2',
+                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 options: {},
+                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 onlyLibrary: true,
+             },
+             {
+                 name: 'test008_2', path1: 'd1', path2: 'd2',
+                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 options: undefined,
+                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 onlyLibrary: true,
+             },
+             {
+                 name: 'test008_3', path1: 'd1', path2: 'd2',
+                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 options: null,
+                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 onlyLibrary: true,
+             },
+             {
+                 name: 'test008_4', path1: 'd1', path2: 'd2',
+                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 options: {callbacks: {}},
+                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 onlyLibrary: true,
+             },
+             {
+                 name: 'test008_5', path1: 'd1', path2: 'd2',
+                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 options: {callbacks: null},
+                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 onlyLibrary: true,
+             },
+             ////////////////////////////////////////////////////
+             // Result Builder Callback                        //
+             ////////////////////////////////////////////////////
+             {
+                 name: 'test009_1', path1: 'd1', path2: 'd2',
+                 expected: 'total: 0, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 options: {callbacks: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
+                     statistics.total = 0;
+                 }}},
+                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 onlyLibrary: true,
+                 skipStatisticsCheck: true
+             },
              ];
 
 //Matches date (ie 2014-11-18T21:32:39.000Z)
@@ -269,7 +320,10 @@ function normalize (str) {
     return str.replace(normalizeDateRegexp, 'x');
 }
 
-var checkStatistics = function(statistics){
+var checkStatistics = function(statistics, test){
+    if(test.skipStatisticsCheck){
+        return true;
+    }
     if (statistics.differences != statistics.left + statistics.right + statistics.distinct) {
         return false;
     }
@@ -307,6 +361,14 @@ var checkStatistics = function(statistics){
     return true;
 }
 
+var getExpected = function(test){
+    if(test.expected){
+        return test.expected.trim();
+    } else{
+        return normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8')).trim();
+    }
+}
+
 var testSync = function(test, testDirPath){
     var path1 = test.path1?testDirPath + '/' + test.path1:'';
     var path2 = test.path2?testDirPath + '/' + test.path2:'';
@@ -317,16 +379,17 @@ var testSync = function(test, testDirPath){
                 // PRINT DETAILS
                 var writer = new Streams.WritableStream();
                 print(result, writer, test.displayOptions);
-                var output = normalize(writer.toString());
-                var expected = normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8'));
+                var output = normalize(writer.toString()).trim();
+                var expected = getExpected(test);
 
-                if (test.name == 'test001_1') {
+                if (test.name == 'test009_1') {
+                    debugger
                     console.log(output);
                     console.log(expected);
                     console.log(output === expected);
 
                 }
-                var statisticsCheck = checkStatistics(result);
+                var statisticsCheck = checkStatistics(result, test);
                 var res = (output === expected) && statisticsCheck;
 
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
@@ -346,13 +409,13 @@ var testAsync = function(test, testDirPath){
                 // PRINT DETAILS
                 var writer = new Streams.WritableStream();
                 print(result, writer, test.displayOptions);
-                var output = normalize(writer.toString());
-                var expected = normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8'));
+                var output = normalize(writer.toString()).trim();
+                var expected = getExpected(test);
 
                 if (test.name == 'test1') {
                     // console.log(output);
                 }
-                var statisticsCheck = checkStatistics(result);
+                var statisticsCheck = checkStatistics(result, test);
                 var res = (output === expected) && statisticsCheck;
 
                 console.log(test.name + ' async: ' + passed(res, 'async'));
@@ -374,7 +437,7 @@ function testCommandLineInternal(test, testDirPath, async) {
         var shelljsResult = shelljs.exec(command, {
             silent : true
         });
-        var output = normalize(shelljsResult.output);
+        var output = normalize(shelljsResult.output).trim();
         var exitCode = shelljsResult.code;
         
         var expectedExitCode = test.exitCode;
@@ -386,7 +449,7 @@ function testCommandLineInternal(test, testDirPath, async) {
             // output not relevant for error codes
             res = (exitCode === expectedExitCode);
         } else{
-            var expectedOutput = normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8'));
+            var expectedOutput = getExpected(test);
             res = (output === expectedOutput) && (exitCode === expectedExitCode);
         }
 
@@ -417,6 +480,7 @@ var runTests = function () {
                 // Run sync tests
                 var syncTestsPromises = [];
                 tests.filter(function(test){return !test.onlyCommandLine;})
+//                tests.filter(function(test){return test.name==='test009_1';})
                 .forEach(function(test){
                     syncTestsPromises.push(testSync(test, testDirPath));
                 });

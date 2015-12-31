@@ -42,7 +42,7 @@ var defaultResultBuilderCallback = function (entry1, entry2, state, level, relat
     });
 }
 
-var compareSync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
+var compareSync = function (path1, path2, options) {
     'use strict';
     var statistics = {
         distinct : 0,
@@ -60,16 +60,11 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
         same : undefined
     };
     var diffSet;
+    options = prepareOptions(options);
     if(!options.noDiffSet){
         diffSet = [];
     }
-    if (!resultBuilderCallback) {
-        resultBuilderCallback = defaultResultBuilderCallback;
-    }
-    if (!compareFileCallback) {
-        compareFileCallback = defaultCompareFileCallback;
-    }
-    compareSyncInternal(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, diffSet);
+    compareSyncInternal(path1, path2, 0, '', options, statistics, diffSet);
     completeStatistics(statistics);
     statistics.diffSet = diffSet;
 
@@ -81,7 +76,7 @@ var compareSync = function (path1, path2, options, compareFileCallback, resultBu
 // TODO: remove all 'debugger', 'console.'
 // TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
 // TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
-var compareAsync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
+var compareAsync = function (path1, path2, options) {
     'use strict';
     var statistics = {
 		distinct : 0,
@@ -98,18 +93,12 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
         rightDirs : 0,
 		same : undefined
     };
-    if (!resultBuilderCallback) {
-        resultBuilderCallback = defaultResultBuilderCallback;
-    }
-    if (!compareFileCallback) {
-        compareFileCallback = defaultCompareFileCallback;
-    }
+    options = prepareOptions(options);
     var asyncDiffSet;
     if(!options.noDiffSet){
         asyncDiffSet = [];
     }
-    return compareAsyncInternal(path1, path2, 0, '',
-    		options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, statistics, asyncDiffSet).then(
+    return compareAsyncInternal(path1, path2, 0, '', options, statistics, asyncDiffSet).then(
     				function(){
     				    completeStatistics(statistics);
     				    if(!options.noDiffSet){
@@ -120,6 +109,20 @@ var compareAsync = function (path1, path2, options, compareFileCallback, resultB
     					return statistics;
     				});
 };
+
+var prepareOptions = function(options){
+    var clone = JSON.parse(JSON.stringify(options?options:{}))
+    if(!clone.callbacks){
+        clone.callbacks = {};
+    }
+    if (!clone.callbacks.resultBuilder) {
+        clone.callbacks.resultBuilder = defaultResultBuilderCallback;
+    }
+    if (!clone.callbacks.compareFile) {
+        clone.callbacks.compareFile = defaultCompareFileCallback;
+    }
+    return clone;
+}
 
 var completeStatistics = function(statistics){
     statistics.differences = statistics.distinct + statistics.left + statistics.right;
@@ -154,6 +157,10 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *  noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
  *  includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
  *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ *  callbacks:
+ *      compareFileSync: function (filePath1, fileStat1, filePath2, fileStat2, options) returns true/false
+ *      compareFileAsync: TODO: define
+ *      resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
  *  
  * Output format:
  *  distinct: number of distinct entries

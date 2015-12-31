@@ -101,7 +101,9 @@ var print = function(res, writer, program){
         statRight = res.rightFiles;
         statDistinct = res.distinctFiles;
     }
-    writer.write(res.same?cequal('Entries are identical\n'):cdistinct('Entries are different\n'));
+    if(!program.noDiffIndicator){
+        writer.write(res.same?cequal('Entries are identical\n'):cdistinct('Entries are different\n'));
+    }
     writer.write(util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s\n',
             statTotal,
             cequal(statEqual),
