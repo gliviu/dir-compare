@@ -6,7 +6,7 @@ var util = require('util');
 var fs = require('fs');
 var temp = require('temp');
 var tar = require('tar');
-var print = require('../print');
+var defaultPrint = require('../print');
 var Promise = require('bluebird');
 var Streams = require('memory-streams');
 var compareSync = require('../index').compareSync;
@@ -59,6 +59,19 @@ function passed (value, type) {
     return value ? 'Passed'.green : '!!!!FAILED!!!!'.yellow;
 }
 
+/**
+ * Parameters:
+ * * name - Test name. This represents also the name of the file holding expected result unless overriden by 'expected' param.
+ * * expected - Expected result.
+ * * options - Options sent to library test. Should match 'commandLineOptions.
+ * * commandLineOptions - Options sent to command line test. Should match 'options'.
+ * * exitCode - Command line expected exit code.
+ * * displayOptions - Display parameters for print method.
+ * * print - Prints test result. If missing 'defaultPrint()' is used.
+ * * onlyLibrary - Test is run only on API methods.
+ * * onlyCommandLine - Test is run only on command line. 
+ * * skipStatisticsCheck - Do not call checkStatistics() after each library test.
+ */
 var tests = [
              {
                  name: 'test001_1', path1: 'd1', path2: 'd2',
@@ -303,13 +316,32 @@ var tests = [
              ////////////////////////////////////////////////////
              {
                  name: 'test009_1', path1: 'd1', path2: 'd2',
-                 expected: 'total: 0, equal: 3, distinct: 0, only left: 7, only right: 7',
+                 expected: 'test: 17',
                  options: {callbacks: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
-                     statistics.total = 0;
+                     if(!statistics.test){
+                         statistics.test = 0;
+                     }
+                     statistics.test++;
                  }}},
-                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
+                 displayOptions: {},
                  onlyLibrary: true,
-                 skipStatisticsCheck: true
+                 skipStatisticsCheck: true,
+                 print: function(res, writer, program){writer.write('test: '+res.test);}
+             },
+             {
+                 name: 'test009_2', path1: 'd1', path2: 'd2',
+                 expected: 'diffset: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]',
+                 options: {callbacks: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
+                     if(!statistics.test){
+                         statistics.test = 0;
+                     }
+                     statistics.test++;
+                     diffSet.push(statistics.test);
+                 }}},
+                 displayOptions: {},
+                 onlyLibrary: true,
+                 skipStatisticsCheck: true,
+                 print: function(res, writer, program){writer.write(' diffset: '+JSON.stringify(res.diffSet.sort(function(a, b){return a-b;}), null, 0));}
              },
              ];
 
@@ -378,12 +410,12 @@ var testSync = function(test, testDirPath){
             function(result){
                 // PRINT DETAILS
                 var writer = new Streams.WritableStream();
+                var print = test.print?test.print:defaultPrint;
                 print(result, writer, test.displayOptions);
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test009_1') {
-                    debugger
+                if (test.name == 'test009_2x') {
                     console.log(output);
                     console.log(expected);
                     console.log(output === expected);
@@ -394,10 +426,10 @@ var testSync = function(test, testDirPath){
 
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
-                // Ignore error
                 if (test.name == 'test1') {
                     // console.log(error);
                 }
+                console.log(test.name + ' sync: ' + passed(false, 'sync'));
             });
 }
 
@@ -408,22 +440,24 @@ var testAsync = function(test, testDirPath){
             function(result){
                 // PRINT DETAILS
                 var writer = new Streams.WritableStream();
+                var print = test.print?test.print:defaultPrint;
                 print(result, writer, test.displayOptions);
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test1') {
-                    // console.log(output);
+                if (test.name == 'test009_2x') {
+                    console.log(output);
+                    console.log(expected);
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = (output === expected) && statisticsCheck;
 
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
-                // Ignore error
                 if (test.name == 'test1') {
                     // console.log(error);
                 }
+                console.log(test.name + ' async: ' + passed(false, 'async'));
             });
 }
 
@@ -480,7 +514,7 @@ var runTests = function () {
                 // Run sync tests
                 var syncTestsPromises = [];
                 tests.filter(function(test){return !test.onlyCommandLine;})
-//                tests.filter(function(test){return test.name==='test009_1';})
+                //                tests.filter(function(test){return test.name==='test009_2';})
                 .forEach(function(test){
                     syncTestsPromises.push(testSync(test, testDirPath));
                 });
@@ -493,6 +527,7 @@ var runTests = function () {
                 // Run async tests
                 var asyncTestsPromises = [];
                 tests.filter(function(test){return !test.onlyCommandLine;})
+                //                tests.filter(function(test){return test.name==='test009_2';})
                 .forEach(function(test){
                     asyncTestsPromises.push(testAsync(test, testDirPath));
                 });

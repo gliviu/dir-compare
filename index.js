@@ -111,10 +111,13 @@ var compareAsync = function (path1, path2, options) {
 };
 
 var prepareOptions = function(options){
+    options = options || {};
     var clone = JSON.parse(JSON.stringify(options?options:{}))
     if(!clone.callbacks){
         clone.callbacks = {};
     }
+    clone.callbacks.resultBuilder = options.callbacks?options.callbacks.resultBuilder:undefined;
+    clone.callbacks.compareFile = options.callbacks?options.callbacks.compareFile:undefined;
     if (!clone.callbacks.resultBuilder) {
         clone.callbacks.resultBuilder = defaultResultBuilderCallback;
     }
