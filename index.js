@@ -1,5 +1,6 @@
 var pathUtils = require('path');
 var util = require('util');
+var Promise = require('bluebird');
 var fc = require('./filecompare')
 var common = require('./common'); 
 var compareSyncInternal = require('./compareSync');
@@ -78,36 +79,38 @@ var compareSync = function (path1, path2, options) {
 // TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
 var compareAsync = function (path1, path2, options) {
     'use strict';
-    var statistics = {
-		distinct : 0,
-		equal : 0,
-		left : 0,
-		right : 0,
-        distinctFiles : 0,
-        equalFiles : 0,
-        leftFiles : 0,
-        rightFiles : 0,
-        distinctDirs : 0,
-        equalDirs : 0,
-        leftDirs : 0,
-        rightDirs : 0,
-		same : undefined
-    };
-    options = prepareOptions(options);
-    var asyncDiffSet;
-    if(!options.noDiffSet){
-        asyncDiffSet = [];
-    }
-    return compareAsyncInternal(path1, path2, 0, '', options, statistics, asyncDiffSet).then(
-    				function(){
-    				    completeStatistics(statistics);
-    				    if(!options.noDiffSet){
-    				        var diffSet = [];
-    				        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
-    				        statistics.diffSet = diffSet;
-    				    }
-    					return statistics;
-    				});
+    return Promise.resolve().then(function(xx){
+        var statistics = {
+                distinct : 0,
+                equal : 0,
+                left : 0,
+                right : 0,
+                distinctFiles : 0,
+                equalFiles : 0,
+                leftFiles : 0,
+                rightFiles : 0,
+                distinctDirs : 0,
+                equalDirs : 0,
+                leftDirs : 0,
+                rightDirs : 0,
+                same : undefined
+            };
+            options = prepareOptions(options);
+            var asyncDiffSet;
+            if(!options.noDiffSet){
+                asyncDiffSet = [];
+            }
+        return compareAsyncInternal(path1, path2, 0, '', options, statistics, asyncDiffSet).then(
+                function(){
+                    completeStatistics(statistics);
+                    if(!options.noDiffSet){
+                        var diffSet = [];
+                        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
+                        statistics.diffSet = diffSet;
+                    }
+                    return statistics;
+                });
+    });
 };
 
 var prepareOptions = function(options){
