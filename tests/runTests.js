@@ -180,6 +180,7 @@ var tests = [
              ////////////////////////////////////////////////////
              // Compare by content                             //
              ////////////////////////////////////////////////////
+             // TODO: add test with compareSize: false, compareContent: true
              {
                  name: 'test003_0', path1: 'd11', path2: 'd12',
                  options: {compareSize: true, compareContent: true},
@@ -426,10 +427,7 @@ var testSync = function(test, testDirPath){
 
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
-                if (test.name == 'test1') {
-                    // console.log(error);
-                }
-                console.log(test.name + ' sync: ' + passed(false, 'sync'));
+                console.log(test.name + ' sync: ' + passed(false, 'sync') + '. Error: ' + error);
             });
 }
 
@@ -454,10 +452,8 @@ var testAsync = function(test, testDirPath){
 
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
-                if (test.name == 'test1') {
-                    // console.log(error);
-                }
-                console.log(test.name + ' async: ' + passed(false, 'async'));
+                console.log(error);
+                console.log(test.name + ' async: ' + passed(false, 'async') + '. Error: ' + error);
             });
 }
 

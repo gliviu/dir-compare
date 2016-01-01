@@ -1,47 +1,9 @@
-var pathUtils = require('path');
 var util = require('util');
 var Promise = require('bluebird');
-var fc = require('./filecompare')
-var common = require('./common'); 
 var compareSyncInternal = require('./compareSync');
 var compareAsyncInternal = require('./compareAsync');
-
-
-/**
- * Default file comparator.
- */
-var defaultCompareFileCallback = function (filePath1, fileStat1, filePath2, fileStat2, options) {
-    var same = true;
-    var compareSize = options.compareSize === undefined ? false : options.compareSize;
-    var compareContent = options.compareContent === undefined ? false : options.compareContent;
-    if (compareSize && fileStat1.size != fileStat2.size) {
-        same = false;
-    } else if(compareContent && !fc.compareSync(filePath1, filePath2)){
-        same = false;
-    }
-    return same;
-};
-
-/**
- * Default result builder.
- */
-var defaultResultBuilderCallback = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet) {
-    diffSet.push({
-        path1 : entry1 ? pathUtils.dirname(entry1.path) : undefined,
-        path2 : entry2 ? pathUtils.dirname(entry2.path) : undefined,
-        relativePath : relativePath,
-        name1 : entry1 ? entry1.name : undefined,
-        name2 : entry2 ? entry2.name : undefined,
-        state : state,
-        type1 : entry1 ? common.getType(entry1.stat) : 'missing',
-        type2 : entry2 ? common.getType(entry2.stat) : 'missing',
-        level : level,
-        size1 : entry1 ? entry1.stat.size : undefined,
-        size2 : entry2 ? entry2.stat.size : undefined,
-        date1 : entry1 ? entry1.stat.mtime : undefined,
-        date2 : entry2 ? entry2.stat.mtime : undefined
-    });
-}
+var defaultResultBuilderCallback = require('./defaultResultBuilderCallback');
+var defaultCompareFileCallback = require('./defaultCompareFileCallback');
 
 var compareSync = function (path1, path2, options) {
     'use strict';
@@ -73,7 +35,6 @@ var compareSync = function (path1, path2, options) {
 };
 
 // TODO: provide async file comparison
-// TODO: add option to get only statistics (not dilenames, ...) for memory optimisation.
 // TODO: remove all 'debugger', 'console.'
 // TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
 // TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
@@ -125,7 +86,7 @@ var prepareOptions = function(options){
         clone.callbacks.resultBuilder = defaultResultBuilderCallback;
     }
     if (!clone.callbacks.compareFile) {
-        clone.callbacks.compareFile = defaultCompareFileCallback;
+        clone.callbacks.compareFile = defaultCompareFileCallback.compareSync;
     }
     return clone;
 }
