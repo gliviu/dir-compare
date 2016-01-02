@@ -118,7 +118,15 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
 			            if (type1 === type2) {
 			                var same;
 			                if(type1==='file'){
-			                    same = options.callbacks.compareFile(p1, fileStat1, p2, fileStat2, options);
+			                    var compareSize = options.compareSize === undefined ? false : options.compareSize;
+			                    var compareContent = options.compareContent === undefined ? false : options.compareContent;
+			                    if (compareSize && fileStat1.size !== fileStat2.size) {
+			                        same = false;
+			                    } else if(compareContent){
+			                        same = options.callbacks.compareFile(p1, fileStat1, p2, fileStat2, options);
+			                    } else{
+			                        same = true;
+			                    }
 			                } else{
 			                    same = true;
 			                }
