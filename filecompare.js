@@ -38,12 +38,7 @@ var compareSync = function (path1, path2, bufSize) {
             }
         }
     } finally {
-        if(fd1){
-            fs.closeSync(fd1);
-        }
-        if(fd2){
-            fs.closeSync(fd2);
-        }
+        closeFiles(fd1, fd2);
     }
 };
 
@@ -82,25 +77,23 @@ var compareAsync = function (path1, path2, bufSize) {
             });
         };
         return compareAsyncInternal().then(function (result) {
-            if (fd1) {
-                fs.closeSync(fd1);
-            }
-            if (fd2) {
-                fs.closeSync(fd2);
-            }
+            closeFiles(fd1, fd2);
             return result;
         }, function (error) {
-            if (fd1) {
-                fs.closeSync(fd1);
-            }
-            if (fd2) {
-                fs.closeSync(fd2);
-            }
+            closeFiles(fd1, fd2);
             return Promise.reject(error);
         });
     });
 };
 
+var closeFiles = function(fd1, fd2){
+    if (fd1) {
+        fs.closeSync(fd1);
+    }
+    if (fd2) {
+        fs.closeSync(fd2);
+    }
+}
 module.exports = {
     compareSync : compareSync,
     compareAsync : compareAsync
