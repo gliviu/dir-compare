@@ -93,7 +93,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                     if (compareSize && fileStat1.size !== fileStat2.size) {
                         same = false;
                     } else if(compareContent){
-                        same = options.callbacks.compareFile(p1, fileStat1, p2, fileStat2, options);
+                        same = options.callbacks.compareFileSync(p1, fileStat1, p2, fileStat2, options);
                     } else{
                         same = true;
                     }

@@ -61,7 +61,6 @@ var compareAsync = function (path1, path2, bufSize) {
             return Promise.all([
                     wrapper.read(fd1, buf1, 0, bufSize, null), wrapper.read(fd2, buf2, 0, bufSize, null)
             ]).then(function (bufferSizes) {
-                debugger
                 var size1 = bufferSizes[0];
                 var size2 = bufferSizes[1];
                 if (size1 !== size2) {

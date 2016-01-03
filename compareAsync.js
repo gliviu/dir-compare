@@ -116,29 +116,37 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
 			        if (cmp === 0) {
 			            // Both left/right exist and have the same name
 			            if (type1 === type2) {
-			                var same;
+			                var samePromise;
 			                if(type1==='file'){
 			                    var compareSize = options.compareSize === undefined ? false : options.compareSize;
 			                    var compareContent = options.compareContent === undefined ? false : options.compareContent;
 			                    if (compareSize && fileStat1.size !== fileStat2.size) {
-			                        same = false;
+			                        samePromise = Promise.resolve({entry1: entry1, entry2: entry2, same: false});
 			                    } else if(compareContent){
-			                        same = options.callbacks.compareFile(p1, fileStat1, p2, fileStat2, options);
+			                        var cmpFile = function(entry1, entry2){
+	                                    samePromise = options.callbacks.compareFileAsync(p1, fileStat1, p2, fileStat2, options).then(function(same){
+	                                        return {entry1: entry1, entry2: entry2, same: same};
+	                                    });
+			                        }
+			                        cmpFile(entry1, entry2);
 			                    } else{
-			                        same = true;
+			                        samePromise = Promise.resolve({entry1: entry1, entry2: entry2, same: true});
 			                    }
 			                } else{
-			                    same = true;
+			                    samePromise = Promise.resolve({entry1: entry1, entry2: entry2, same: true});
 			                }
-			                if(!options.noDiffSet){
-			                    options.callbacks.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
-			                }
-			                same ? statistics.equal++ : statistics.distinct++;
-			                if(type1==='file'){
-			                    same ? statistics.equalFiles++ : statistics.distinctFiles++;
-			                } else{
-			                    same ? statistics.equalDirs++ : statistics.distinctDirs++;
-			                }
+			                comparePromises.push(samePromise);
+			                samePromise.then(function(sameResult){
+	                            if(!options.noDiffSet){
+	                                options.callbacks.resultBuilder(sameResult.entry1, sameResult.entry2, sameResult.same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+	                            }
+			                    sameResult.same ? statistics.equal++ : statistics.distinct++;
+	                            if(type1==='file'){
+	                                sameResult.same ? statistics.equalFiles++ : statistics.distinctFiles++;
+	                            } else{
+	                                sameResult.same ? statistics.equalDirs++ : statistics.distinctDirs++;
+	                            }
+			                });
 			            } else {
 			                // File and directory with same name
 			                if(!options.noDiffSet){

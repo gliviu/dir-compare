@@ -85,8 +85,11 @@ var prepareOptions = function(options){
     if (!clone.callbacks.resultBuilder) {
         clone.callbacks.resultBuilder = defaultResultBuilderCallback;
     }
-    if (!clone.callbacks.compareFile) {
-        clone.callbacks.compareFile = defaultCompareFileCallback.compareSync;
+    if (!clone.callbacks.compareFileSync) {
+        clone.callbacks.compareFileSync = defaultCompareFileCallback.compareSync;
+    }
+    if (!clone.callbacks.compareFileAsync) {
+        clone.callbacks.compareFileAsync = defaultCompareFileCallback.compareAsync;
     }
     return clone;
 }
