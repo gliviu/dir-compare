@@ -97,14 +97,17 @@ var run = function(){
 			                } else{
 			                    process.exit(1);
 			                }							
+						},
+						function(error){
+					        console.error('Error occurred: '+ error.stack);
+					        process.exit(2);
 						});
-            	        // TODO: .catch(function(error){print(error); process.exit(2)})
             } else{
                 process.exit(2);
             }
         }
     }catch(e){
-        console.log(e.stack);
+        console.error(e.stack);
         process.exit(2);
     }
 }
