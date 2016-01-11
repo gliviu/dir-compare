@@ -29,21 +29,25 @@ function normalize (str) {
     return str.replace(normalizeDateRegexp, 'x');
 }
 
-function test (testDirPath, testName, path1, path2, options) {
+function test (testDirPath, testName, path1, path2, options, saveReport) {
     var dircompareJs = path.normalize(__dirname + '/../dircompare.js');
     var command = util.format("node %s %s %s %s", dircompareJs, options, testDirPath + '/' + path1, testDirPath + '/' + path2);
-    var output = normalize(shelljs.exec(command, {
+    var shellResult = shelljs.exec(command, {
         silent : true
-    }).output);
+    });
+    var output = normalize(shellResult.output);
+    var exitCode = shellResult.code;
     var expected = normalize(fs.readFileSync(__dirname + '/expected/' + testName + '.txt', 'utf8'));
     if (testName == 'test1') {
 //        console.log(output);
     }
     var res = output === expected;
+    report(testName, output, exitCode, res, saveReport);
     return res;
 }
 
-function testExitCode (testDirPath, testName, path1, path2, options, expectedExitCode) {
+
+function testExitCode (testDirPath, testName, path1, path2, options, expectedExitCode, saveReport) {
     var dircompareJs = path.normalize(__dirname + '/../dircompare.js');
     var command = util.format("node %s %s %s %s", dircompareJs, options, path1 ? testDirPath + '/' + path1 : '', path2 ? testDirPath + '/' + path2 : '');
     var exitCode = shelljs.exec(command, {
@@ -51,10 +55,49 @@ function testExitCode (testDirPath, testName, path1, path2, options, expectedExi
     }).code;
     var res = exitCode === expectedExitCode;
     //    console.log(exitCode);
+    report(testName, null, exitCode, res, saveReport);
     return res;
 }
 
+
+function initReport(saveReport){
+	if(saveReport){
+		if(fs.existsSync(REPORT_FILE)){
+			fs.unlinkSync(REPORT_FILE);
+		}
+		var os = require('os');
+		var pjson = require('../package.json');
+		fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s, dir-compare version: %s\n',
+				new Date(), process.version, os.platform(), os.release(), pjson.version));
+	}
+}
+
+var REPORT_FILE = __dirname + "/report.txt";
+function report(testName, output, exitCode, result, saveReport){
+    if(saveReport && !result){
+		    	fs.appendFileSync(REPORT_FILE, util.format(
+				"\n%s failed - result: %s, exitCode: %s, output: %s\n", testName, result,
+				exitCode?exitCode:'n/a', output?output:'n/a'));
+    }
+
+}
+
+function endReport(saveReport){
+	if(saveReport){
+		fs.appendFileSync(REPORT_FILE, 'Tests: ' + count + ', failed: ' + failed + ', succeeded: ' + successful);
+	}
+}
+
+
 function runTests () {
+	var args = process.argv;
+	var saveReport = false;
+	args.forEach(function(arg){
+		if(arg==='report'){
+			saveReport = true;
+		}
+	});
+	initReport(saveReport);
     temp.mkdir('dircompare-test', function (err, testDirPath) {
         if (err) {
             throw err;
@@ -66,75 +109,76 @@ function runTests () {
 
         function onExtracted () {
             var res = null;
-            res = test(testDirPath, 'test1', 'd1', 'd2', '-aw');
+            res = test(testDirPath, 'test1', 'd1', 'd2', '-aw', saveReport);
             console.log('test1: ' + passed(res));
-            res = test(testDirPath, 'test2', 'd1', 'd2', '-aw --csv');
+            res = test(testDirPath, 'test2', 'd1', 'd2', '-aw --csv', saveReport);
             console.log('test2: ' + passed(res));
-            res = test(testDirPath, 'test3', 'd3', 'd4', '-aw');
+            res = test(testDirPath, 'test3', 'd3', 'd4', '-aw', saveReport);
             console.log('test3: ' + passed(res));
-            res = test(testDirPath, 'test4', 'd4', 'd4', '-aw');
+            res = test(testDirPath, 'test4', 'd4', 'd4', '-aw', saveReport);
             console.log('test4: ' + passed(res));
-            res = test(testDirPath, 'test5', 'd8', 'd9', '-a');
+            res = test(testDirPath, 'test5', 'd8', 'd9', '-a', saveReport);
             console.log('test5: ' + passed(res));
-            res = test(testDirPath, 'test6', 'd8', 'd9', '-aw');
+            res = test(testDirPath, 'test6', 'd8', 'd9', '-aw', saveReport);
             console.log('test6: ' + passed(res));
-            res = test(testDirPath, 'test7', 'd8', 'd9', '-a');
+            res = test(testDirPath, 'test7', 'd8', 'd9', '-a', saveReport);
             console.log('test7: ' + passed(res));
-            res = test(testDirPath, 'test8', 'd1', 'd2', '');
+            res = test(testDirPath, 'test8', 'd1', 'd2', '', saveReport);
             console.log('test8: ' + passed(res));
 
             // Filters
-            res = test(testDirPath, 'test100', 'd6', 'd7', '-a -f *.e1');
+            res = test(testDirPath, 'test100', 'd6', 'd7', '-a -f *.e1', saveReport);
             console.log('test100: ' + passed(res));
-            res = test(testDirPath, 'test101', 'd1', 'd10', '-aw -x .x');
+            res = test(testDirPath, 'test101', 'd1', 'd10', '-aw -x .x', saveReport);
             console.log('test101: ' + passed(res));
-            res = test(testDirPath, 'test102', 'd6', 'd7', '-aw -f *.e1');
+            res = test(testDirPath, 'test102', 'd6', 'd7', '-aw -f *.e1', saveReport);
             console.log('test102: ' + passed(res));
-            res = test(testDirPath, 'test103', 'd1', 'd2', '-a -x *.txt');
+            res = test(testDirPath, 'test103', 'd1', 'd2', '-a -x *.txt', saveReport);
             console.log('test103: ' + passed(res));
-            res = test(testDirPath, 'test104', 'd1', 'd2', '-aw -x *.txt');
+            res = test(testDirPath, 'test104', 'd1', 'd2', '-aw -x *.txt', saveReport);
             console.log('test104: ' + passed(res));
-            res = test(testDirPath, 'test105', 'd6', 'd7', '-a -x *.e1,*.e2');
+            res = test(testDirPath, 'test105', 'd6', 'd7', '-a -x *.e1,*.e2', saveReport);
             console.log('test105: ' + passed(res));
-            res = test(testDirPath, 'test106', 'd6', 'd7', '-aw -x *.e1,*.e2');
+            res = test(testDirPath, 'test106', 'd6', 'd7', '-aw -x *.e1,*.e2', saveReport);
             console.log('test106: ' + passed(res));
 
             // Compare by content
-            res = test(testDirPath, 'test200', 'd11', 'd12', '-ac');
+            res = test(testDirPath, 'test200', 'd11', 'd12', '-ac', saveReport);
             console.log('test200: ' + passed(res));
-            res = test(testDirPath, 'test201', 'd1', 'd2', '-awc');
+            res = test(testDirPath, 'test201', 'd1', 'd2', '-awc', saveReport);
             console.log('test201: ' + passed(res));
 
             // Exit code
-            res = testExitCode(testDirPath, 'test300', 'd11', 'd11', '', 0);
+            res = testExitCode(testDirPath, 'test300', 'd11', 'd11', '', 0, saveReport);
             console.log('test300: ' + passed(res));
-            res = testExitCode(testDirPath, 'test301', 'd11', 'd12', '-c', 1);
+            res = testExitCode(testDirPath, 'test301', 'd11', 'd12', '-c', 1, saveReport);
             console.log('test301: ' + passed(res));
-            res = testExitCode(testDirPath, 'test302', 'd11', 'd11', '--WRONGCMD ', 2);
+            res = testExitCode(testDirPath, 'test302', 'd11', 'd11', '--WRONGCMD ', 2, saveReport);
             console.log('test302: ' + passed(res));
-            res = testExitCode(testDirPath, 'test303', 'd11', '', '', 2);
+            res = testExitCode(testDirPath, 'test303', 'd11', '', '', 2, saveReport);
             console.log('test303: ' + passed(res));
-            res = testExitCode(testDirPath, 'test304', 'd11', 'miss', '', 2);
+            res = testExitCode(testDirPath, 'test304', 'd11', 'miss', '', 2, saveReport);
             console.log('test304: ' + passed(res));
 
             // Symlinks
-            res = test(testDirPath, 'test400', 'd13', 'd14', '-awL');
+            res = test(testDirPath, 'test400', 'd13', 'd14', '-awL', saveReport);
             console.log('test400: ' + passed(res));
 
             // Ski subdirs
-            res = test(testDirPath, 'test500', 'd1', 'd2', '-aS');
+            res = test(testDirPath, 'test500', 'd1', 'd2', '-aS', saveReport);
             console.log('test500: ' + passed(res));
-            res = test(testDirPath, 'test501', 'd1', 'd2', '-awS');
+            res = test(testDirPath, 'test501', 'd1', 'd2', '-awS', saveReport);
             console.log('test501: ' + passed(res));
 
             // Ignore case
-            res = test(testDirPath, 'test600', 'd15', 'd16', '-awi');
+            res = test(testDirPath, 'test600', 'd15', 'd16', '-awi', saveReport);
             console.log('test600: ' + passed(res));
-            res = test(testDirPath, 'test601', 'd15', 'd16', '-aw');
+            res = test(testDirPath, 'test601', 'd15', 'd16', '-aw', saveReport);
             console.log('test601: ' + passed(res));
 
             console.log();
             console.log('Tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
+            endReport(saveReport);
         }
 
         var extractor = tar.Extract({
