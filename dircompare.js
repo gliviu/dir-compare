@@ -106,7 +106,7 @@ var run = function(){
 			                }							
 						},
 						function(error){
-					        console.error('Error occurred: '+ error.stack);
+					        console.error('Error occurred: ' + (error instanceof Error ? error.stack : error));
 					        process.exit(2);
 						});
             } else{
