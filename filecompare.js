@@ -1,7 +1,8 @@
 var fs = require('fs');
 var bufferEqual = require('buffer-equal');
 var Promise = require('bluebird');
-
+var FileDescriptorQueue = require('./fileDescriptorQueue');
+var fdQueue = new FileDescriptorQueue(8);
 /**
  * Compares two partial buffers.
  */
@@ -17,7 +18,7 @@ var compareBuffers = function(buf1, buf2, contentSize, allocatedSize){
  * Compares two files by content using bufSize as buffer length.
  */
 var compareSync = function (path1, path2, bufSize) {
-    bufSize = bufSize ? bufSize : 4096;
+	bufSize = bufSize ? bufSize : 4096;
     var fd1, fd2;
     try {
         fd1 = fs.openSync(path1, 'r');
@@ -38,12 +39,12 @@ var compareSync = function (path1, path2, bufSize) {
             }
         }
     } finally {
-        closeFiles(fd1, fd2);
+        closeFilesSync(fd1, fd2);
     }
 };
 
 var wrapper = {
-        open : Promise.promisify(fs.open),
+        open : Promise.promisify(fdQueue.open),
         read : Promise.promisify(fs.read),
 };
 
@@ -52,8 +53,10 @@ var wrapper = {
  */
 var compareAsync = function (path1, path2, bufSize) {
     bufSize = bufSize ? bufSize : 4096;
+    var fd1, fd2;
     return Promise.all([wrapper.open(path1, 'r'), wrapper.open(path2, 'r')]).then(function (fds) {
-        var fd1 = fds[0], fd2 = fds[1];
+        fd1 = fds[0];
+        fd2 = fds[1];
         var buf1 = new Buffer(bufSize);
         var buf2 = new Buffer(bufSize);
         var progress = 0;
@@ -76,21 +79,29 @@ var compareAsync = function (path1, path2, bufSize) {
             });
         };
         return compareAsyncInternal().then(function (result) {
-            closeFiles(fd1, fd2);
+            closeFilesAsync(fd1, fd2);
             return result;
-        }, function (error) {
-            closeFiles(fd1, fd2);
-            return Promise.reject(error);
         });
+    }).catch(function (error) {
+        closeFilesAsync(fd1, fd2);
+        return error;
     });
 };
 
-var closeFiles = function(fd1, fd2){
+var closeFilesSync = function(fd1, fd2){
     if (fd1) {
         fs.closeSync(fd1);
     }
     if (fd2) {
         fs.closeSync(fd2);
+    }
+}
+var closeFilesAsync = function(fd1, fd2){
+    if (fd1) {
+        fdQueue.close(fd1);
+    }
+    if (fd2) {
+    	fdQueue.close(fd2);
     }
 }
 module.exports = {

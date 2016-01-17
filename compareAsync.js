@@ -118,7 +118,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                     if (cmp === 0) {
                         // Both left/right exist and have the same name
                         if (type1 === type2) {
-                            var samePromise, same;
+                            var samePromise = undefined, same = undefined;
                             if(type1==='file'){
                                 var compareSize = options.compareSize === undefined ? false : options.compareSize;
                                 var compareContent = options.compareContent === undefined ? false : options.compareContent;
@@ -126,8 +126,20 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                                     same = false;
                                 } else if(compareContent){
                                     var cmpFile = function(entry1, entry2, type1, type2){
-                                        samePromise = options.callbacks.compareFileAsync(p1, fileStat1, p2, fileStat2, options).then(function(same){
-                                            return {entry1: entry1, entry2: entry2, same: same, type1: type1, type2: type2};
+                                        var subDiffSet;
+                                        if(!options.noDiffSet){
+                                            subDiffSet = [];
+                                            diffSet.push(subDiffSet);
+                                        }
+                                        samePromise = options.compareFileAsync(p1, fileStat1, p2, fileStat2, options).then(function(comparisonResult){
+                                        	var same, error;
+                                        	if(typeof(comparisonResult) === "boolean"){
+                                        		same = comparisonResult;
+                                        	} else{
+                                        		error = comparisonResult;
+                                        	}
+                                        	
+                                            return {entry1: entry1, entry2: entry2, same: same, error: error, type1: type1, type2: type2, diffSet: subDiffSet};
                                         });
                                     }
                                     cmpFile(entry1, entry2, type1, type2);
@@ -146,7 +158,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                         } else {
                             // File and directory with same name
                             if(!options.noDiffSet){
-                                options.callbacks.resultBuilder(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
+                                options.resultBuilder(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
                             }
                             statistics.distinct+=2;
                             statistics.distinctFiles++;
@@ -187,7 +199,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                     } else if (cmp < 0) {
                         // Right missing
                         if(!options.noDiffSet){
-                            options.callbacks.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
+                            options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
                         }
                         statistics.left++;
                         if(type1==='file'){
@@ -211,7 +223,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                         if(!options.noDiffSet){
                             var subDiffSet = [];
                             diffSet.push(subDiffSet);
-                            options.callbacks.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet);
+                            options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet);
                         }
                         statistics.right++;
                         if(type2==='file'){
@@ -236,7 +248,11 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                     return Promise.all(compareFilePromises).then(function(sameResults){
                         for(var i = 0; i<sameResults.length; i++){
                             var sameResult = sameResults[i];
-                            doStats(sameResult.entry1, sameResult.entry2, sameResult.same, statistics, options, level, relativePath, diffSet, sameResult.type1, sameResult.type2);
+                            if(sameResult.error){
+                            	return Promise.reject(sameResult.error);
+                            } else{
+                                doStats(sameResult.entry1, sameResult.entry2, sameResult.same, statistics, options, level, relativePath, sameResult.diffSet, sameResult.type1, sameResult.type2);
+                            }
                         }
                     }); 
                 });
@@ -245,7 +261,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
 
 var doStats = function(entry1, entry2, same, statistics, options, level, relativePath, diffSet, type1, type2){
     if(!options.noDiffSet){
-        options.callbacks.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+        options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
     }
     same ? statistics.equal++ : statistics.distinct++;
     if(type1==='file'){

@@ -43,7 +43,14 @@ program.on('--help', function(){
     console.log('    show only different files - dircompare -d dir1 dir2');
 });
 
+// Fix for https://github.com/tj/commander.js/issues/125
+program.allowUnknownOption();
 program.parse(process.argv);
+var parsed = program.parseOptions(program.normalize(process.argv.slice(2)));
+if (parsed.unknown.length > 0) {
+	console.error('Unknown options: ' + parsed.unknown);
+	process.exit(2);
+}
 
 var run = function(){
     try{

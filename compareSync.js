@@ -93,7 +93,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                     if (compareSize && fileStat1.size !== fileStat2.size) {
                         same = false;
                     } else if(compareContent){
-                        same = options.callbacks.compareFileSync(p1, fileStat1, p2, fileStat2, options);
+                        same = options.compareFileSync(p1, fileStat1, p2, fileStat2, options);
                     } else{
                         same = true;
                     }
@@ -101,7 +101,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                     same = true;
                 }
                 if(!options.noDiffSet){
-                    options.callbacks.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet);
+                    options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet);
                 }
                 same ? statistics.equal++ : statistics.distinct++;
                 if(type1==='file'){
@@ -112,7 +112,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
             } else {
                 // File and directory with same name
                 if(!options.noDiffSet){
-                    options.callbacks.resultBuilder(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
+                    options.resultBuilder(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
                 }
                 statistics.distinct+=2;
                 statistics.distinctFiles++;
@@ -132,7 +132,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
         } else if (cmp < 0) {
             // Right missing
             if(!options.noDiffSet){
-                options.callbacks.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
+                options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet);
             }
             statistics.left++;
             if(type1==='file'){
@@ -147,7 +147,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
         } else {
             // Left missing
             if(!options.noDiffSet){
-                options.callbacks.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet);
+                options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet);
             }
             statistics.right++;
             if(type2==='file'){

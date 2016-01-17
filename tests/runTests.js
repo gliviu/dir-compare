@@ -196,7 +196,7 @@ var tests = [
                  exitCode: 1,
              },
              ////////////////////////////////////////////////////
-             // Exit code                                      //
+             // Command line                                   //
              ////////////////////////////////////////////////////
              {
                  name: 'test004_0', path1: 'd11', path2: 'd11',
@@ -226,6 +226,36 @@ var tests = [
                  name: 'test004_4', path1: 'd11', path2: 'miss',
                  onlyCommandLine: true,
                  commandLineOptions: '',
+                 exitCode: 2,
+             },
+             {
+                 name: 'test004_5', path1: 'd11', path2: 'd1',
+                 onlyCommandLine: true,
+                 commandLineOptions: '-ABCD',
+                 exitCode: 2,
+             },
+             {
+                 name: 'test004_6', path1: 'd11', path2: 'd1',
+                 onlyCommandLine: true,
+                 commandLineOptions: '-ABCD --csv',
+                 exitCode: 2,
+             },
+             {
+                 name: 'test004_7', path1: 'd11', path2: 'd1',
+                 onlyCommandLine: true,
+                 commandLineOptions: '--csv -ABCD --csv',
+                 exitCode: 2,
+             },
+             {
+                 name: 'test004_8', path1: 'd11', path2: 'd1',
+                 onlyCommandLine: true,
+                 commandLineOptions: '--csv -ABCD',
+                 exitCode: 2,
+             },
+             {
+                 name: 'test004_9', path1: 'd11', path2: 'd1',
+                 onlyCommandLine: true,
+                 commandLineOptions: '--ABC --async -x --async',
                  exitCode: 2,
              },
              
@@ -298,32 +328,18 @@ var tests = [
                  displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
                  onlyLibrary: true,
              },
-             {
-                 name: 'test008_4', path1: 'd1', path2: 'd2',
-                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
-                 options: {callbacks: {}},
-                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
-                 onlyLibrary: true,
-             },
-             {
-                 name: 'test008_5', path1: 'd1', path2: 'd2',
-                 expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
-                 options: {callbacks: null},
-                 displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
-                 onlyLibrary: true,
-             },
              ////////////////////////////////////////////////////
              // Result Builder Callback                        //
              ////////////////////////////////////////////////////
              {
                  name: 'test009_1', path1: 'd1', path2: 'd2',
                  expected: 'test: 17',
-                 options: {callbacks: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
+                 options: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
                      if(!statistics.test){
                          statistics.test = 0;
                      }
                      statistics.test++;
-                 }}},
+                 }},
                  displayOptions: {},
                  onlyLibrary: true,
                  skipStatisticsCheck: true,
@@ -332,13 +348,13 @@ var tests = [
              {
                  name: 'test009_2', path1: 'd1', path2: 'd2',
                  expected: 'diffset: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]',
-                 options: {callbacks: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
+                 options: {resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet){
                      if(!statistics.test){
                          statistics.test = 0;
                      }
                      statistics.test++;
                      diffSet.push(statistics.test);
-                 }}},
+                 }},
                  displayOptions: {},
                  onlyLibrary: true,
                  skipStatisticsCheck: true,
@@ -395,11 +411,16 @@ var checkStatistics = function(statistics, test){
 }
 
 var getExpected = function(test){
-    if(test.expected){
-        return test.expected.trim();
+    var res = [];
+	if(test.expected){
+        res.push(test.expected.trim());
     } else{
-        return normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8')).trim();
+    	res.push(normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8')).trim());
+    	if(fs.existsSync(__dirname + '/expected/' + test.name + '_win.txt')){
+    		res.push(normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '_win.txt', 'utf8')).trim());
+    	}
     }
+	return res;
 }
 
 var testSync = function(test, testDirPath){
@@ -416,14 +437,14 @@ var testSync = function(test, testDirPath){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test009_2x') {
+                if (test.name == 'test007_1x') {
                     console.log(output);
-                    console.log(expected);
+                    expected.forEach(function(exp){console.log(exp)});
                     console.log(output === expected);
 
                 }
                 var statisticsCheck = checkStatistics(result, test);
-                var res = (output === expected) && statisticsCheck;
+                var res = (expected.indexOf(output)!=-1 ) && statisticsCheck;
 
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
@@ -445,10 +466,10 @@ var testAsync = function(test, testDirPath){
 
                 if (test.name == 'test009_2x') {
                     console.log(output);
-                    console.log(expected);
+                    expected.forEach(function(exp){console.log(exp)});
                 }
                 var statisticsCheck = checkStatistics(result, test);
-                var res = (output === expected) && statisticsCheck;
+                var res = (expected.indexOf(output)!=-1 ) && statisticsCheck;
 
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
@@ -472,7 +493,7 @@ function testCommandLineInternal(test, testDirPath, async) {
         
         var expectedExitCode = test.exitCode;
         var res;
-        if (test.name == 'test303') {
+        if (test.name == 'test001_1') {
              debugger
         }
         if(expectedExitCode===2){
@@ -480,7 +501,7 @@ function testCommandLineInternal(test, testDirPath, async) {
             res = (exitCode === expectedExitCode);
         } else{
             var expectedOutput = getExpected(test);
-            res = (output === expectedOutput) && (exitCode === expectedExitCode);
+            res = (expectedOutput.indexOf(output)!=-1) && (exitCode === expectedExitCode);
         }
 
         console.log(test.name + ' command line ' + (async?'async':'sync') + ': ' + passed(res, 'cmdLine'));
@@ -536,7 +557,7 @@ var runTests = function () {
                 // Run command line tests
                 var commandLinePromises = [];
                 tests.filter(function(test){return !test.onlyLibrary;})
-                // tests.filter(function(test){return test.name=='test303';})
+                //                 tests.filter(function(test){return test.name=='test004_7';})
                 .forEach(function(test){
                     commandLinePromises.push(testCommandLine(test, testDirPath));
                 });

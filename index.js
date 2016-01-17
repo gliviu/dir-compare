@@ -35,7 +35,7 @@ var compareSync = function (path1, path2, options) {
 };
 
 // TODO: provide async file comparison
-// TODO: remove all 'debugger', 'console.'
+// TODO: remove all 'debugger', 'console.', 'throw'
 // TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
 // TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
 var compareAsync = function (path1, path2, options) {
@@ -76,20 +76,18 @@ var compareAsync = function (path1, path2, options) {
 
 var prepareOptions = function(options){
     options = options || {};
-    var clone = JSON.parse(JSON.stringify(options?options:{}))
-    if(!clone.callbacks){
-        clone.callbacks = {};
+    var clone = JSON.parse(JSON.stringify(options))
+    clone.resultBuilder = options.resultBuilder;
+    clone.compareFileSync = options.compareFileSync;
+    clone.compareFileAsync = options.compareFileAsync;
+    if (!clone.resultBuilder) {
+        clone.resultBuilder = defaultResultBuilderCallback;
     }
-    clone.callbacks.resultBuilder = options.callbacks?options.callbacks.resultBuilder:undefined;
-    clone.callbacks.compareFile = options.callbacks?options.callbacks.compareFile:undefined;
-    if (!clone.callbacks.resultBuilder) {
-        clone.callbacks.resultBuilder = defaultResultBuilderCallback;
+    if (!clone.compareFileSync) {
+        clone.compareFileSync = defaultCompareFileCallback.compareSync;
     }
-    if (!clone.callbacks.compareFileSync) {
-        clone.callbacks.compareFileSync = defaultCompareFileCallback.compareSync;
-    }
-    if (!clone.callbacks.compareFileAsync) {
-        clone.callbacks.compareFileAsync = defaultCompareFileCallback.compareAsync;
+    if (!clone.compareFileAsync) {
+        clone.compareFileAsync = defaultCompareFileCallback.compareAsync;
     }
     return clone;
 }
@@ -127,10 +125,8 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *  noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
  *  includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
  *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
- *  callbacks:
- *      compareFileSync: function (filePath1, fileStat1, filePath2, fileStat2, options) returns true/false
- *      compareFileAsync: TODO: define
- *      resultBuilder: function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
+ *  resultBuilder: Callback for constructing result.
+ *  	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
  *  
  * Output format:
  *  distinct: number of distinct entries
