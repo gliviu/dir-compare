@@ -423,7 +423,7 @@ var getExpected = function(test){
 	return res;
 }
 
-var testSync = function(test, testDirPath){
+var testSync = function(test, testDirPath, saveReport){
     var path1 = test.path1?testDirPath + '/' + test.path1:'';
     var path2 = test.path2?testDirPath + '/' + test.path2:'';
     return new Promise(function(resolve, reject) {
@@ -445,14 +445,15 @@ var testSync = function(test, testDirPath){
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = (expected.indexOf(output)!=-1 ) && statisticsCheck;
-
+                report(test.name, 'sync', output, null, res, saveReport);
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
-                console.log(test.name + ' sync: ' + passed(false, 'sync') + '. Error: ' + error);
+                report(test.name, 'sync', error instanceof Error? error.stack: error, null, false, saveReport);
+                console.log(test.name + ' sync: ' + passed(false, 'sync') + '. Error: ' + printError(error));
             });
 }
 
-var testAsync = function(test, testDirPath){
+var testAsync = function(test, testDirPath, saveReport){
     var path1 = test.path1?testDirPath + '/' + test.path1:'';
     var path2 = test.path2?testDirPath + '/' + test.path2:'';
     return compareAsync(path1, path2, test.options).then(
@@ -470,15 +471,15 @@ var testAsync = function(test, testDirPath){
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = (expected.indexOf(output)!=-1 ) && statisticsCheck;
-
+                report(test.name, 'async', output, null, res, saveReport);
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
-                console.log(error);
-                console.log(test.name + ' async: ' + passed(false, 'async') + '. Error: ' + error);
+                report(test.name, 'async', error instanceof Error? error.stack: error, null, false, saveReport);
+                console.log(test.name + ' async: ' + passed(false, 'async') + '. Error: ' + printError(error));
             });
 }
 
-function testCommandLineInternal(test, testDirPath, async) {
+function testCommandLineInternal(test, testDirPath, async, saveReport) {
     return new Promise(function(resolve, reject) {
         var dircompareJs = path.normalize(__dirname + '/../dircompare.js');
         var path1 = test.path1?testDirPath + '/' + test.path1:'';
@@ -493,7 +494,7 @@ function testCommandLineInternal(test, testDirPath, async) {
         
         var expectedExitCode = test.exitCode;
         var res;
-        if (test.name == 'test001_1') {
+        if (test.name == 'test002_3') {
              debugger
         }
         if(expectedExitCode===2){
@@ -503,21 +504,63 @@ function testCommandLineInternal(test, testDirPath, async) {
             var expectedOutput = getExpected(test);
             res = (expectedOutput.indexOf(output)!=-1) && (exitCode === expectedExitCode);
         }
-
-        console.log(test.name + ' command line ' + (async?'async':'sync') + ': ' + passed(res, 'cmdLine'));
+        var testDescription = 'command line ' + (async?'async':'sync');
+        report(test.name, testDescription, output, exitCode, res, saveReport);
+        console.log(test.name + ' ' + testDescription + ': ' + passed(res, 'cmdLine'));
         resolve();
     })
 }
 
-var testCommandLine = function(test, testDirPath){
+var testCommandLine = function(test, testDirPath, saveReport){
     return Promise.all([
-                        testCommandLineInternal(test, testDirPath, false),
-                        testCommandLineInternal(test, testDirPath, true)
+                        testCommandLineInternal(test, testDirPath, false, saveReport),
+                        testCommandLineInternal(test, testDirPath, true, saveReport)
                         ]);
 }
 
+function printError(error){
+	return error instanceof Error ? error.stack : error;
+}
+
+function initReport(saveReport){
+	if(saveReport){
+		if(fs.existsSync(REPORT_FILE)){
+			fs.unlinkSync(REPORT_FILE);
+		}
+		var os = require('os');
+		var pjson = require('../package.json');
+		fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s, dir-compare version: %s\n',
+				new Date(), process.version, os.platform(), os.release(), pjson.version));
+	}
+}
+
+var REPORT_FILE = __dirname + "/report.txt";
+function report(testName, testDescription, output, exitCode, result, saveReport){
+    if(saveReport && !result){
+		    	fs.appendFileSync(REPORT_FILE, util.format(
+				"\n%s %s failed - result: %s, exitCode: %s, output: %s\n", testName, testDescription, result,
+				exitCode?exitCode:'n/a', output?output:'n/a'));
+    }
+
+}
+
+function endReport(saveReport){
+	if(saveReport){
+		fs.appendFileSync(REPORT_FILE, 'Tests: ' + count + ', failed: ' + failed + ', succeeded: ' + successful);
+	}
+}
+
 var runTests = function () {
-    temp.mkdir('dircompare-test', function (err, testDirPath) {
+	var args = process.argv;
+	var saveReport = false;
+	args.forEach(function(arg){
+		if(arg==='report'){
+			saveReport = true;
+		}
+	});
+	initReport(saveReport);
+
+	temp.mkdir('dircompare-test', function (err, testDirPath) {
         if (err) {
             throw err;
         }
@@ -533,7 +576,7 @@ var runTests = function () {
                 tests.filter(function(test){return !test.onlyCommandLine;})
                 //                tests.filter(function(test){return test.name==='test009_2';})
                 .forEach(function(test){
-                    syncTestsPromises.push(testSync(test, testDirPath));
+                    syncTestsPromises.push(testSync(test, testDirPath, saveReport));
                 });
                 return Promise.all(syncTestsPromises);
             }).then(function(){
@@ -546,7 +589,7 @@ var runTests = function () {
                 tests.filter(function(test){return !test.onlyCommandLine;})
                 //                tests.filter(function(test){return test.name==='test009_2';})
                 .forEach(function(test){
-                    asyncTestsPromises.push(testAsync(test, testDirPath));
+                    asyncTestsPromises.push(testAsync(test, testDirPath, saveReport));
                 });
                 return Promise.all(asyncTestsPromises);
             }).then(function(){
@@ -557,9 +600,9 @@ var runTests = function () {
                 // Run command line tests
                 var commandLinePromises = [];
                 tests.filter(function(test){return !test.onlyLibrary;})
-                //                 tests.filter(function(test){return test.name=='test004_7';})
+                                 tests.filter(function(test){return test.name=='test002_3';})
                 .forEach(function(test){
-                    commandLinePromises.push(testCommandLine(test, testDirPath));
+                    commandLinePromises.push(testCommandLine(test, testDirPath, saveReport));
                 });
                 return Promise.all(commandLinePromises);
             }).then(function(){
@@ -568,6 +611,7 @@ var runTests = function () {
             }).then(function(){
                 console.log();
                 console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
+                endReport(saveReport);
             });
         }
         var extractor = tar.Extract({
