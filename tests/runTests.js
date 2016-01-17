@@ -130,7 +130,7 @@ var tests = [
                  name: 'test002_0', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, includeFilter: '*.e1'},
                  displayOptions: {showAll: true, nocolors: true},
-                 commandLineOptions: '-a -f *.e1',
+                 commandLineOptions: '-a -f "*.e1"',
                  exitCode: 1,
              },
              {
@@ -144,35 +144,35 @@ var tests = [
                  name: 'test002_2', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, includeFilter: '*.e1'},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw -f *.e1',
+                 commandLineOptions: '-aw -f "*.e1"',
                  exitCode: 1,
              },
              {
                  name: 'test002_3', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, excludeFilter: '*.txt'},
                  displayOptions: {showAll: true, nocolors: true},
-                 commandLineOptions: '-a -x *.txt',
+                 commandLineOptions: '-a -x "*.txt"',
                  exitCode: 1,
              },
              {
                  name: 'test002_4', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, excludeFilter: '*.txt'},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw -x *.txt',
+                 commandLineOptions: '-aw -x "*.txt"',
                  exitCode: 1,
              },
              {
                  name: 'test002_5', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, excludeFilter: '*.e1,*.e2'},
                  displayOptions: {showAll: true, nocolors: true},
-                 commandLineOptions: '-a -x *.e1,*.e2',
+                 commandLineOptions: '-a -x "*.e1,*.e2"',
                  exitCode: 1,
              },
              {
                  name: 'test002_6', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, excludeFilter: '*.e1,*.e2'},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw -x *.e1,*.e2',
+                 commandLineOptions: '-aw -x "*.e1,*.e2"',
                  exitCode: 1,
              },
              // TODO: test both --exclude and --filter in the same run
@@ -494,7 +494,7 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
         
         var expectedExitCode = test.exitCode;
         var res;
-        if (test.name == 'test002_3') {
+        if (test.name == 'test002_3x') {
              debugger
         }
         if(expectedExitCode===2){
@@ -552,12 +552,7 @@ function endReport(saveReport){
 
 var runTests = function () {
 	var args = process.argv;
-	var saveReport = false;
-	args.forEach(function(arg){
-		if(arg==='report'){
-			saveReport = true;
-		}
-	});
+	var saveReport = true;
 	initReport(saveReport);
 
 	temp.mkdir('dircompare-test', function (err, testDirPath) {
@@ -600,7 +595,7 @@ var runTests = function () {
                 // Run command line tests
                 var commandLinePromises = [];
                 tests.filter(function(test){return !test.onlyLibrary;})
-                                 tests.filter(function(test){return test.name=='test002_3';})
+                // tests.filter(function(test){return test.name=='test002_3';})
                 .forEach(function(test){
                     commandLinePromises.push(testCommandLine(test, testDirPath, saveReport));
                 });
