@@ -35,14 +35,14 @@ function test (testDirPath, testName, path1, path2, options, saveReport) {
     var shellResult = shelljs.exec(command, {
         silent : true
     });
-    var output = normalize(shellResult.output);
+    var output = normalize(shellResult.output).trim();
     var exitCode = shellResult.code;
-    var expected = normalize(fs.readFileSync(__dirname + '/expected/' + testName + '.txt', 'utf8'));
+    var expected = normalize(fs.readFileSync(__dirname + '/expected/' + testName + '.txt', 'utf8')).trim();
     if (testName == 'test1') {
 //        console.log(output);
     }
     var res = output === expected;
-    report(testName, output, exitCode, res, saveReport);
+    report(testName, output, exitCode, expected, res, saveReport);
     return res;
 }
 
@@ -55,7 +55,7 @@ function testExitCode (testDirPath, testName, path1, path2, options, expectedExi
     }).code;
     var res = exitCode === expectedExitCode;
     //    console.log(exitCode);
-    report(testName, null, exitCode, res, saveReport);
+    report(testName, null, exitCode, expectedExitCode, res, saveReport);
     return res;
 }
 
@@ -73,11 +73,11 @@ function initReport(saveReport){
 }
 
 var REPORT_FILE = __dirname + "/report.txt";
-function report(testName, output, exitCode, result, saveReport){
+function report(testName, output, exitCode, expected, result, saveReport){
     if(saveReport && !result){
 		    	fs.appendFileSync(REPORT_FILE, util.format(
-				"\n%s failed - result: %s, exitCode: %s, output: %s\n", testName, result,
-				exitCode?exitCode:'n/a', output?output:'n/a'));
+				"\n%s failed - result: %s, exitCode: %s, output: \n'%s'\nexpected:\n'%s'\n", testName, result,
+				exitCode, output,expected));
     }
 
 }

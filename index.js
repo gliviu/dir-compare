@@ -28,7 +28,9 @@ var compareEntryCaseSensitive = function (a, b, ignoreCase) {
     } else if (a.stat.isFile() && b.stat.isDirectory()) {
         return 1;
     } else {
-        return a.name.localeCompare(b.name);
+    	// http://stackoverflow.com/questions/1179366/is-there-a-javascript-strcmp
+    	var str1 = a.name, str2 = b.name;
+    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
     }
 }
 
@@ -41,7 +43,9 @@ var compareEntryIgnoreCase = function (a, b, ignoreCase) {
     } else if (a.stat.isFile() && b.stat.isDirectory()) {
         return 1;
     } else {
-        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    	// http://stackoverflow.com/questions/1179366/is-there-a-javascript-strcmp
+    	var str1 = a.name.toLowerCase(), str2 = b.name.toLowerCase();
+    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
     }
 }
 
