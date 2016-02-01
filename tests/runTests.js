@@ -411,16 +411,11 @@ var checkStatistics = function(statistics, test){
 }
 
 var getExpected = function(test){
-    var res = [];
 	if(test.expected){
-        res.push(test.expected.trim());
+        return test.expected.trim();
     } else{
-    	res.push(normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8')).trim());
-    	if(fs.existsSync(__dirname + '/expected/' + test.name + '_win.txt')){
-    		res.push(normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '_win.txt', 'utf8')).trim());
-    	}
+    	return normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8')).trim();
     }
-	return res;
 }
 
 var testSync = function(test, testDirPath, saveReport){
@@ -444,7 +439,7 @@ var testSync = function(test, testDirPath, saveReport){
 
                 }
                 var statisticsCheck = checkStatistics(result, test);
-                var res = (expected.indexOf(output)!=-1 ) && statisticsCheck;
+                var res = expected===output && statisticsCheck;
                 report(test.name, 'sync', output, null, res, saveReport);
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
@@ -470,7 +465,7 @@ var testAsync = function(test, testDirPath, saveReport){
                     expected.forEach(function(exp){console.log(exp)});
                 }
                 var statisticsCheck = checkStatistics(result, test);
-                var res = (expected.indexOf(output)!=-1 ) && statisticsCheck;
+                var res = expected===output && statisticsCheck;
                 report(test.name, 'async', output, null, res, saveReport);
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
@@ -502,7 +497,7 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
             res = (exitCode === expectedExitCode);
         } else{
             var expectedOutput = getExpected(test);
-            res = (expectedOutput.indexOf(output)!=-1) && (exitCode === expectedExitCode);
+            res = expectedOutput===output && (exitCode === expectedExitCode);
         }
         var testDescription = 'command line ' + (async?'async':'sync');
         report(test.name, testDescription, output, exitCode, res, saveReport);
