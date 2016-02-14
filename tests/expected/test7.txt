@@ -1,7 +1,0 @@
-[/A2] a1==a1
-[/A5/A9] a1<>a1
-[/A6/A1] a1<>a1
-[/A7/A5] a1<>a1
-[/A7] a1==a1
-Entries are different
-total: 5, equal: 2, distinct: 3, only left: 0, only right: 0

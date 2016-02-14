@@ -1,256 +1,151 @@
-var fs = require('fs');
 var util = require('util');
-var pathUtils = require('path');
-var minimatch = require('minimatch');
-var fc = require('./filecompare')
+var Promise = require('bluebird');
+var compareSyncInternal = require('./compareSync');
+var compareAsyncInternal = require('./compareAsync');
+var defaultResultBuilderCallback = require('./defaultResultBuilderCallback');
+var defaultCompareFileCallback = require('./defaultCompareFileCallback');
 
-/**
- * One of 'missing','file','directory'
- */
-var getType = function (fileStat) {
-    if (fileStat) {
-        if (fileStat.isDirectory()) {
-            return 'directory';
-        } else{
-            return 'file';
-        }
-    } else {
-        return 'missing';
+var compareSync = function (path1, path2, options) {
+    'use strict';
+    var statistics = {
+        distinct : 0,
+        equal : 0,
+        left : 0,
+        right : 0,
+        distinctFiles : 0,
+        equalFiles : 0,
+        leftFiles : 0,
+        rightFiles : 0,
+        distinctDirs : 0,
+        equalDirs : 0,
+        leftDirs : 0,
+        rightDirs : 0,
+        same : undefined
+    };
+    var diffSet;
+    options = prepareOptions(options);
+    if(!options.noDiffSet){
+        diffSet = [];
     }
-}
+    compareSyncInternal(path1, path2, 0, '', options, statistics, diffSet);
+    completeStatistics(statistics);
+    statistics.diffSet = diffSet;
 
-/**
- * Comparator for directory entries sorting.
- */
-var compareEntryCaseSensitive = function (a, b, ignoreCase) {
-    if (a.stat.isDirectory() && b.stat.isFile()) {
-        return -1;
-    } else if (a.stat.isFile() && b.stat.isDirectory()) {
-        return 1;
-    } else {
-    	// http://stackoverflow.com/questions/1179366/is-there-a-javascript-strcmp
-    	var str1 = a.name, str2 = b.name;
-    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
-    }
-}
+    return statistics;
+};
 
-/**
- * Comparator for directory entries sorting.
- */
-var compareEntryIgnoreCase = function (a, b, ignoreCase) {
-    if (a.stat.isDirectory() && b.stat.isFile()) {
-        return -1;
-    } else if (a.stat.isFile() && b.stat.isDirectory()) {
-        return 1;
-    } else {
-    	// http://stackoverflow.com/questions/1179366/is-there-a-javascript-strcmp
-    	var str1 = a.name.toLowerCase(), str2 = b.name.toLowerCase();
-    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
-    }
-}
-
-/**
- * Matches fileName with pattern.
- */
-var match = function(fileName, pattern){
-    var patternArray = pattern.split(',');
-    for(var i = 0; i<patternArray.length; i++){
-        var pat = patternArray[i];
-        if(minimatch(fileName, pat, { dot: true })){ //nocase
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * Filter entries by file name. Returns true if the file is to be processed.
- */
-var filterEntry = function(entry, options){
-    if(entry.symlink && options.skipSymlinks){
-        return false;
-    }
-    
-    if(entry.stat.isFile() && options.includeFilter){
-        if(match(entry.name, options.includeFilter)){
-            return true;
-        } else{
-            return false;
-        }
-    }
-    if(options.excludeFilter){
-        if(match(entry.name, options.excludeFilter)){
-            return false;
-        } else{
-            return true;
-        }
-    }
-    return true;
-}
-
-/**
- * Returns the sorted list of entries in a directory.
- */
-var getEntries = function (path, options) {
-    if (!path) {
-        return [];
-    } else if (fs.statSync(path).isDirectory()) {
-        var entries = fs.readdirSync(path);
-
-        var res = [];
-        entries.forEach(function (entryName) {
-            var entryPath = path + '/' + entryName;
-            var entry = {
-                name : entryName,
-                path : entryPath,
-                stat : fs.statSync(entryPath),
-                symlink : fs.lstatSync(entryPath).isSymbolicLink(),
-                toString : function () {
-                    return this.name;
-                }
+// TODO: provide async file comparison
+// TODO: remove all 'debugger', 'console.', 'throw'
+// TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
+// TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
+var compareAsync = function (path1, path2, options) {
+    'use strict';
+    return Promise.resolve().then(function(xx){
+        var statistics = {
+                distinct : 0,
+                equal : 0,
+                left : 0,
+                right : 0,
+                distinctFiles : 0,
+                equalFiles : 0,
+                leftFiles : 0,
+                rightFiles : 0,
+                distinctDirs : 0,
+                equalDirs : 0,
+                leftDirs : 0,
+                rightDirs : 0,
+                same : undefined
             };
-            if (filterEntry(entry, options)){
-                res.push(entry);
+            options = prepareOptions(options);
+            var asyncDiffSet;
+            if(!options.noDiffSet){
+                asyncDiffSet = [];
             }
-        });
-        return options.ignoreCase?res.sort(compareEntryIgnoreCase):res.sort(compareEntryCaseSensitive);
-    } else {
-        var name = pathUtils.basename(path);
-        return [
-            {
-                name : name,
-                path : path,
-                stat : fs.statSync(path)
-            }
-
-        ];
-    }
-}
-
-/**
- * Default file comparator.
- */
-var defaultCompareFileCallback = function (filePath1, fileStat1, filePath2, fileStat2, options) {
-    var same = true;
-    var compareSize = options.compareSize === undefined ? false : options.compareSize;
-    var compareContent = options.compareContent === undefined ? false : options.compareContent;
-    if (compareSize && fileStat1.size != fileStat2.size) {
-        same = false;
-    } else if(compareContent && !fc.compareSync(filePath1, filePath2)){
-        same = false;
-    }
-    return same;
-};
-
-/**
- * Default result builder.
- */
-var defaultResultBuilderCallback = function (entry1, entry2, state, level, relativePath, options, result) {
-    result.diffSet.push({
-        path1 : entry1 ? pathUtils.dirname(entry1.path) : undefined,
-        path2 : entry2 ? pathUtils.dirname(entry2.path) : undefined,
-        relativePath : relativePath,
-        name1 : entry1 ? entry1.name : undefined,
-        name2 : entry2 ? entry2.name : undefined,
-        state : state,
-        type1 : entry1 ? getType(entry1.stat) : 'missing',
-        type2 : entry2 ? getType(entry2.stat) : 'missing',
-        level : level,
-        size1 : entry1 ? entry1.stat.size : undefined,
-        size2 : entry2 ? entry2.stat.size : undefined,
-        date1 : entry1 ? entry1.stat.mtime : undefined,
-        date2 : entry2 ? entry2.stat.mtime : undefined
+        return compareAsyncInternal(path1, path2, 0, '', options, statistics, asyncDiffSet).then(
+                function(){
+                    completeStatistics(statistics);
+                    if(!options.noDiffSet){
+                        var diffSet = [];
+                        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet);
+                        statistics.diffSet = diffSet;
+                    }
+                    return statistics;
+                });
     });
-}
-
-/**
- * Compares two directories recursively.
- */
-var compare = function (path1, path2, level, relativePath, options, compareFileCallback, resultBuilderCallback, result) {
-    var entries1 = getEntries(path1, options);
-    var entries2 = getEntries(path2, options);
-    var i1 = 0, i2 = 0;
-    while (i1 < entries1.length || i2 < entries2.length) {
-        var entry1 = entries1[i1];
-        var entry2 = entries2[i2];
-        var n1 = entry1 ? entry1.name : undefined;
-        var n2 = entry2 ? entry2.name : undefined;
-        var p1 = entry1 ? entry1.path : undefined;
-        var p2 = entry2 ? entry2.path : undefined;
-        var fileStat1 = entry1 ? entry1.stat : undefined;
-        var fileStat2 = entry2 ? entry2.stat : undefined;
-        var type1, type2;
-
-        // compare entry name (-1, 0, 1)
-        var cmp;
-        if (i1 < entries1.length && i2 < entries2.length) {
-            cmp = options.ignoreCase?compareEntryIgnoreCase(entry1, entry2):compareEntryCaseSensitive(entry1, entry2);
-            type1 = getType(fileStat1);
-            type2 = getType(fileStat2);
-        } else if (i1 < entries1.length) {
-            type1 = getType(fileStat1);
-            type2 = getType(undefined);
-            cmp = -1;
-        } else {
-            type1 = getType(undefined);
-            type2 = getType(fileStat2);
-            cmp = 1;
-        }
-
-        // process entry
-        if (cmp == 0) {
-            if (type1 === type2) {
-                var same;
-                if(type1==='file'){
-                    same = compareFileCallback(p1, fileStat1, p2, fileStat2, options);
-                } else{
-                    same = true;
-                }
-                resultBuilderCallback(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, result);
-                same ? result.equal++ : result.distinct++;
-            } else {
-                resultBuilderCallback(entry1, entry2, 'distinct', level, relativePath, options, result);
-                result.distinct++;
-            }
-            i1++;
-            i2++;
-            if(!options.skipSubdirs){
-                if (type1 == 'directory' && type2 === 'directory') {
-                    compare(p1, p2, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, result);
-                } else if (type1 === 'directory') {
-                    compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, result);
-                } else if (type2 === 'directory') {
-                    compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, compareFileCallback, resultBuilderCallback, result);
-                }
-            }
-        } else if (cmp < 0) {
-            resultBuilderCallback(entry1, undefined, 'left', level, relativePath, options, result);
-            result.left++;
-            i1++;
-            if (type1 == 'directory' && !options.skipSubdirs) {
-                compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, compareFileCallback, resultBuilderCallback, result);
-            }
-        } else {
-            resultBuilderCallback(undefined, entry2, 'right', level, relativePath, options, result);
-            result.right++;
-            i2++;
-            if (type2 == 'directory' && !options.skipSubdirs) {
-                compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, compareFileCallback, resultBuilderCallback, result);
-            }
-        }
-    }
 };
 
+var prepareOptions = function(options){
+    options = options || {};
+    var clone = JSON.parse(JSON.stringify(options))
+    clone.resultBuilder = options.resultBuilder;
+    clone.compareFileSync = options.compareFileSync;
+    clone.compareFileAsync = options.compareFileAsync;
+    if (!clone.resultBuilder) {
+        clone.resultBuilder = defaultResultBuilderCallback;
+    }
+    if (!clone.compareFileSync) {
+        clone.compareFileSync = defaultCompareFileCallback.compareSync;
+    }
+    if (!clone.compareFileAsync) {
+        clone.compareFileAsync = defaultCompareFileCallback.compareAsync;
+    }
+    return clone;
+}
+
+var completeStatistics = function(statistics){
+    statistics.differences = statistics.distinct + statistics.left + statistics.right;
+    statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
+    statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs;
+    statistics.total = statistics.equal+statistics.differences;
+    statistics.totalFiles = statistics.equalFiles+statistics.differencesFiles;
+    statistics.totalDirs = statistics.equalDirs+statistics.differencesDirs;
+    statistics.same = statistics.differences ? false : true;
+}
+
+// Async diffsets are kept into recursive structures.
+// This method transforms them into one dimensional arrays. 
+var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
+	asyncDiffSet.forEach(function(rawDiff){
+		if(!Array.isArray(rawDiff)){
+		    diffSet.push(rawDiff);
+		} else{
+		    rebuildAsyncDiffSet(statistics, rawDiff, diffSet);
+		}
+	});
+}
+
+
 /**
- * Synchronous comparision. 
+ * Options:
+ *  compareSize: true/false - Compares files by size. Defaults to 'false'.
+ *  compareContent: true/false - Compares files by content. Defaults to 'false'.
+ *  skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
+ *  skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
+ *  ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
+ *  noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
+ *  includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ *  resultBuilder: Callback for constructing result.
+ *  	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
+ *  
  * Output format:
  *  distinct: number of distinct entries
  *  equal: number of equal entries
  *  left: number of entries only in path1
  *  right: number of entries only in path2
  *  differences: total number of differences (distinct+left+right)
+ *  distinctFiles: number of distinct files
+ *  equalFiles: number of equal files
+ *  leftFiles: number of files only in path1
+ *  rightFiles: number of files only in path2
+ *  differencesFiles: total number of different files (distinctFiles+leftFiles+rightFiles)
+ *  distinctDirs: number of distinct directories
+ *  equalDirs: number of equal directories
+ *  leftDirs: number of directories only in path1
+ *  rightDirs: number of directories only in path2
+ *  differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
  *  same: true if directories are identical
- *  diffSet - List of changes
+ *  diffSet - List of changes (present if Options.noDiffSet is false)
  *      path1: absolute path not including file/directory name,
  *      path2: absolute path not including file/directory name,
  *      relativePath: common path relative to root,
@@ -264,37 +159,8 @@ var compare = function (path1, path2, level, relativePath, options, compareFileC
  *      date1: modification date (stat.mdate)
  *      date2: modification date (stat.mdate)
  *      level: depth
- * Options:
- *  compareSize: true/false - compares files by size
- *  compareContent: true/false - compares files by content
- *  skipSubdirs: true/false - skips sub directories
- *  skipSymlinks: true/false - skips symbolic links
- *  ignoreCase: true/false - ignores case when comparing names.
- *  includeFilter: file name filter
- *  excludeFilter: file/directory name exclude filter
  */
-var compareSync = function (path1, path2, options, compareFileCallback, resultBuilderCallback) {
-    'use strict';
-    var res = {
-        distinct : 0,
-        equal : 0,
-        left : 0,
-        right : 0,
-        same : undefined,
-        diffSet : []
-    };
-    if (!resultBuilderCallback) {
-        resultBuilderCallback = defaultResultBuilderCallback;
-    }
-    if (!compareFileCallback) {
-        compareFileCallback = defaultCompareFileCallback;
-    }
-    compare(path1, path2, 0, '', options === undefined ? {} : options, compareFileCallback, resultBuilderCallback, res);
-    res.differences = res.distinct + res.left + res.right;
-    res.same = res.differences ? false : true;
-
-    return res;
-};
 module.exports = {
-    compareSync : compareSync
+    compareSync : compareSync,
+    compare : compareAsync
 };
