@@ -34,10 +34,6 @@ var compareSync = function (path1, path2, options) {
     return statistics;
 };
 
-// TODO: provide async file comparison
-// TODO: remove all 'debugger', 'console.', 'throw'
-// TODO: see if npm test requires root: do 'npm install ./dir-compare -g', npm test, sudo npm test.
-// TODO: test adding exceptions and delays in compareAsync.js -> wrapper.
 var compareAsync = function (path1, path2, options) {
     'use strict';
     return Promise.resolve().then(function(xx){

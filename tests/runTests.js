@@ -490,7 +490,7 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
         var expectedExitCode = test.exitCode;
         var res;
         if (test.name == 'test002_3x') {
-             debugger
+             console.log(output);
         }
         if(expectedExitCode===2){
             // output not relevant for error codes
