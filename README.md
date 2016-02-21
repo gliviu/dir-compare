@@ -73,48 +73,48 @@ dircompare.compare(path1, path2, options).then(function(res){
 
 Options:
 
-*  compareSize: true/false - Compares files by size. Defaults to 'false'.
-*  compareContent: true/false - Compares files by content. Defaults to 'false'.
-*  skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
-*  skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
-*  ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
-*  noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
-*  includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
-*  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+* compareSize: true/false - Compares files by size. Defaults to 'false'.
+* compareContent: true/false - Compares files by content. Defaults to 'false'.
+* skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
+* skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
+* ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
+* noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
+* includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+* excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
 * resultBuilder: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js)
 
 Result:
 
-*  distinct: number of distinct entries
-*  equal: number of equal entries
-*  left: number of entries only in path1
-*  right: number of entries only in path2
-*  differences: total number of differences (distinct+left+right)
-*  distinctFiles: number of distinct files
-*  equalFiles: number of equal files
-*  leftFiles: number of files only in path1
-*  rightFiles: number of files only in path2
-*  differencesFiles: total number of different files (distinctFiles+leftFiles+rightFiles)
-*  distinctDirs: number of distinct directories
-*  equalDirs: number of equal directories
-*  leftDirs: number of directories only in path1
-*  rightDirs: number of directories only in path2
-*  differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
-*  same: true if directories are identical
-*  diffSet - List of changes (present if Options.noDiffSet is false)
-  * path1: absolute path not including file/directory name,
-  * path2: absolute path not including file/directory name,
-  * relativePath: common path relative to root,
-  * name1: file/directory name
-  * name2: file/directory name
-  * state: one of equal, left, right, distinct,
-  * type1: one of missing, file, directory
-  * type2: one of missing, file, directory
-  * size1: file size
-  * size2: file size
-  * date1: modification date (stat.mdate)
-  * date2: modification date (stat.mdate)
-  * level: depth
+* distinct: number of distinct entries
+* equal: number of equal entries
+* left: number of entries only in path1
+* right: number of entries only in path2
+* differences: total number of differences (distinct+left+right)
+* distinctFiles: number of distinct files
+* equalFiles: number of equal files
+* leftFiles: number of files only in path1
+* rightFiles: number of files only in path2
+* differencesFiles: total number of different files (distinctFiles+leftFiles+rightFiles)
+* distinctDirs: number of distinct directories
+* equalDirs: number of equal directories
+* leftDirs: number of directories only in path1
+* rightDirs: number of directories only in path2
+* differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
+* same: true if directories are identical
+* diffSet - List of changes (present if Options.noDiffSet is false)
+    * path1: absolute path not including file/directory name,
+    * path2: absolute path not including file/directory name,
+    * relativePath: common path relative to root,
+    * name1: file/directory name
+    * name2: file/directory name
+    * state: one of equal, left, right, distinct,
+    * type1: one of missing, file, directory
+    * type2: one of missing, file, directory
+    * size1: file size
+    * size2: file size
+    * date1: modification date (stat.mdate)
+    * date2: modification date (stat.mdate)
+    * level: depth
 
 
 ## Command line
@@ -157,9 +157,9 @@ Result:
 ```
 ## Changelog
 * v1.0.0
- * asynchronous processing
- * new library options: noDiffSet, resultBuilder
- * new statistics: distinctFiles, equalFiles, leftFiles, rightFiles, distinctDirs, equalDirs, leftDirs, rightDirs
- * new --async command line option
- * Fix for https://github.com/tj/commander.js/issues/125
+    * asynchronous processing
+    * new library options: noDiffSet, resultBuilder
+    * new statistics: distinctFiles, equalFiles, leftFiles, rightFiles, distinctDirs, equalDirs, leftDirs, rightDirs
+    * new --async command line option
+    * Fix for https://github.com/tj/commander.js/issues/125
 * v0.0.3 Fix fille ordering issue for newer node versions
