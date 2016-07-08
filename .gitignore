@@ -2,3 +2,4 @@
 .project
 /tests/report.txt
 /coverage/
+test.js

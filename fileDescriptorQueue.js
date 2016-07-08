@@ -1,20 +1,23 @@
 'use strict';
 
 var fs = require('fs');
-var Promise = require('bluebird');
-var util = require('util');
 
 /**
  * Limits the number of concurrent file handlers.
  * Use it as a wrapper over fs.open() and fs.close().
+ * Example:
+ *  var fdQueue = new FileDescriptorQueue(8);
+ *  fdQueue.open(path, flags, (err, fd) =>{
+ *    ...
+ *  });
  */
-var FileQueue = function(maxFilesNo) {
+var FileDescriptorQueue = function(maxFilesNo) {
 	var activeJobs = {};
 	var pendingJobs = [];
 	var activeCount = 0;
 
 	var open = function(path, flags, callback) {
-		
+
 		pendingJobs.push({
 			path : path,
 			flags : flags,
@@ -47,4 +50,4 @@ var FileQueue = function(maxFilesNo) {
 	};
 }
 
-module.exports = FileQueue;
+module.exports = FileDescriptorQueue;
