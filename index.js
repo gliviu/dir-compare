@@ -1,10 +1,11 @@
 var util = require('util');
+var pathUtils = require('path');
 var Promise = require('bluebird');
 var compareSyncInternal = require('./compareSync');
 var compareAsyncInternal = require('./compareAsync');
 var defaultResultBuilderCallback = require('./defaultResultBuilderCallback');
 var defaultCompareFileCallback = require('./defaultCompareFileCallback');
-
+var common = require('./common');
 var compareSync = function (path1, path2, options) {
     'use strict';
     var statistics = {
@@ -27,7 +28,10 @@ var compareSync = function (path1, path2, options) {
     if(!options.noDiffSet){
         diffSet = [];
     }
-    compareSyncInternal(path1, path2, 0, '', options, statistics, diffSet);
+    compareSyncInternal(
+        common.buildEntry(path1, pathUtils.basename(path1)), 
+        common.buildEntry(path2, pathUtils.basename(path2)),
+        0, '', options, statistics, diffSet);
     completeStatistics(statistics);
     statistics.diffSet = diffSet;
 
@@ -99,7 +103,7 @@ var completeStatistics = function(statistics){
 }
 
 // Async diffsets are kept into recursive structures.
-// This method transforms them into one dimensional arrays. 
+// This method transforms them into one dimensional arrays.
 var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
 	asyncDiffSet.forEach(function(rawDiff){
 		if(!Array.isArray(rawDiff)){
@@ -123,7 +127,7 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
  *  resultBuilder: Callback for constructing result.
  *  	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
- *  
+ *
  * Output format:
  *  distinct: number of distinct entries
  *  equal: number of equal entries

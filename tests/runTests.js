@@ -1,16 +1,16 @@
 "use strict";
 var colors = require('colors');
-var path = require('path');
+var pathUtils = require('path');
 var shelljs = require('shelljs');
 var util = require('util');
 var fs = require('fs');
 var temp = require('temp');
-var tar = require('tar');
 var defaultPrint = require('../print');
 var Promise = require('bluebird');
 var Streams = require('memory-streams');
 var compareSync = require('../index').compareSync;
 var compareAsync = require('../index').compare;
+var untar = require('./untar');
 
 var count = 0, failed = 0, successful = 0;
 var syncCount = 0, syncFailed = 0, syncSuccessful = 0;
@@ -28,7 +28,7 @@ function passed (value, type) {
     } else {
         failed++;
     }
-    
+
     if(type==='sync'){
         syncCount++;
         if (value) {
@@ -37,7 +37,7 @@ function passed (value, type) {
             syncFailed++;
         }
     }
-    
+
     if(type==='async'){
         asyncCount++;
         if (value) {
@@ -46,7 +46,7 @@ function passed (value, type) {
             asyncFailed++;
         }
     }
-    
+
     if(type==='cmdLine'){
         cmdLineCount++;
         if (value) {
@@ -55,7 +55,7 @@ function passed (value, type) {
             cmdLineFailed++;
         }
     }
-    
+
     return value ? 'Passed'.green : '!!!!FAILED!!!!'.yellow;
 }
 
@@ -63,13 +63,14 @@ function passed (value, type) {
  * Parameters:
  * * name - Test name. This represents also the name of the file holding expected result unless overriden by 'expected' param.
  * * expected - Expected result.
+ * * withRelativePath - Left/right dirs will be relative to current process.
  * * options - Options sent to library test. Should match 'commandLineOptions.
  * * commandLineOptions - Options sent to command line test. Should match 'options'.
  * * exitCode - Command line expected exit code.
  * * displayOptions - Display parameters for print method.
  * * print - Prints test result. If missing 'defaultPrint()' is used.
  * * onlyLibrary - Test is run only on API methods.
- * * onlyCommandLine - Test is run only on command line. 
+ * * onlyCommandLine - Test is run only on command line.
  * * skipStatisticsCheck - Do not call checkStatistics() after each library test.
  */
 var tests = [
@@ -122,7 +123,7 @@ var tests = [
                  commandLineOptions: '',
                  exitCode: 1,
              },
-             
+
              ////////////////////////////////////////////////////
              // Filters                                        //
              ////////////////////////////////////////////////////
@@ -176,7 +177,7 @@ var tests = [
                  exitCode: 1,
              },
              // TODO: test both --exclude and --filter in the same run
-             
+
              ////////////////////////////////////////////////////
              // Compare by content                             //
              ////////////////////////////////////////////////////
@@ -258,7 +259,7 @@ var tests = [
                  commandLineOptions: '--ABC --async -x --async',
                  exitCode: 2,
              },
-             
+
              ////////////////////////////////////////////////////
              // Symlinks                                      //
              ////////////////////////////////////////////////////
@@ -268,6 +269,118 @@ var tests = [
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-awL',
                  exitCode: 1,
+             },
+             {
+                 name: 'test005_1', path1: 'd17', path2: 'd17',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_1_1', path1: 'd17', path2: 'd17', withRelativePath: true,
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_2', path1: 'd17', path2: 'd17',
+                 options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awL',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_3', path1: 'd17', path2: 'd18',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_4', path1: 'd22', path2: 'd22',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_5', path1: 'd19', path2: 'd19',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_5_1', path1: 'd19', path2: 'd19', withRelativePath: true,
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_6', path1: 'd19', path2: 'd19',
+                 options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awL',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_7', path1: 'd20', path2: 'd20',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_8', path1: 'd21', path2: 'd21',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_9', path1: 'd20', path2: 'd21',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_10', path1: 'd21', path2: 'd20',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_11', path1: 'd20', path2: 'd22',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_12', path1: 'd22', path2: 'd20',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_13', path1: 'd23', path2: 'd23',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_14', path1: 'd24', path2: 'd24',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
              },
 
              ////////////////////////////////////////////////////
@@ -391,7 +504,7 @@ var checkStatistics = function(statistics, test){
     if (statistics.totalDirs != statistics.equalDirs +  + statistics.differencesDirs) {
         return false;
     }
-    
+
     if (statistics.total != statistics.totalDirs +  + statistics.totalFiles) {
         return false;
     }
@@ -419,8 +532,15 @@ var getExpected = function(test){
 }
 
 var testSync = function(test, testDirPath, saveReport){
-    var path1 = test.path1?testDirPath + '/' + test.path1:'';
-    var path2 = test.path2?testDirPath + '/' + test.path2:'';
+    process.chdir(testDirPath);
+    var path1, path2;
+    if(test.withRelativePath){
+        path1 = test.path1;
+        path2 = test.path2;
+    } else{
+        path1 = test.path1?testDirPath + '/' + test.path1:'';
+        path2 = test.path2?testDirPath + '/' + test.path2:'';
+    }
     return new Promise(function(resolve, reject) {
         resolve(compareSync(path1, path2, test.options));
     }).then(
@@ -432,9 +552,10 @@ var testSync = function(test, testDirPath, saveReport){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test007_1x') {
+                if (test.name == 'test005_4x') {
                     console.log(output);
-                    expected.forEach(function(exp){console.log(exp)});
+                    console.log(expected);
+//                    expected.forEach(function(exp){console.log(exp)});
                     console.log(output === expected);
 
                 }
@@ -449,8 +570,15 @@ var testSync = function(test, testDirPath, saveReport){
 }
 
 var testAsync = function(test, testDirPath, saveReport){
-    var path1 = test.path1?testDirPath + '/' + test.path1:'';
-    var path2 = test.path2?testDirPath + '/' + test.path2:'';
+    process.chdir(testDirPath);
+    var path1, path2;
+    if(test.withRelativePath){
+        path1 = test.path1;
+        path2 = test.path2;
+    } else{
+        path1 = test.path1?testDirPath + '/' + test.path1:'';
+        path2 = test.path2?testDirPath + '/' + test.path2:'';
+    }
     return compareAsync(path1, path2, test.options).then(
             function(result){
                 // PRINT DETAILS
@@ -476,17 +604,24 @@ var testAsync = function(test, testDirPath, saveReport){
 
 function testCommandLineInternal(test, testDirPath, async, saveReport) {
     return new Promise(function(resolve, reject) {
-        var dircompareJs = path.normalize(__dirname + '/../dircompare.js');
-        var path1 = test.path1?testDirPath + '/' + test.path1:'';
-        var path2 = test.path2?testDirPath + '/' + test.path2:'';
-        var command = util.format("node %s %s %s %s %s", 
+        var dircompareJs = pathUtils.normalize(__dirname + '/../dircompare.js');
+        process.chdir(testDirPath);
+        var path1, path2;
+        if(test.withRelativePath){
+            path1 = test.path1;
+            path2 = test.path2;
+        } else{
+            path1 = test.path1?testDirPath + '/' + test.path1:'';
+            path2 = test.path2?testDirPath + '/' + test.path2:'';
+        }
+        var command = util.format("node %s %s %s %s %s",
                 dircompareJs, test.commandLineOptions, async ? '--async' : '', path1, path2);
         var shelljsResult = shelljs.exec(command, {
             silent : true
         });
         var output = normalize(shelljsResult.output).trim();
         var exitCode = shelljsResult.code;
-        
+
         var expectedExitCode = test.exitCode;
         var res;
         if (test.name == 'test002_3x') {
@@ -556,7 +691,7 @@ var runTests = function () {
         }
 
         function onError (err) {
-            console.error('Error occurred:', err)
+            console.error('Error occurred:', err);
         }
 
         function onExtracted () {
@@ -604,12 +739,8 @@ var runTests = function () {
                 endReport(saveReport);
             });
         }
-        var extractor = tar.Extract({
-            path : testDirPath
-        }).on('error', onError).on('end', onExtracted);
 
-        fs.createReadStream(__dirname + "/testdir.tar").on('error', onError).pipe(extractor);
-
+         untar(testDirPath, onExtracted, onError);
     });
 }
 

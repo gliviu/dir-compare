@@ -1,0 +1,14 @@
+[/] a==a(directory)
+[/a] l1==l1(directory)
+[/a] missing<-l2(directory)
+[/a/l2] missing<-l3(directory)
+[/a/l2] missing<-l4(directory)
+[/] b==b(directory)
+[/b] l2->missing(directory)
+[/b/l2] l1->missing(directory)
+[/b] missing<-l3(directory)
+[/b] missing<-l4(directory)
+[/b/l4] missing<-l1(directory)
+[/b/l4] missing<-l2(directory)
+Entries are different
+total: 12, equal: 3, distinct: 0, only left: 2, only right: 7

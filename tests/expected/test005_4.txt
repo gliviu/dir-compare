@@ -1,0 +1,8 @@
+[/] a==a(directory)
+[/a] b==b(directory)
+[/a/b] c==c(directory)
+[/] d==d(directory)
+[/d] lb==lb(directory)
+[/d/lb] c==c(directory)
+Entries are identical
+total: 6, equal: 6, distinct: 0, only left: 0, only right: 0

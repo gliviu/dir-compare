@@ -1,0 +1,16 @@
+[/] a==a(directory)
+[/a] b==b(directory)
+[/a/b] c==c(directory)
+[/a/b/c] lb==lb(directory)
+[/a/b] d==d(directory)
+[/a/b/d] lc==lc(directory)
+[/a/b/d/lc] lb==lb(directory)
+[/a] lc==lc(directory)
+[/a/lc] lb==lb(directory)
+[/a/lc/lb] c==c(directory)
+[/a/lc/lb/c] lb==lb(directory)
+[/a/lc/lb] d==d(directory)
+[/a/lc/lb/d] lc==lc(directory)
+[/a/lc/lb/d/lc] lb==lb(directory)
+Entries are identical
+total: 14, equal: 14, distinct: 0, only left: 0, only right: 0

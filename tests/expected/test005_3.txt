@@ -1,0 +1,11 @@
+[/] a==a(directory)
+[/a] c==c(directory)
+[/a/c] missing<-a(directory)
+[/a/c/a] missing<-a3.txt(file)
+[/a/c] missing<-a1.txt(file)
+[/a/c] missing<-a2.txt(file)
+[/a] a3.txt==a3.txt(file)
+[/] a1.txt==a1.txt(file)
+[/] a2.txt==a2.txt(file)
+Entries are different
+total: 9, equal: 5, distinct: 0, only left: 0, only right: 4

@@ -1,5 +1,6 @@
 /node_modules/
 .project
 /tests/report.txt
+/tests/testdir
 /coverage/
 test.js

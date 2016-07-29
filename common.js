@@ -1,6 +1,24 @@
+var fs = require('fs');
 var minimatch = require('minimatch');
 
 module.exports = {
+    
+    buildEntry : function(path, name){
+        var statEntry = fs.statSync(path);
+        var lstatEntry = fs.lstatSync(path);
+        var isSymlink = lstatEntry.isSymbolicLink();
+        return {
+            name : name,
+            path : path,
+            stat : statEntry,
+            lstat : lstatEntry,
+            symlink : isSymlink,
+            toString : function () {
+                return this.name;
+            }
+        };
+    },
+    
 	/**
 	 * One of 'missing','file','directory'
 	 */

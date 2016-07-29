@@ -1,59 +1,90 @@
 var fs = require('fs');
 var pathUtils = require('path');
-var common = require('./common'); 
-
-
-
-
-
+var common = require('./common');
 
 /**
  * Returns the sorted list of entries in a directory.
  */
 var getEntries = function (path, options) {
-	// TODO: fs.statSync(path) is called twice. Cache the result of the first call
     if (!path) {
         return [];
-    } else if (fs.statSync(path).isDirectory()) {
-        var entries = fs.readdirSync(path);
-
-        var res = [];
-        entries.forEach(function (entryName) {
-            var entryPath = path + '/' + entryName;
-            var entry = {
-                name : entryName,
-                path : entryPath,
-                stat : fs.statSync(entryPath),
-                symlink : fs.lstatSync(entryPath).isSymbolicLink(),
-                toString : function () {
-                    return this.name;
-                }
-            };
-            if (common.filterEntry(entry, options)){
-                res.push(entry);
-            }
-        });
-        return options.ignoreCase?res.sort(common.compareEntryIgnoreCase):res.sort(common.compareEntryCaseSensitive);
     } else {
-        var name = pathUtils.basename(path);
-        return [
-            {
-                name : name,
-                path : path,
-                stat : fs.statSync(path)
-            }
+        var statPath = fs.statSync(path);
+        if (statPath.isDirectory()) {
+           var entries = fs.readdirSync(path);
 
-        ];
+           var res = [];
+           entries.forEach(function (entryName) {
+               var entryPath = path + '/' + entryName;
+               var statEntry = fs.statSync(entryPath);
+               var lstatEntry = fs.lstatSync(entryPath);
+               var isSymlink = lstatEntry.isSymbolicLink();
+               var entry = {
+                   name : entryName,
+                   path : entryPath,
+                   stat : statEntry,
+                   lstat : lstatEntry,
+                   symlink : isSymlink,
+                   toString : function () {
+                       return this.name;
+                   }
+               };
+               if (common.filterEntry(entry, options)){
+                   res.push(entry);
+               }
+           });
+           return options.ignoreCase?res.sort(common.compareEntryIgnoreCase):res.sort(common.compareEntryCaseSensitive);
+       } else {
+           var name = pathUtils.basename(path);
+           return [
+               {
+                   name : name,
+                   path : path,
+                   stat : statPath,
+                   toString : function () {
+                       return this.name;
+                   }
+               }
+
+           ];
+       }
     }
 }
 
+var detectLoop = function(entry, symlinkCache){
+    if(entry && entry.symlink){
+        var realPath = pathUtils.normalize(fs.realpathSync(entry.path)).toLowerCase();
+        if(symlinkCache[realPath]){
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Compares two directories synchronously.
  */
-var compare = function (path1, path2, level, relativePath, options, statistics, diffSet) {
-    var entries1 = getEntries(path1, options);
-    var entries2 = getEntries(path2, options);
+var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
+    symlinkCache = symlinkCache || {
+        dir1 : {},
+        dir2 : {}
+    };
+    var loopDetected1 = detectLoop(rootEntry1, symlinkCache.dir1);
+    var loopDetected2 = detectLoop(rootEntry2, symlinkCache.dir2);
+
+    var symlinkCachePath1, symlinkCachePath2;
+    if(rootEntry1 && !loopDetected1){
+        symlinkCachePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(rootEntry1.path))).toLowerCase();
+        symlinkCache.dir1[symlinkCachePath1] = true;
+    }
+    if(rootEntry2 && !loopDetected2){
+        symlinkCachePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(rootEntry2.path))).toLowerCase();
+        symlinkCache.dir2[symlinkCachePath2] = true;
+    }
+    var path1 = rootEntry1?rootEntry1.path:undefined;
+    var path2 = rootEntry2?rootEntry2.path:undefined;
+    var entries1 = loopDetected1?[]:getEntries(path1, options);
+    var entries2 = loopDetected2?[]:getEntries(path2, options);
     var i1 = 0, i2 = 0;
     while (i1 < entries1.length || i2 < entries2.length) {
         var entry1 = entries1[i1];
@@ -122,11 +153,11 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
             i2++;
             if(!options.skipSubdirs){
                 if (type1 === 'directory' && type2 === 'directory') {
-                    compare(p1, p2, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet);
+                    compare(entry1, entry2, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, symlinkCache);
                 } else if (type1 === 'directory') {
-                    compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet);
+                    compare(entry1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, symlinkCache);
                 } else if (type2 === 'directory') {
-                    compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet);
+                    compare(undefined, entry2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet, symlinkCache);
                 }
             }
         } else if (cmp < 0) {
@@ -142,7 +173,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
             }
             i1++;
             if (type1 === 'directory' && !options.skipSubdirs) {
-                compare(p1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet);
+                compare(entry1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, symlinkCache);
             }
         } else {
             // Left missing
@@ -157,9 +188,15 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
             }
             i2++;
             if (type2 === 'directory' && !options.skipSubdirs) {
-                compare(undefined, p2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet);
+                compare(undefined, entry2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet, symlinkCache);
             }
         }
+    }
+    if(symlinkCachePath1){
+        delete symlinkCache.dir1[symlinkCachePath1];
+    }
+    if(symlinkCachePath2){
+        delete symlinkCache.dir2[symlinkCachePath2];
     }
 };
 

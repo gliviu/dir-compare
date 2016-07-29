@@ -1,0 +1,7 @@
+[/] a==a(directory)
+[/a] b==b(directory)
+[/a/b] la1==la1(file)
+[/a] a1==a1(file)
+[/a] la1==la1(file)
+Entries are identical
+total: 5, equal: 5, distinct: 0, only left: 0, only right: 0
