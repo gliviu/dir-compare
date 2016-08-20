@@ -123,7 +123,7 @@ var tests = [
                  commandLineOptions: '',
                  exitCode: 1,
              },
-             
+
              ////////////////////////////////////////////////////
              // Filters                                        //
              ////////////////////////////////////////////////////
@@ -177,7 +177,7 @@ var tests = [
                  exitCode: 1,
              },
              // TODO: test both --exclude and --filter in the same run
-             
+
              ////////////////////////////////////////////////////
              // Compare by content                             //
              ////////////////////////////////////////////////////
@@ -259,7 +259,7 @@ var tests = [
                  commandLineOptions: '--ABC --async -x --async',
                  exitCode: 2,
              },
-             
+
              ////////////////////////////////////////////////////
              // Symlinks                                      //
              ////////////////////////////////////////////////////
@@ -382,7 +382,7 @@ var tests = [
                  commandLineOptions: '-aw',
                  exitCode: 0,
              },
-             
+
              ////////////////////////////////////////////////////
              // Skip subdirs                                   //
              ////////////////////////////////////////////////////
@@ -742,7 +742,7 @@ var runTests = function () {
             });
         }
 
-         untar(testDirPath, onExtracted, onError);
+         untar(__dirname + "/testdir.tar", testDirPath, onExtracted, onError);
     });
 }
 

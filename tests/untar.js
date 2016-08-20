@@ -2,15 +2,20 @@ var tar = require('tar-fs');
 var fs = require('fs');
 var pathUtils = require('path');
 
-var extractFiles = function(output, onExtracted, onError){
+var extractFiles = function(tarFile, output, onExtracted, onError){
 
     var extractLinks = function(){
         var linkExtractor = tar.extract(output, {
             ignore : function(_, header){
                 // use the 'ignore' handler for symlink creation.
                 if(header.type==='symlink'){
-                    var target = pathUtils.join(output, pathUtils.dirname(header.name), header.linkname);
-                    var linkPath = pathUtils.join(output, header.name); 
+                    // Absolute symlinks
+                    // var target = pathUtils.join(output, pathUtils.dirname(header.name), header.linkname);
+
+                    // Relative symlinks
+                    var target = header.linkname;
+
+                    var linkPath = pathUtils.join(output, header.name);
                     if(!fs.existsSync(linkPath)){
                         if(fs.existsSync(target)){
                             var statTarget = fs.statSync(target);
@@ -29,7 +34,7 @@ var extractFiles = function(output, onExtracted, onError){
                 return true;
             }
         }).on('error', onError).on('finish', onExtracted);
-        fs.createReadStream(__dirname + "/testdir.tar").on('error', onError).pipe(linkExtractor);
+        fs.createReadStream(tarFile).on('error', onError).pipe(linkExtractor);
     }
 
     var fileExtractor = tar.extract(output, {
@@ -41,11 +46,11 @@ var extractFiles = function(output, onExtracted, onError){
             }
         }
     }).on('error', onError).on('finish', extractLinks);
-    fs.createReadStream(__dirname + "/testdir.tar").on('error', onError).pipe(fileExtractor);
+    fs.createReadStream(tarFile).on('error', onError).pipe(fileExtractor);
 }
 
-var untar = function(output, onExtracted, onError){
-    extractFiles(output, onExtracted, onError);
+var untar = function(tarFile, output, onExtracted, onError){
+    extractFiles(tarFile, output, onExtracted, onError);
 }
 
 module.exports = untar;
