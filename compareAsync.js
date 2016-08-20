@@ -2,12 +2,7 @@ var fs = require('fs');
 var common = require('./common');
 var pathUtils = require('path');
 var Promise = require('bluebird');
-
-var wrapper = {
-        stat : Promise.promisify(fs.stat),
-        lstat : Promise.promisify(fs.lstat),
-        readdir : Promise.promisify(fs.readdir),
-};
+var fsPromise = require('./fsPromise');
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -16,10 +11,10 @@ var getEntries = function (path, options, loopDetected) {
     if (!path || loopDetected) {
         return Promise.resolve([]);
     } else{
-        return wrapper.stat(path).then(
+        return fsPromise.stat(path).then(
                 function(statPath){
                     if(statPath.isDirectory()){
-                        return wrapper.readdir(path).then(
+                        return fsPromise.readdir(path).then(
                                 function(rawEntries){
                                     return buildEntries(path, rawEntries, options);
                                 });
@@ -60,13 +55,13 @@ var buildEntries = function(path, rawEntries, options){
 
 var buildEntry = function(path, entryName, options){
     var entryPath = path + '/' + entryName;
-    return Promise.resolve(wrapper.lstat(entryPath)).then(function(lstatEntry){
+    return Promise.resolve(fsPromise.lstat(entryPath)).then(function(lstatEntry){
         var isSymlink = lstatEntry.isSymbolicLink();
         var statPromise;
         if(options.skipSymlinks && isSymlink){
             statPromise = Promise.resolve(undefined);
         } else{
-            statPromise = wrapper.stat(entryPath);
+            statPromise = fsPromise.stat(entryPath);
         }
         return statPromise.then(function(statEntry){
             return {
