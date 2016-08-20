@@ -43,7 +43,7 @@ var getEntries = function (path, options, loopDetected) {
 var buildEntries = function(path, rawEntries, options){
     var promisedEntries = [];
     rawEntries.forEach(function (entryName) {
-        promisedEntries.push(buildEntry(path, entryName));
+        promisedEntries.push(buildEntry(path, entryName, options));
     });
     return Promise.all(promisedEntries).then(
             function(entries){
@@ -58,25 +58,29 @@ var buildEntries = function(path, rawEntries, options){
             });
 }
 
-var buildEntry = function(path, entryName){
+var buildEntry = function(path, entryName, options){
     var entryPath = path + '/' + entryName;
-    return Promise.all([wrapper.stat(entryPath), wrapper.lstat(entryPath)])
-        .then(
-                function(result){
-                    var statEntry = result[0];
-                    var lstatEntry = result[1];
-                    var isSymlink = lstatEntry.isSymbolicLink();
-                    return {
-                            name : entryName,
-                            path : entryPath,
-                            stat : statEntry,
-                            lstat : lstatEntry,
-                            symlink : isSymlink,
-                            toString : function () {
-                                return this.name;
-                            }
-                        };
-                });
+    return Promise.resolve(wrapper.lstat(entryPath)).then(function(lstatEntry){
+        var isSymlink = lstatEntry.isSymbolicLink();
+        var statPromise;
+        if(options.skipSymlinks && isSymlink){
+            statPromise = Promise.resolve(undefined);
+        } else{
+            statPromise = wrapper.stat(entryPath);
+        }
+        return statPromise.then(function(statEntry){
+            return {
+                name : entryName,
+                path : entryPath,
+                stat : statEntry,
+                lstat : lstatEntry,
+                symlink : isSymlink,
+                toString : function () {
+                    return this.name;
+                }
+            };
+        });
+    });
 }
 
 /**

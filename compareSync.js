@@ -16,9 +16,14 @@ var getEntries = function (path, options) {
            var res = [];
            entries.forEach(function (entryName) {
                var entryPath = path + '/' + entryName;
-               var statEntry = fs.statSync(entryPath);
                var lstatEntry = fs.lstatSync(entryPath);
                var isSymlink = lstatEntry.isSymbolicLink();
+               var statEntry;
+               if(options.skipSymlinks && isSymlink){
+                   statEntry = undefined;
+               } else{
+                   statEntry = fs.statSync(entryPath);
+               }
                var entry = {
                    name : entryName,
                    path : entryPath,
