@@ -371,6 +371,7 @@ var tests = [
              },
              {
                  name: 'test005_13', path1: 'd23', path2: 'd23',
+                 description: 'be able to compare symlinks to files',
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
@@ -389,6 +390,30 @@ var tests = [
                  options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw --skip-symlinks',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_16', path1: 'd26', path2: 'd27',
+                 description: 'detect symbolic link loops; loops span between left/right directories',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 1,
+             },
+             {
+                 name: 'test005_17', path1: 'd28', path2: 'd28',
+                 description: 'detect symbolic link loops; loop back to root directory',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_18', path1: 'd29', path2: 'd30',
+                 description: 'compare two symlinks',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
                  exitCode: 0,
              },
 

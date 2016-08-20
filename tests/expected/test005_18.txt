@@ -1,0 +1,4 @@
+[/] f1==f1(directory)
+[/f1] ld28==ld28(directory)
+Entries are identical
+total: 2, equal: 2, distinct: 0, only left: 0, only right: 0
