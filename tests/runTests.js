@@ -62,6 +62,7 @@ function passed (value, type) {
 /**
  * Parameters:
  * * name - Test name. This represents also the name of the file holding expected result unless overriden by 'expected' param.
+ * * description - describes what test does
  * * expected - Expected result.
  * * withRelativePath - Left/right dirs will be relative to current process.
  * * options - Options sent to library test. Should match 'commandLineOptions.
@@ -368,18 +369,26 @@ var tests = [
                  commandLineOptions: '-aw',
                  exitCode: 1,
              },
-              {
-                  name: 'test005_13', path1: 'd23', path2: 'd23',
-                  options: {compareSize: true, ignoreCase: true},
-                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                  commandLineOptions: '-aw',
-                  exitCode: 0,
-              },
+             {
+                 name: 'test005_13', path1: 'd23', path2: 'd23',
+                 options: {compareSize: true, ignoreCase: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
              {
                  name: 'test005_14', path1: 'd24', path2: 'd24',
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test005_15', path1: 'd25', path2: 'd25',
+                 description: 'do not fail when missing symlinks are encountered',
+                 options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw --skip-symlinks',
                  exitCode: 0,
              },
 
