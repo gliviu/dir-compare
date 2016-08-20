@@ -51,16 +51,6 @@ var getEntries = function (path, options) {
     }
 }
 
-var detectLoop = function(entry, symlinkCache){
-    if(entry && entry.symlink){
-        var realPath = pathUtils.normalize(fs.realpathSync(entry.path)).toLowerCase();
-        if(symlinkCache[realPath]){
-            return true;
-        }
-    }
-    return false;
-}
-
 /**
  * Compares two directories synchronously.
  */
@@ -69,8 +59,8 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         dir1 : {},
         dir2 : {}
     };
-    var loopDetected1 = detectLoop(rootEntry1, symlinkCache.dir1);
-    var loopDetected2 = detectLoop(rootEntry2, symlinkCache.dir2);
+    var loopDetected1 = common.detectLoop(rootEntry1, symlinkCache.dir1);
+    var loopDetected2 = common.detectLoop(rootEntry2, symlinkCache.dir2);
 
     var symlinkCachePath1, symlinkCachePath2;
     if(rootEntry1 && !loopDetected1){
@@ -153,11 +143,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             i2++;
             if(!options.skipSubdirs){
                 if (type1 === 'directory' && type2 === 'directory') {
-                    compare(entry1, entry2, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, symlinkCache);
+                    compare(entry1, entry2, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
                 } else if (type1 === 'directory') {
-                    compare(entry1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, symlinkCache);
+                    compare(entry1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
                 } else if (type2 === 'directory') {
-                    compare(undefined, entry2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet, symlinkCache);
+                    compare(undefined, entry2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
                 }
             }
         } else if (cmp < 0) {
@@ -173,7 +163,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             }
             i1++;
             if (type1 === 'directory' && !options.skipSubdirs) {
-                compare(entry1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, symlinkCache);
+                compare(entry1, undefined, level + 1, relativePath + '/' + entry1.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
             }
         } else {
             // Left missing
@@ -188,15 +178,9 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             }
             i2++;
             if (type2 === 'directory' && !options.skipSubdirs) {
-                compare(undefined, entry2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet, symlinkCache);
+                compare(undefined, entry2, level + 1, relativePath + '/' + entry2.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
             }
         }
-    }
-    if(symlinkCachePath1){
-        delete symlinkCache.dir1[symlinkCachePath1];
-    }
-    if(symlinkCachePath2){
-        delete symlinkCache.dir2[symlinkCachePath2];
     }
 };
 

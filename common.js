@@ -1,8 +1,33 @@
 var fs = require('fs');
 var minimatch = require('minimatch');
+var pathUtils = require('path');
 
 module.exports = {
-    
+    detectLoop : function(entry, symlinkCache){
+        if(entry && entry.symlink){
+            var realPath = pathUtils.normalize(fs.realpathSync(entry.path)).toLowerCase();
+            if(symlinkCache[realPath]){
+                return true;
+            }
+        }
+        return false;
+    },
+
+    cloneSymlinkCache : function(symlinkCache){
+        return {
+            dir1 : this.shallowClone(symlinkCache.dir1),
+            dir2 : this.shallowClone(symlinkCache.dir2)
+        }
+    },
+
+    shallowClone : function(obj){
+    	var cloned = {};
+    	Object.keys(obj).forEach(function(key){
+    		cloned[key] = obj[key];
+    	});
+    	return cloned;
+    },
+
     buildEntry : function(path, name){
         var statEntry = fs.statSync(path);
         var lstatEntry = fs.lstatSync(path);
@@ -18,7 +43,7 @@ module.exports = {
             }
         };
     },
-    
+
 	/**
 	 * One of 'missing','file','directory'
 	 */
@@ -54,7 +79,7 @@ module.exports = {
 	    if(entry.symlink && options.skipSymlinks){
 	        return false;
 	    }
-	    
+
 	    if(entry.stat.isFile() && options.includeFilter){
 	        if(this.match(entry.name, options.includeFilter)){
 	            return true;

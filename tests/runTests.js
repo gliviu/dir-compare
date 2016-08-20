@@ -123,7 +123,7 @@ var tests = [
                  commandLineOptions: '',
                  exitCode: 1,
              },
-
+             
              ////////////////////////////////////////////////////
              // Filters                                        //
              ////////////////////////////////////////////////////
@@ -177,7 +177,7 @@ var tests = [
                  exitCode: 1,
              },
              // TODO: test both --exclude and --filter in the same run
-
+             
              ////////////////////////////////////////////////////
              // Compare by content                             //
              ////////////////////////////////////////////////////
@@ -259,52 +259,52 @@ var tests = [
                  commandLineOptions: '--ABC --async -x --async',
                  exitCode: 2,
              },
-
+             
              ////////////////////////////////////////////////////
              // Symlinks                                      //
              ////////////////////////////////////////////////////
-             {
-                 name: 'test005_0', path1: 'd13', path2: 'd14',
-                 options: {compareSize: true, skipSymlinks: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-awL',
-                 exitCode: 1,
-             },
-             {
-                 name: 'test005_1', path1: 'd17', path2: 'd17',
-                 options: {compareSize: true, ignoreCase: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw',
-                 exitCode: 0,
-             },
-             {
-                 name: 'test005_1_1', path1: 'd17', path2: 'd17', withRelativePath: true,
-                 options: {compareSize: true, ignoreCase: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw',
-                 exitCode: 0,
-             },
-             {
-                 name: 'test005_2', path1: 'd17', path2: 'd17',
-                 options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-awL',
-                 exitCode: 0,
-             },
-             {
-                 name: 'test005_3', path1: 'd17', path2: 'd18',
-                 options: {compareSize: true, ignoreCase: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw',
-                 exitCode: 0,
-             },
-             {
-                 name: 'test005_4', path1: 'd22', path2: 'd22',
-                 options: {compareSize: true, ignoreCase: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw',
-                 exitCode: 0,
-             },
+              {
+                  name: 'test005_0', path1: 'd13', path2: 'd14',
+                  options: {compareSize: true, skipSymlinks: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-awL',
+                  exitCode: 1,
+              },
+              {
+                  name: 'test005_1', path1: 'd17', path2: 'd17',
+                  options: {compareSize: true, ignoreCase: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-aw',
+                  exitCode: 0,
+              },
+              {
+                  name: 'test005_1_1', path1: 'd17', path2: 'd17', withRelativePath: true,
+                  options: {compareSize: true, ignoreCase: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-aw',
+                  exitCode: 0,
+              },
+              {
+                  name: 'test005_2', path1: 'd17', path2: 'd17',
+                  options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-awL',
+                  exitCode: 0,
+              },
+              {
+                  name: 'test005_3', path1: 'd17', path2: 'd18',
+                  options: {compareSize: true, ignoreCase: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-aw',
+                  exitCode: 1,
+              },
+              {
+                  name: 'test005_4', path1: 'd22', path2: 'd22',
+                  options: {compareSize: true, ignoreCase: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-aw',
+                  exitCode: 0,
+              },
              {
                  name: 'test005_5', path1: 'd19', path2: 'd19',
                  options: {compareSize: true, ignoreCase: true},
@@ -345,36 +345,36 @@ var tests = [
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
-                 exitCode: 0,
+                 exitCode: 1,
              },
              {
                  name: 'test005_10', path1: 'd21', path2: 'd20',
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
-                 exitCode: 0,
+                 exitCode: 1,
              },
              {
                  name: 'test005_11', path1: 'd20', path2: 'd22',
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
-                 exitCode: 0,
+                 exitCode: 1,
              },
              {
                  name: 'test005_12', path1: 'd22', path2: 'd20',
                  options: {compareSize: true, ignoreCase: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
-                 exitCode: 0,
+                 exitCode: 1,
              },
-             {
-                 name: 'test005_13', path1: 'd23', path2: 'd23',
-                 options: {compareSize: true, ignoreCase: true},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw',
-                 exitCode: 0,
-             },
+              {
+                  name: 'test005_13', path1: 'd23', path2: 'd23',
+                  options: {compareSize: true, ignoreCase: true},
+                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                  commandLineOptions: '-aw',
+                  exitCode: 0,
+              },
              {
                  name: 'test005_14', path1: 'd24', path2: 'd24',
                  options: {compareSize: true, ignoreCase: true},
@@ -382,7 +382,7 @@ var tests = [
                  commandLineOptions: '-aw',
                  exitCode: 0,
              },
-
+             
              ////////////////////////////////////////////////////
              // Skip subdirs                                   //
              ////////////////////////////////////////////////////
@@ -552,7 +552,7 @@ var testSync = function(test, testDirPath, saveReport){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test005_4x') {
+                if (test.name == 'test005_5x') {
                     console.log(output);
                     console.log(expected);
 //                    expected.forEach(function(exp){console.log(exp)});
@@ -588,9 +588,10 @@ var testAsync = function(test, testDirPath, saveReport){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test009_2x') {
+                if (test.name == 'test005_14x') {
                     console.log(output);
-                    expected.forEach(function(exp){console.log(exp)});
+                    console.log(expected);
+                    // expected.forEach(function(exp){console.log(exp)});
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = expected===output && statisticsCheck;
@@ -737,6 +738,7 @@ var runTests = function () {
                 console.log();
                 console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
                 endReport(saveReport);
+                process.chdir(pathUtils.dirname(testDirPath));
             });
         }
 

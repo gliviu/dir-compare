@@ -11,6 +11,5 @@
 [/a/lc/lb/c] lb==lb(directory)
 [/a/lc/lb] d==d(directory)
 [/a/lc/lb/d] lc==lc(directory)
-[/a/lc/lb/d/lc] lb==lb(directory)
 Entries are identical
-total: 14, equal: 14, distinct: 0, only left: 0, only right: 0
+total: 13, equal: 13, distinct: 0, only left: 0, only right: 0

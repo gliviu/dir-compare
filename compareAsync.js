@@ -12,13 +12,13 @@ var wrapper = {
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (path, options) {
-    if (!path) {
+var getEntries = function (path, options, loopDetected) {
+    if (!path || loopDetected) {
         return Promise.resolve([]);
     } else{
         return wrapper.stat(path).then(
-                function(stat){
-                    if(stat.isDirectory()){
+                function(statPath){
+                    if(statPath.isDirectory()){
                         return wrapper.readdir(path).then(
                                 function(rawEntries){
                                     return buildEntries(path, rawEntries, options);
@@ -26,12 +26,15 @@ var getEntries = function (path, options) {
                     } else{
                         var name = pathUtils.basename(path);
                         return [
-                                {
-                                    name : name,
-                                    path : path,
-                                    stat : stat
+                            {
+                                name : name,
+                                path : path,
+                                stat : statPath,
+                                toString : function () {
+                                    return this.name;
                                 }
-                            ];
+                            }
+                        ];
                     }
                 });
     }
@@ -60,13 +63,15 @@ var buildEntry = function(path, entryName){
     return Promise.all([wrapper.stat(entryPath), wrapper.lstat(entryPath)])
         .then(
                 function(result){
-                    var stat = result[0];
-                    var lstat = result[1];
+                    var statEntry = result[0];
+                    var lstatEntry = result[1];
+                    var isSymlink = lstatEntry.isSymbolicLink();
                     return {
                             name : entryName,
                             path : entryPath,
-                            stat : stat,
-                            symlink : lstat.isSymbolicLink(),
+                            stat : statEntry,
+                            lstat : lstatEntry,
+                            symlink : isSymlink,
                             toString : function () {
                                 return this.name;
                             }
@@ -74,12 +79,30 @@ var buildEntry = function(path, entryName){
                 });
 }
 
-
 /**
  * Compares two directories asynchronously.
  */
-var compare = function (path1, path2, level, relativePath, options, statistics, diffSet) {
-    return Promise.all([getEntries(path1, options), getEntries(path2, options)]).then(
+var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
+    symlinkCache = symlinkCache || {
+        dir1 : {},
+        dir2 : {}
+    };
+    var loopDetected1 = common.detectLoop(rootEntry1, symlinkCache.dir1);
+    var loopDetected2 = common.detectLoop(rootEntry2, symlinkCache.dir2);
+
+    var symlinkCachePath1, symlinkCachePath2;
+    if(rootEntry1 && !loopDetected1){
+        symlinkCachePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(rootEntry1.path))).toLowerCase();
+        symlinkCache.dir1[symlinkCachePath1] = true;
+    }
+    if(rootEntry2 && !loopDetected2){
+        symlinkCachePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(rootEntry2.path))).toLowerCase();
+        symlinkCache.dir2[symlinkCachePath2] = true;
+    }
+    var path1 = rootEntry1?rootEntry1.path:undefined;
+    var path2 = rootEntry2?rootEntry2.path:undefined;
+
+    return Promise.all([getEntries(path1, options, loopDetected1), getEntries(path2, options, loopDetected2)]).then(
             function(entriesResult){
                 var entries1 = entriesResult[0];
                 var entries2 = entriesResult[1];
@@ -138,7 +161,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                                         	} else{
                                         		error = comparisonResult;
                                         	}
-                                        	
+
                                             return {entry1: entry1, entry2: entry2, same: same, error: error, type1: type1, type2: type2, diffSet: subDiffSet};
                                         });
                                     }
@@ -173,27 +196,27 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                                     subDiffSet = [];
                                     diffSet.push(subDiffSet);
                                 }
-                                comparePromises.push(compare(p1, p2, level + 1,
+                                comparePromises.push(compare(entry1, entry2, level + 1,
                                         relativePath + '/' + entry1.name,
-                                        options, statistics, subDiffSet));
+                                        options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                             } else if (type1 === 'directory') {
                                 var subDiffSet;
                                 if(!options.noDiffSet){
                                     subDiffSet = [];
                                     diffSet.push(subDiffSet);
                                 }
-                                comparePromises.push(compare(p1, undefined,
+                                comparePromises.push(compare(entry1, undefined,
                                         level + 1, relativePath + '/'
-                                        + entry1.name, options, statistics, subDiffSet));
+                                        + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                             } else if (type2 === 'directory') {
                                 var subDiffSet;
                                 if(!options.noDiffSet){
                                     subDiffSet = [];
                                     diffSet.push(subDiffSet);
                                 }
-                                comparePromises.push(compare(undefined, p2,
+                                comparePromises.push(compare(undefined, entry2,
                                         level + 1, relativePath + '/'
-                                        + entry2.name, options, statistics, subDiffSet));
+                                        + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                             }
                         }
                     } else if (cmp < 0) {
@@ -214,9 +237,9 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                                 subDiffSet = [];
                                 diffSet.push(subDiffSet);
                             }
-                            comparePromises.push(compare(p1, undefined,
+                            comparePromises.push(compare(entry1, undefined,
                                     level + 1,
-                                    relativePath + '/' + entry1.name, options, statistics, subDiffSet));
+                                    relativePath + '/' + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     } else {
                         // Left missing
@@ -238,9 +261,9 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                                 subDiffSet = [];
                                 diffSet.push(subDiffSet);
                             }
-                            comparePromises.push(compare(undefined, p2,
+                            comparePromises.push(compare(undefined, entry2,
                                     level + 1,
-                                    relativePath + '/' + entry2.name, options, statistics, subDiffSet));
+                                    relativePath + '/' + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     }
                 }
@@ -254,7 +277,7 @@ var compare = function (path1, path2, level, relativePath, options, statistics, 
                                 doStats(sameResult.entry1, sameResult.entry2, sameResult.same, statistics, options, level, relativePath, sameResult.diffSet, sameResult.type1, sameResult.type2);
                             }
                         }
-                    }); 
+                    });
                 });
             });
 };

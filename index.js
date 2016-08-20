@@ -29,7 +29,7 @@ var compareSync = function (path1, path2, options) {
         diffSet = [];
     }
     compareSyncInternal(
-        common.buildEntry(path1, pathUtils.basename(path1)), 
+        common.buildEntry(path1, pathUtils.basename(path1)),
         common.buildEntry(path2, pathUtils.basename(path2)),
         0, '', options, statistics, diffSet);
     completeStatistics(statistics);
@@ -61,7 +61,10 @@ var compareAsync = function (path1, path2, options) {
             if(!options.noDiffSet){
                 asyncDiffSet = [];
             }
-        return compareAsyncInternal(path1, path2, 0, '', options, statistics, asyncDiffSet).then(
+        return compareAsyncInternal(
+          common.buildEntry(path1, pathUtils.basename(path1)),
+          common.buildEntry(path2, pathUtils.basename(path2)),
+          0, '', options, statistics, asyncDiffSet).then(
                 function(){
                     completeStatistics(statistics);
                     if(!options.noDiffSet){
