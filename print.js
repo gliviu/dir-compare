@@ -12,16 +12,17 @@ var tab = function (tabs) {
 
 // Prints dir compare results.
 // 'program' represents display options and correspond to dircompare command line parameters.
-// Example: 'dircompare --show-all --exclude *.js dir1 dir2' translates into 
+// Example: 'dircompare --show-all --exclude *.js dir1 dir2' translates into
 // program: {showAll: true, exclude: '*.js'}
-// 
+//
 var print = function(res, writer, program){
     var nocolor = function(str){return str};
     var cequal = program.nocolors?nocolor:colors.green;
     var cdistinct = program.nocolors?nocolor:colors.red;
-    var cleft = program.nocolors?nocolor:colors.cyan;
-    var cright = program.nocolors?nocolor:colors.magenta;
+    var cleft = nocolor;
+    var cright = nocolor;
     var cdir = program.nocolors?nocolor:colors.gray;
+    var cmissing = program.nocolors?nocolor:colors.yellow;
 
     // calculate relative path length for pretty print
     var relativePathMaxLength = 0, fileNameMaxLength=0;
@@ -30,7 +31,7 @@ var print = function(res, writer, program){
             if(detail.relativePath.length>relativePathMaxLength){
                 relativePathMaxLength = detail.relativePath.length;
             }
-            var len = getCompareFile(detail, '??').length;
+            var len = getCompareFile(detail, '??', cmissing).length;
             if(len>fileNameMaxLength){
                 fileNameMaxLength = len;
             }
@@ -61,15 +62,15 @@ var print = function(res, writer, program){
                     break;
                 case 'left':
                     color = cleft;
-                    show = program.showAll || program.showLeft?true:false; 
+                    show = program.showAll || program.showLeft?true:false;
                     break;
                 case 'right':
                     color = cright;
-                    show = program.showAll || program.showRight?true:false; 
+                    show = program.showAll || program.showRight?true:false;
                     break;
                 case 'distinct':
                     color = cdistinct;
-                    show = program.showAll || program.showDistinct?true:false; 
+                    show = program.showAll || program.showDistinct?true:false;
                     break;
                 default:
                     show = true;
@@ -79,7 +80,7 @@ var print = function(res, writer, program){
                     if(program.csv){
                         printCsv(writer, detail, color);
                     } else {
-                        printPretty(writer, program, detail, color, cdir, relativePathMaxLength, fileNameMaxLength);
+                        printPretty(writer, program, detail, color, cdir, cmissing, relativePathMaxLength, fileNameMaxLength);
                     }
                 }
             }
@@ -116,7 +117,7 @@ var print = function(res, writer, program){
 /**
  * Print details for default view mode
  */
-var printPretty = function(writer, program, detail, color, dircolor, relativePathMaxLength, fileNameMaxLength){
+var printPretty = function(writer, program, detail, color, dircolor, missingcolor, relativePathMaxLength, fileNameMaxLength){
     var path = detail.relativePath===''?'/':detail.relativePath;
 
     var state;
@@ -142,8 +143,8 @@ var printPretty = function(writer, program, detail, color, dircolor, relativePat
     if(type==='directory'){
         type = dircolor(type);
     }
-    var cmpentrylen = getCompareFile(detail, "??").length;
-    var cmpentry = getCompareFile(detail, color(state));
+    var cmpentrylen = getCompareFile(detail, "??", missingcolor).length;
+    var cmpentry = getCompareFile(detail, color(state), missingcolor);
     if(program.wholeReport){
         writer.write(util.format('[%s] %s(%s)\n', path, cmpentry, type));
     } else{
@@ -151,11 +152,11 @@ var printPretty = function(writer, program, detail, color, dircolor, relativePat
     }
 }
 
-var getCompareFile = function(detail, state){
+var getCompareFile = function(detail, state, missingcolor){
     p1 = detail.name1 ? detail.name1 : '';
     p2 = detail.name2 ? detail.name2 : '';
-    var missing1 = detail.type1==='missing' ? 'missing' : '';
-    var missing2 = detail.type2==='missing' ? 'missing' : '';
+    var missing1 = detail.type1==='missing' ? missingcolor('missing') : '';
+    var missing2 = detail.type2==='missing' ? missingcolor('missing') : '';
     return util.format('%s%s%s%s%s', missing1, p1, state, missing2, p2);
 }
 
