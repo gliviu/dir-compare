@@ -15,7 +15,7 @@ program
 .option('-f, --filter [type]', 'file name filter', undefined)
 .option('-x, --exclude [type]', 'file/directory name exclude filter', undefined)
 .option('-S, --skip-subdirs', 'do not recurse into subdirectories')
-.option('-L, --skip-symlinks', 'do not follow symlinks')
+.option('-L, --skip-symlinks', 'ignore symlinks')
 .option('-i, --ignore-case', 'ignores case when comparing file names')
 .option('-l, --show-left', 'report - show entries occurring in leftdir')
 .option('-r, --show-right', 'report - show entries occurring in rightdir')
@@ -70,7 +70,7 @@ var run = function(){
             options.excludeFilter = program.exclude;
             options.noDiffSet = !(program.showAll || program.showEqual || program.showLeft || program.showRight || program.showDistinct);
 
-            
+
             var async = program.async;
 
             var path1 = program.args[0];
@@ -94,7 +94,7 @@ var run = function(){
                 		resolve(dircompare.compareSync(path1, path2, options));
     				});
             	}
-            	
+
             	comparePromise.then(
 						function(res){
 							// PRINT DETAILS
@@ -103,7 +103,7 @@ var run = function(){
 			                    process.exit(0);
 			                } else{
 			                    process.exit(1);
-			                }							
+			                }
 						},
 						function(error){
 					        console.error('Error occurred: ' + (error instanceof Error ? error.stack : error));

@@ -76,7 +76,7 @@ Options:
 * compareSize: true/false - Compares files by size. Defaults to 'false'.
 * compareContent: true/false - Compares files by content. Defaults to 'false'.
 * skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
-* skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
+* skipSymlinks: true/false - Ignore symbolic links. Defaults to 'false'.
 * ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
 * noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
 * includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
@@ -129,7 +129,7 @@ Result:
     -f, --filter [type]    file name filter
     -x, --exclude [type]   file/directory name exclude filter
     -S, --skip-subdirs     do not recurse into subdirectories
-    -L, --skip-symlinks    do not follow symlinks
+    -L, --skip-symlinks    ignore symlinks
     -i, --ignore-case      ignores case when comparing file names
     -l, --show-left        report - show entries occurring in leftdir
     -r, --show-right       report - show entries occurring in rightdir
