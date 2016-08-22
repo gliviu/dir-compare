@@ -21,7 +21,7 @@ var print = function(res, writer, program){
     var cdistinct = program.nocolors?nocolor:colors.red;
     var cleft = nocolor;
     var cright = nocolor;
-    var cdir = program.nocolors?nocolor:colors.gray;
+    var cdir = nocolor;
     var cmissing = program.nocolors?nocolor:colors.yellow;
 
     // calculate relative path length for pretty print

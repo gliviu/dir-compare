@@ -156,6 +156,9 @@ Result:
 
 ```
 ## Changelog
+* v1.1.0
+    * detect symlink loops
+    * improved color scheme for command line utility
 * v1.0.0
     * asynchronous processing
     * new library options: noDiffSet, resultBuilder

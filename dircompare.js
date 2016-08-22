@@ -7,9 +7,10 @@ var fs = require('fs');
 var util = require('util');
 var Promise = require('bluebird');
 var print = require('./print');
+var pjson = require('./package.json');
 
 program
-.version('0.0.1')
+.version(pjson.version)
 .usage('[options] leftdir rightdir')
 .option('-c, --compare-content', 'compare files by content')
 .option('-f, --filter [type]', 'file name filter', undefined)

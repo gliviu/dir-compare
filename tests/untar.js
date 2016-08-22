@@ -9,11 +9,15 @@ var extractFiles = function(tarFile, output, onExtracted, onError){
             ignore : function(_, header){
                 // use the 'ignore' handler for symlink creation.
                 if(header.type==='symlink'){
-                    // Absolute symlinks
-                    // var target = pathUtils.join(output, pathUtils.dirname(header.name), header.linkname);
+                    var target;
+                    if(process.platform==='win32'){
+                        // Absolute symlinks
+                        target = pathUtils.join(output, pathUtils.dirname(header.name), header.linkname);
+                    } else{
+                        // Relative symlinks
+                        target = header.linkname;
+                    }
 
-                    // Relative symlinks
-                    var target = header.linkname;
 
                     var linkPath = pathUtils.join(output, header.name);
                     if(!fs.existsSync(linkPath)){
