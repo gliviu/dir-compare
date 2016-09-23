@@ -121,6 +121,7 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
 /**
  * Options:
  *  compareSize: true/false - Compares files by size. Defaults to 'false'.
+ *  compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
  *  compareContent: true/false - Compares files by content. Defaults to 'false'.
  *  skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
  *  skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
@@ -159,8 +160,8 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *      type2: one of missing, file, directory
  *      size1: file size
  *      size2: file size
- *      date1: modification date (stat.mdate)
- *      date2: modification date (stat.mdate)
+ *      date1: modification date (stat.mtime)
+ *      date2: modification date (stat.mtime)
  *      level: depth
  */
 module.exports = {

@@ -13,6 +13,7 @@ program
 .version(pjson.version)
 .usage('[options] leftdir rightdir')
 .option('-c, --compare-content', 'compare files by content')
+.option('-D, --compare-date', 'compare files by date')
 .option('-f, --filter [type]', 'file name filter', undefined)
 .option('-x, --exclude [type]', 'file/directory name exclude filter', undefined)
 .option('-S, --skip-subdirs', 'do not recurse into subdirectories')
@@ -63,6 +64,7 @@ var run = function(){
 
 
             options.compareContent = program.compareContent;
+            options.compareDate = program.compareDate;
             options.compareSize = true;
             options.skipSubdirs = program.skipSubdirs;
             options.skipSymlinks = program.skipSymlinks;
