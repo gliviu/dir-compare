@@ -507,6 +507,37 @@ var tests = [
                  skipStatisticsCheck: true,
                  print: function(res, writer, program){writer.write(' diffset: '+JSON.stringify(res.diffSet.sort(function(a, b){return a-b;}), null, 0));}
              },
+             ////////////////////////////////////////////////////
+             // Compare date                                   //
+             ////////////////////////////////////////////////////
+             {
+                 name: 'test010_0', path1: 'd31', path2: 'd32',
+                 options: {compareSize: true, compareDate: false},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-aw',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test010_1', path1: 'd31', path2: 'd32',
+                 options: {compareSize: true, compareDate: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awD',
+                 exitCode: 1,
+             },
+             {
+                 name: 'test010_2', path1: 'd31', path2: 'd32',
+                 options: {compareSize: true, compareDate: false, compareContent: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awc',
+                 exitCode: 1,
+             },
+             {
+                 name: 'test010_3', path1: 'd31', path2: 'd32',
+                 options: {compareSize: true, compareDate: true, compareContent: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awcD',
+                 exitCode: 1,
+             },
              ];
 
 //Matches date (ie 2014-11-18T21:32:39.000Z)
@@ -586,12 +617,11 @@ var testSync = function(test, testDirPath, saveReport){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test005_5x') {
+                if (test.name == 'test010_2x') {
                     console.log(output);
                     console.log(expected);
 //                    expected.forEach(function(exp){console.log(exp)});
                     console.log(output === expected);
-
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = expected===output && statisticsCheck;
@@ -659,15 +689,16 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
 
         var expectedExitCode = test.exitCode;
         var res;
-        if (test.name == 'test002_3x') {
-             console.log(output);
-        }
         if(expectedExitCode===2){
             // output not relevant for error codes
             res = (exitCode === expectedExitCode);
         } else{
             var expectedOutput = getExpected(test);
             res = expectedOutput===output && (exitCode === expectedExitCode);
+        }
+        if (test.name == 'test010_1x') {
+          console.log(output);
+          console.log(expectedOutput);
         }
         var testDescription = 'command line ' + (async?'async':'sync');
         report(test.name, testDescription, output, exitCode, res, saveReport);

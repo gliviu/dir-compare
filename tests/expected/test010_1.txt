@@ -1,0 +1,6 @@
+[/] A1==A1(directory)
+[/A1] a3.txt<>a3.txt(file)
+[/] a1.txt<>a1.txt(file)
+[/] a2.txt==a2.txt(file)
+Entries are different
+total: 4, equal: 2, distinct: 2, only left: 0, only right: 0
