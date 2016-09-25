@@ -541,10 +541,19 @@ var tests = [
              ];
 
 //Matches date (ie 2014-11-18T21:32:39.000Z)
-var normalizeDateRegexp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/gm;
 function normalize (str) {
+  str = normalizeDate(str);
+  str = normalizeLineEnding(str);
+  return str;
+}
+var normalizeDateRegexp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/gm;
+function normalizeDate (str) {
     // replace date
     return str.replace(normalizeDateRegexp, 'x');
+}
+var normalizeLineEndingRegexp = /\r\n/g;
+function normalizeLineEnding (str) {
+    return str.replace(normalizeLineEndingRegexp, '\n');
 }
 
 var checkStatistics = function(statistics, test){
@@ -617,7 +626,7 @@ var testSync = function(test, testDirPath, saveReport){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test010_2x') {
+                if (test.name == 'test001_1') {
                     console.log(output);
                     console.log(expected);
 //                    expected.forEach(function(exp){console.log(exp)});
