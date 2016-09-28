@@ -74,6 +74,7 @@ dircompare.compare(path1, path2, options).then(function(res){
 Options:
 
 * compareSize: true/false - Compares files by size. Defaults to 'false'.
+* compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
 * compareContent: true/false - Compares files by content. Defaults to 'false'.
 * skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
 * skipSymlinks: true/false - Ignore symbolic links. Defaults to 'false'.
@@ -112,8 +113,8 @@ Result:
     * type2: one of missing, file, directory
     * size1: file size
     * size2: file size
-    * date1: modification date (stat.mdate)
-    * date2: modification date (stat.mdate)
+    * date1: modification date (stat.mtime)
+    * date2: modification date (stat.mtime)
     * level: depth
 
 
@@ -126,6 +127,7 @@ Result:
     -h, --help             output usage information
     -V, --version          output the version number
     -c, --compare-content  compare files by content
+    -D, --compare-date     compare files by date
     -f, --filter [type]    file name filter
     -x, --exclude [type]   file/directory name exclude filter
     -S, --skip-subdirs     do not recurse into subdirectories
@@ -156,6 +158,8 @@ Result:
 
 ```
 ## Changelog
+* v1.2.0
+	* added compare by date option
 * v1.1.0
     * detect symlink loops
     * improved color scheme for command line utility
