@@ -98,10 +98,14 @@ var closeFilesSync = function(fd1, fd2){
 }
 var closeFilesAsync = function(fd1, fd2){
     if (fd1) {
-        fdQueue.close(fd1);
+        fdQueue.close(fd1, function(err){
+          if(err){console.log(err);}
+        });
     }
     if (fd2) {
-    	fdQueue.close(fd2);
+    	fdQueue.close(fd2, function(err){
+        if(err){console.log(err);}
+      });
     }
 }
 module.exports = {
