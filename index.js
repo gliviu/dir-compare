@@ -92,6 +92,7 @@ var prepareOptions = function(options){
     if (!clone.compareFileAsync) {
         clone.compareFileAsync = defaultCompareFileCallback.compareAsync;
     }
+    clone.roundDates = clone.roundDates || 'none';
     return clone;
 }
 
@@ -122,6 +123,9 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  * Options:
  *  compareSize: true/false - Compares files by size. Defaults to 'false'.
  *  compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
+ *  roundDates: one of 'none','second','minute','hour','day','month','year' - Applies rounding when comparing by date
+ *      (ie. 2016-12-31T23:59:59.999Z and 2016-12-30T20:50:50.900Z are considered the same when presision is 'month' or 'year').
+ *      Defaults to 'none'
  *  compareContent: true/false - Compares files by content. Defaults to 'false'.
  *  skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
  *  skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.

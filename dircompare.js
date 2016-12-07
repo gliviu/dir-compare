@@ -14,6 +14,7 @@ program
 .usage('[options] leftdir rightdir')
 .option('-c, --compare-content', 'compare files by content')
 .option('-D, --compare-date', 'compare files by date')
+.option('--round-dates [type]', 'one of second,minute,hour,day,month,year')
 .option('-f, --filter [type]', 'file name filter', undefined)
 .option('-x, --exclude [type]', 'file/directory name exclude filter', undefined)
 .option('-S, --skip-subdirs', 'do not recurse into subdirectories')
@@ -43,6 +44,9 @@ program.on('--help', function(){
     console.log('    exclude filter - dircompare -x .git dir1 dir2');
     console.log('    include filter - dircompare -f *.js,*.yml dir1 dir2');
     console.log('    show only different files - dircompare -d dir1 dir2');
+    console.log('    compare by date - dircompare -D --round-dates minute dir1 dir2');
+    console.log('      In above example --round-dates causes two files that differ');
+    console.log('      only by second or millisecond to be considered equal');
 });
 
 // Fix for https://github.com/tj/commander.js/issues/125
@@ -72,13 +76,17 @@ var run = function(){
             options.includeFilter = program.filter;
             options.excludeFilter = program.exclude;
             options.noDiffSet = !(program.showAll || program.showEqual || program.showLeft || program.showRight || program.showDistinct);
-
+            options.roundDates = program.roundDates || 'none'
 
             var async = program.async;
 
             var path1 = program.args[0];
             var path2 = program.args[1];
             var abort = false;
+            if(['none', 'second', 'minute', 'hour', 'day', 'month', 'year'].indexOf(options.roundDates)==-1){
+                console.error("One of second,minute,hour,day,month,year is expected for --round-dates");
+                abort = true;
+            }
             if(!fs.existsSync(path1)){
                 console.error(util.format("Path '%s' missing"), path1);
                 abort = true;

@@ -123,7 +123,52 @@ module.exports = {
 	    	var str1 = a.name.toLowerCase(), str2 = b.name.toLowerCase();
 	    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
 	    }
-	}
+	},
+    /**
+     * Compares two dates and returns true/false depending on precision.
+     * 2016-12-31T23:59:59.999Z and 2016-12-30T20:50:50.900Z are considered equal when presision is 'month' or 'year'
+     * Allowed values for precision: 'none', 'second', 'minute', 'hour', 'day', 'month', 'year'
+     * 'none' causes all date fields to be compared.
+     */
+    sameDate : function(date1, date2, precision){
+        date1 = roundDate(date1, precision);
+        date2 = roundDate(date2, precision);
+        return date1.getTime() === date2.getTime()
+    }
+}
 
-
+/**
+ * Rounds down the date to given precision.
+ * 2016-12-31T23:59:59.999Z is rounded to 2016-12-31T00:00:00.000Z when precisionis is 'day'
+ * Returns a new date.
+ * Allowed values for precision: 'none', 'second', 'minute', 'hour', 'day', 'month', 'year'
+ * A value of 'none' for precision does no rounding at all.
+ */
+var roundDate = function (date, precision) {
+    var res = new Date(date.getTime())
+    switch(precision){
+        case 'none':
+            break;
+        case 'second':
+            res.setUTCMilliseconds(0);
+            break;
+        case 'minute':
+            res.setUTCMilliseconds(0); res.setUTCSeconds(0);
+            break;
+        case 'hour':
+            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0);
+            break;
+        case 'day':
+            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0); res.setUTCHours(0);
+            break;
+        case 'month':
+            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0); res.setUTCHours(0); res.setUTCDate(1);
+            break;
+        case 'year':
+            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0); res.setUTCHours(0); res.setUTCDate(1); res.setUTCMonth(0);
+            break;
+        default:
+            throw new Error("Bad argument - " + precision + ". Any of 'none', 'second', 'minute', 'hour', 'day', 'month', 'year' is expected")
+    }
+    return res;
 }

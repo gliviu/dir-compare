@@ -116,7 +116,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                 if(type1==='file'){
                     if (options.compareSize && fileStat1.size !== fileStat2.size) {
                         same = false;
-                    } else if(options.compareDate && fileStat1.mtime.getTime() !== fileStat2.mtime.getTime()){
+                    } else if(options.compareDate && !common.sameDate(fileStat1.mtime, fileStat2.mtime, options.roundDates)){
                         same = false;
                     } else if(options.compareContent){
                         same = options.compareFileSync(p1, fileStat1, p2, fileStat2, options);
