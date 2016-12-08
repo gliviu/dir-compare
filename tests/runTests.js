@@ -538,7 +538,31 @@ var tests = [
                  commandLineOptions: '-awcD',
                  exitCode: 1,
              },
-             ];
+             {
+                 name: 'test010_4', path1: 'd33/1', path2: 'd33/2',
+                 description: 'should correctly use tolerance in date comparison',
+                 options: {compareSize: true, compareDate: true, dateTolerance: 5000},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awD --date-tolerance 5000',
+                 exitCode: 1,
+             },
+             {
+                 name: 'test010_5', path1: 'd33/1', path2: 'd33/2',
+                 description: 'should correctly use tolerance in date comparison',
+                 options: {compareSize: true, compareDate: true, dateTolerance: 9000},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awD --date-tolerance 9000',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test010_6', path1: 'd33/1', path2: 'd33/2',
+                 description: 'should default to 1000 ms for date tolerance',
+                 options: {compareSize: true, compareDate: true},
+                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                 commandLineOptions: '-awD',
+                 exitCode: 1,
+             },
+         ];
 
 //Matches date (ie 2014-11-18T21:32:39.000Z)
 function normalize (str) {
@@ -625,8 +649,7 @@ var testSync = function(test, testDirPath, saveReport){
                 print(result, writer, test.displayOptions);
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
-
-                if (test.name == 'test001_1') {
+                if (test.name == 'test010_5x') {
                     console.log(output);
                     console.log(expected);
 //                    expected.forEach(function(exp){console.log(exp)});
@@ -705,7 +728,7 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
             var expectedOutput = getExpected(test);
             res = expectedOutput===output && (exitCode === expectedExitCode);
         }
-        if (test.name == 'test010_1x') {
+        if (test.name == 'test010_5x') {
           console.log(output);
           console.log(expectedOutput);
         }

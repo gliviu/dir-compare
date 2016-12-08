@@ -75,6 +75,7 @@ Options:
 
 * compareSize: true/false - Compares files by size. Defaults to 'false'.
 * compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
+* dateTolerance: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
 * compareContent: true/false - Compares files by content. Defaults to 'false'.
 * skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
 * skipSymlinks: true/false - Ignore symbolic links. Defaults to 'false'.
@@ -124,26 +125,30 @@ Result:
 
   Options:
 
-    -h, --help             output usage information
-    -V, --version          output the version number
-    -c, --compare-content  compare files by content
-    -D, --compare-date     compare files by date
-    -f, --filter [type]    file name filter
-    -x, --exclude [type]   file/directory name exclude filter
-    -S, --skip-subdirs     do not recurse into subdirectories
-    -L, --skip-symlinks    ignore symlinks
-    -i, --ignore-case      ignores case when comparing file names
-    -l, --show-left        report - show entries occurring in leftdir
-    -r, --show-right       report - show entries occurring in rightdir
-    -e, --show-equal       report - show identic entries occuring in both dirs
-    -d, --show-distinct    report - show distinct entries occuring in both dirs
-    -a, --show-all         report - show all entries
-    -w, --whole-report     report - include directories in detailed report
-    --csv                  report - print details as csv
-    --nocolors             don't use console colors
-    --async                Make use of multiple cores
+    -h, --help               output usage information
+    -V, --version            output the version number
+    -c, --compare-content    compare files by content
+    -D, --compare-date       compare files by date
+    --date-tolerance [type]  tolerance to be used in date comparison (milliseconds)
+    -f, --filter [type]      file name filter
+    -x, --exclude [type]     file/directory name exclude filter
+    -S, --skip-subdirs       do not recurse into subdirectories
+    -L, --skip-symlinks      ignore symlinks
+    -i, --ignore-case        ignores case when comparing file names
+    -l, --show-left          report - show entries occurring in leftdir
+    -r, --show-right         report - show entries occurring in rightdir
+    -e, --show-equal         report - show identic entries occuring in both dirs
+    -d, --show-distinct      report - show distinct entries occuring in both dirs
+    -a, --show-all           report - show all entries
+    -w, --whole-report       report - include directories in detailed report
+    --csv                    report - print details as csv
+    --nocolors               don't use console colors
+    --async                  Make use of multiple cores
 
   By default files are compared by size.
+  --date-tolerance defaults to 1000 ms. Two files are considered to have
+  the same date if the difference between their modification dates fits
+  within date tolerance.
 
   Exit codes:
     0 - entries are identical
@@ -151,13 +156,15 @@ Result:
     2 - error occurred
 
   Examples:
-    compare by content - dircompare -c dir1 dir2
-    exclude filter - dircompare -x .git dir1 dir2
-    include filter - dircompare -f *.js,*.yml dir1 dir2
-    show only different files - dircompare -d  dir1 dir2
-
+  compare by content         dircompare -c dir1 dir2
+  exclude filter             dircompare -x .git dir1 dir2
+  include filter             dircompare -f *.js,*.yml dir1 dir2
+  show only different files  dircompare -d dir1 dir2
 ```
+
 ## Changelog
+* v1.3.0
+	* added date tolerance option
 * v1.2.0
 	* added compare by date option
 * v1.1.0

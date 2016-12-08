@@ -1,0 +1,4 @@
+[/] a1<>a1(file)
+[/] a2==a2(file)
+Entries are different
+total: 2, equal: 1, distinct: 1, only left: 0, only right: 0

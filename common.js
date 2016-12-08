@@ -125,50 +125,13 @@ module.exports = {
 	    }
 	},
     /**
-     * Compares two dates and returns true/false depending on precision.
-     * 2016-12-31T23:59:59.999Z and 2016-12-30T20:50:50.900Z are considered equal when presision is 'month' or 'year'
-     * Allowed values for precision: 'none', 'second', 'minute', 'hour', 'day', 'month', 'year'
-     * 'none' causes all date fields to be compared.
+     * Compares two dates and returns true/false depending on tolerance (milliseconds).
+     * Two dates are considered equal if the difference in milliseconds between them is less or equal than tolerance.
      */
-    sameDate : function(date1, date2, precision){
-        date1 = roundDate(date1, precision);
-        date2 = roundDate(date2, precision);
-        return date1.getTime() === date2.getTime()
+    sameDate : function(date1, date2, tolerance){
+        return Math.abs(date1.getTime() - date2.getTime()) <= tolerance ? true : false;
+    },
+    isNumeric : function(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
     }
-}
-
-/**
- * Rounds down the date to given precision.
- * 2016-12-31T23:59:59.999Z is rounded to 2016-12-31T00:00:00.000Z when precisionis is 'day'
- * Returns a new date.
- * Allowed values for precision: 'none', 'second', 'minute', 'hour', 'day', 'month', 'year'
- * A value of 'none' for precision does no rounding at all.
- */
-var roundDate = function (date, precision) {
-    var res = new Date(date.getTime())
-    switch(precision){
-        case 'none':
-            break;
-        case 'second':
-            res.setUTCMilliseconds(0);
-            break;
-        case 'minute':
-            res.setUTCMilliseconds(0); res.setUTCSeconds(0);
-            break;
-        case 'hour':
-            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0);
-            break;
-        case 'day':
-            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0); res.setUTCHours(0);
-            break;
-        case 'month':
-            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0); res.setUTCHours(0); res.setUTCDate(1);
-            break;
-        case 'year':
-            res.setUTCMilliseconds(0); res.setUTCSeconds(0); res.setUTCMinutes(0); res.setUTCHours(0); res.setUTCDate(1); res.setUTCMonth(0);
-            break;
-        default:
-            throw new Error("Bad argument - " + precision + ". Any of 'none', 'second', 'minute', 'hour', 'day', 'month', 'year' is expected")
-    }
-    return res;
 }

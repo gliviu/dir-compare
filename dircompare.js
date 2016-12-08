@@ -7,6 +7,7 @@ var fs = require('fs');
 var util = require('util');
 var Promise = require('bluebird');
 var print = require('./print');
+var common = require('./common');
 var pjson = require('./package.json');
 
 program
@@ -14,7 +15,7 @@ program
 .usage('[options] leftdir rightdir')
 .option('-c, --compare-content', 'compare files by content')
 .option('-D, --compare-date', 'compare files by date')
-.option('--round-dates [type]', 'one of second,minute,hour,day,month,year')
+.option('--date-tolerance [type]', 'tolerance to be used in date comparison (milliseconds)')
 .option('-f, --filter [type]', 'file name filter', undefined)
 .option('-x, --exclude [type]', 'file/directory name exclude filter', undefined)
 .option('-S, --skip-subdirs', 'do not recurse into subdirectories')
@@ -33,6 +34,9 @@ program
 
 program.on('--help', function(){
     console.log('  By default files are compared by size.');
+    console.log('  --date-tolerance defaults to 1000 ms. Two files are considered to have');
+    console.log('  the same date if the difference between their modification dates fits');
+    console.log('  within date tolerance.');
     console.log('');
     console.log('  Exit codes:');
     console.log('    0 - entries are identical');
@@ -40,13 +44,10 @@ program.on('--help', function(){
     console.log('    2 - error occurred');
     console.log('');
     console.log('  Examples:');
-    console.log('    compare by content - dircompare -c dir1 dir2');
-    console.log('    exclude filter - dircompare -x .git dir1 dir2');
-    console.log('    include filter - dircompare -f *.js,*.yml dir1 dir2');
-    console.log('    show only different files - dircompare -d dir1 dir2');
-    console.log('    compare by date - dircompare -D --round-dates minute dir1 dir2');
-    console.log('      In above example --round-dates causes two files that differ');
-    console.log('      only by second or millisecond to be considered equal');
+    console.log('  compare by content         dircompare -c dir1 dir2');
+    console.log('  exclude filter             dircompare -x .git dir1 dir2');
+    console.log('  include filter             dircompare -f *.js,*.yml dir1 dir2');
+    console.log('  show only different files  dircompare -d dir1 dir2');
 });
 
 // Fix for https://github.com/tj/commander.js/issues/125
@@ -76,15 +77,15 @@ var run = function(){
             options.includeFilter = program.filter;
             options.excludeFilter = program.exclude;
             options.noDiffSet = !(program.showAll || program.showEqual || program.showLeft || program.showRight || program.showDistinct);
-            options.roundDates = program.roundDates || 'none'
+            options.dateTolerance = program.dateTolerance || 1000
 
             var async = program.async;
 
             var path1 = program.args[0];
             var path2 = program.args[1];
             var abort = false;
-            if(['none', 'second', 'minute', 'hour', 'day', 'month', 'year'].indexOf(options.roundDates)==-1){
-                console.error("One of second,minute,hour,day,month,year is expected for --round-dates");
+            if(!common.isNumeric(options.dateTolerance)){
+                console.error("Numeric value expected for --date-tolerance");
                 abort = true;
             }
             if(!fs.existsSync(path1)){
