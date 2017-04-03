@@ -76,25 +76,19 @@ module.exports = {
 	 * Filter entries by file name. Returns true if the file is to be processed.
 	 */
 	filterEntry : function(entry, options){
-	    if(entry.symlink && options.skipSymlinks){
+	    if (entry.symlink && options.skipSymlinks){
 	        return false;
 	    }
 
-	    if(entry.stat.isFile() && options.includeFilter){
-	        if(this.match(entry.name, options.includeFilter)){
-	            return true;
-	        } else{
-	            return false;
-	        }
-	    }
-	    if(options.excludeFilter){
-	        if(this.match(entry.name, options.excludeFilter)){
-	            return false;
-	        } else{
-	            return true;
-	        }
-	    }
-	    return true;
+        if ((entry.stat.isFile() && options.includeFilter) && (!this.match(entry.name, options.includeFilter))) {
+            return false;
+        }
+
+        if ((options.excludeFilter) && (this.match(entry.name, options.excludeFilter))) {
+            return false;
+        }
+
+        return true;
 	},
 	/**
 	 * Comparator for directory entries sorting.
