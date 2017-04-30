@@ -1,5 +1,8 @@
 var colors = require('colors');
 var util = require('util');
+var pathUtils = require('path');
+
+var PATH_SEP = pathUtils.sep
 
 var tab = function (tabs) {
     var res = '';
@@ -118,7 +121,7 @@ var print = function(res, writer, program){
  * Print details for default view mode
  */
 var printPretty = function(writer, program, detail, color, dircolor, missingcolor, relativePathMaxLength, fileNameMaxLength){
-    var path = detail.relativePath===''?'/':detail.relativePath;
+    var path = detail.relativePath===''?PATH_SEP:detail.relativePath;
 
     var state;
     switch (detail.state) {
@@ -179,7 +182,7 @@ var printCsv = function(writer, detail, color){
     var type ='';
     type = detail.type1!=='missing' ? detail.type1 : detail.type2;
 
-    var path = detail.relativePath?detail.relativePath:'/';
+    var path = detail.relativePath?detail.relativePath:PATH_SEP;
     var name = (detail.name1?detail.name1:detail.name2);
 
     writer.write(util.format('%s,%s,%s,%s,%s,%s,%s,%s\n', path, name, color(detail.state), type, size1, size2, date1, date2));

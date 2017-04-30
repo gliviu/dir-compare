@@ -5,7 +5,7 @@ var pathUtils = require('path');
 module.exports = {
     detectLoop : function(entry, symlinkCache){
         if(entry && entry.symlink){
-            var realPath = pathUtils.normalize(fs.realpathSync(entry.path)).toLowerCase();
+            var realPath = fs.realpathSync(entry.path);
             if(symlinkCache[realPath]){
                 return true;
             }

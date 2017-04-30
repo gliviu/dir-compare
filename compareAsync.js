@@ -4,6 +4,8 @@ var pathUtils = require('path');
 var Promise = require('bluebird');
 var fsPromise = require('./fsPromise');
 
+var PATH_SEP = pathUtils.sep
+
 /**
  * Returns the sorted list of entries in a directory.
  */
@@ -54,7 +56,7 @@ var buildEntries = function(path, rawEntries, options){
 }
 
 var buildEntry = function(path, entryName, options){
-    var entryPath = path + '/' + entryName;
+    var entryPath = path + PATH_SEP + entryName;
     return Promise.resolve(fsPromise.lstat(entryPath)).then(function(lstatEntry){
         var isSymlink = lstatEntry.isSymbolicLink();
         var statPromise;
@@ -91,11 +93,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
 
     var symlinkCachePath1, symlinkCachePath2;
     if(rootEntry1 && !loopDetected1){
-        symlinkCachePath1 = pathUtils.normalize(pathUtils.resolve(rootEntry1.symlink?fs.realpathSync(rootEntry1.path):rootEntry1.path)).toLowerCase();
+        symlinkCachePath1 = rootEntry1.symlink?fs.realpathSync(rootEntry1.path):rootEntry1.path;
         symlinkCache.dir1[symlinkCachePath1] = true;
     }
     if(rootEntry2 && !loopDetected2){
-        symlinkCachePath2 = pathUtils.normalize(pathUtils.resolve(rootEntry2.symlink?fs.realpathSync(rootEntry2.path):rootEntry2.path)).toLowerCase();
+        symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.path):rootEntry2.path;
         symlinkCache.dir2[symlinkCachePath2] = true;
     }
     var path1 = rootEntry1?rootEntry1.path:undefined;
@@ -196,7 +198,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                                     diffSet.push(subDiffSet);
                                 }
                                 comparePromises.push(compare(entry1, entry2, level + 1,
-                                        relativePath + '/' + entry1.name,
+                                        relativePath + PATH_SEP + entry1.name,
                                         options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                             } else if (type1 === 'directory') {
                                 var subDiffSet;
@@ -205,7 +207,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                                     diffSet.push(subDiffSet);
                                 }
                                 comparePromises.push(compare(entry1, undefined,
-                                        level + 1, relativePath + '/'
+                                        level + 1, relativePath + PATH_SEP
                                         + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                             } else if (type2 === 'directory') {
                                 var subDiffSet;
@@ -214,7 +216,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                                     diffSet.push(subDiffSet);
                                 }
                                 comparePromises.push(compare(undefined, entry2,
-                                        level + 1, relativePath + '/'
+                                        level + 1, relativePath + PATH_SEP
                                         + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                             }
                         }
@@ -238,7 +240,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                             }
                             comparePromises.push(compare(entry1, undefined,
                                     level + 1,
-                                    relativePath + '/' + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
+                                    relativePath + PATH_SEP + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     } else {
                         // Left missing
@@ -262,7 +264,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                             }
                             comparePromises.push(compare(undefined, entry2,
                                     level + 1,
-                                    relativePath + '/' + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
+                                    relativePath + PATH_SEP + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     }
                 }

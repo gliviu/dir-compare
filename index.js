@@ -1,5 +1,6 @@
 var util = require('util');
 var pathUtils = require('path');
+var fs = require('fs');
 var Promise = require('bluebird');
 var compareSyncInternal = require('./compareSync');
 var compareAsyncInternal = require('./compareAsync');
@@ -8,6 +9,9 @@ var defaultCompareFileCallback = require('./defaultCompareFileCallback');
 var common = require('./common');
 var compareSync = function (path1, path2, options) {
     'use strict';
+    // realpathSync() is necessary for loop detection to work properly
+    path1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
+    path2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
     var statistics = {
         distinct : 0,
         equal : 0,
@@ -40,6 +44,9 @@ var compareSync = function (path1, path2, options) {
 
 var compareAsync = function (path1, path2, options) {
     'use strict';
+    // realpathSync() is necessary for loop detection to work properly
+    path1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
+    path2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
     return Promise.resolve().then(function(xx){
         var statistics = {
                 distinct : 0,
