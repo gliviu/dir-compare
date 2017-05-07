@@ -836,7 +836,8 @@ var runTests = function () {
                 console.log();
                 console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
                 endReport(saveReport);
-                process.chdir(pathUtils.dirname(testDirPath));
+                process.exitCode = failed>0?1:0
+                process.chdir(__dirname);  // allow temp dir to be removed
             });
         }
 

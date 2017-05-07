@@ -1,0 +1,15 @@
+os:
+  - linux
+  - osx
+language: node_js
+node_js:
+  - "node"
+  - "iojs"
+  - "7"
+  - "6"
+  - "5"
+  - "4"
+  - "0.12"
+  - "0.11"
+branches:
+  only: master
