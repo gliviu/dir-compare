@@ -15,10 +15,10 @@ var compareBuffers = function(buf1, buf2, contentSize, allocatedSize){
 }
 
 /**
- * Compares two files by content using bufSize as buffer length.
+ * Compares two files by content.
  */
-var compareSync = function (path1, path2, bufSize) {
-	bufSize = bufSize ? bufSize : 4096;
+var compareSync = function (path1, stat1, path2, stat2, options) {
+	var bufSize = 4096;
     var fd1, fd2;
     try {
         fd1 = fs.openSync(path1, 'r');
@@ -51,8 +51,8 @@ var wrapper = {
 /**
  * Compares two files by content using bufSize as buffer length.
  */
-var compareAsync = function (path1, path2, bufSize) {
-    bufSize = bufSize ? bufSize : 4096;
+var compareAsync = function (path1, stat1, path2, stat2, options) {
+    var bufSize = 4096;
     var fd1, fd2;
     return Promise.all([wrapper.open(path1, 'r'), wrapper.open(path2, 'r')]).then(function (fds) {
         fd1 = fds[0];

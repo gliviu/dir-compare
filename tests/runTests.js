@@ -1,3 +1,8 @@
+// Usage: node runTests [unpacked] [test000_0] [show-result]
+// * without any parameters it runs all tests using testdir.tar as test data
+// * 'unpacked' will use ./testdir as test data; initialize this directory from testdir.tar with 'node extract.js' (note that regular untar will not work as it contains symlink loops)
+// * 'test000_0' specify a single test to run
+// * 'show-result' shows actual/expected for each test
 "use strict";
 var colors = require('colors');
 var pathUtils = require('path');
@@ -11,6 +16,7 @@ var Streams = require('memory-streams');
 var compareSync = require('../index').compareSync;
 var compareAsync = require('../index').compare;
 var untar = require('./untar');
+var linecomp = require('../index').fileCompareHandlers.lineBasedFileCompare
 
 var count = 0, failed = 0, successful = 0;
 var syncCount = 0, syncFailed = 0, syncSuccessful = 0;
@@ -73,6 +79,7 @@ function passed (value, type) {
  * * onlyLibrary - Test is run only on API methods.
  * * onlyCommandLine - Test is run only on command line.
  * * skipStatisticsCheck - Do not call checkStatistics() after each library test.
+ * * onlySync - only apply for synchronous compare
  */
 var tests = [
              {
@@ -569,6 +576,94 @@ var tests = [
                  commandLineOptions: '-awD',
                  exitCode: 1,
              },
+             ////////////////////////////////////////////////////
+             // Line by line compare                           //
+             ////////////////////////////////////////////////////
+             {
+                 name: 'test011_1', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
+                 description: 'should ignore line endings',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreLineEnding: true,
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
+             {
+                 name: 'test011_2', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
+                 description: 'should not ignore line endings',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreLineEnding: false,
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
+             {
+                 name: 'test011_3', path1: 'd35/lf-spaces', path2: 'd35/lf-tabs',
+                 description: 'should ignore white spaces',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreWhiteSpaces: true
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
+             {
+                 name: 'test011_4', path1: 'd35/crlf-spaces', path2: 'd35/lf-tabs',
+                 description: 'should ignore white spaces and line endings',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreLineEnding: true,
+                     ignoreWhiteSpaces: true
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
+             {
+                 name: 'test011_5', path1: 'd35/lf-spaces', path2: 'd35/lf-tabs',
+                 description: 'should not ignore white spaces',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreWhiteSpaces: false
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
+             {
+                 name: 'test011_6', path1: 'd35/lf-spaces', path2: 'd35/lf-mix',
+                 description: 'should ignore mixed white spaces',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreWhiteSpaces: true
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
+             {
+                 name: 'test011_7', path1: 'd35/lf-tabs', path2: 'd35/lf-mix',
+                 description: 'should ignore mixed white spaces',
+                 options: {
+                     compareContent: true,
+                     compareFileSync: linecomp.compareSync,
+                     ignoreWhiteSpaces: true
+                 },
+                 displayOptions: {nocolors: true},
+                 onlyLibrary: true,
+                 onlySync: true
+             },
          ];
 
 //Matches date (ie 2014-11-18T21:32:39.000Z)
@@ -630,7 +725,7 @@ var getExpected = function(test){
     }
 }
 
-var testSync = function(test, testDirPath, saveReport){
+var testSync = function(test, testDirPath, saveReport, showResult){
     process.chdir(testDirPath);
     var path1, path2;
     if(test.withRelativePath){
@@ -650,11 +745,8 @@ var testSync = function(test, testDirPath, saveReport){
                 print(result, writer, test.displayOptions);
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
-                if (test.name == 'test005_7x') {
-                    console.log(output);
-                    console.log(expected);
-//                    expected.forEach(function(exp){console.log(exp)});
-                    console.log(output === expected);
+                if (showResult) {
+                    printResult(output, expected)
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = expected===output && statisticsCheck;
@@ -666,7 +758,7 @@ var testSync = function(test, testDirPath, saveReport){
             });
 }
 
-var testAsync = function(test, testDirPath, saveReport){
+var testAsync = function(test, testDirPath, saveReport, showResult){
     process.chdir(testDirPath);
     var path1, path2;
     if(test.withRelativePath){
@@ -685,10 +777,8 @@ var testAsync = function(test, testDirPath, saveReport){
                 var output = normalize(writer.toString()).trim();
                 var expected = getExpected(test);
 
-                if (test.name == 'test005_14x') {
-                    console.log(output);
-                    console.log(expected);
-                    // expected.forEach(function(exp){console.log(exp)});
+                if (showResult) {
+                    printResult(output, expected)
                 }
                 var statisticsCheck = checkStatistics(result, test);
                 var res = expected===output && statisticsCheck;
@@ -700,7 +790,7 @@ var testAsync = function(test, testDirPath, saveReport){
             });
 }
 
-function testCommandLineInternal(test, testDirPath, async, saveReport) {
+function testCommandLineInternal(test, testDirPath, async, saveReport, showResult) {
     return new Promise(function(resolve, reject) {
         var dircompareJs = pathUtils.normalize(__dirname + '/../dircompare.js');
         process.chdir(testDirPath);
@@ -729,9 +819,8 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
             var expectedOutput = getExpected(test);
             res = expectedOutput===output && (exitCode === expectedExitCode);
         }
-        if (test.name == 'test010_5x') {
-          console.log(output);
-          console.log(expectedOutput);
+        if (showResult) {
+            printResult(output, expectedOutput)
         }
         var testDescription = 'command line ' + (async?'async':'sync');
         report(test.name, testDescription, output, exitCode, res, saveReport);
@@ -740,10 +829,10 @@ function testCommandLineInternal(test, testDirPath, async, saveReport) {
     })
 }
 
-var testCommandLine = function(test, testDirPath, saveReport){
+var testCommandLine = function(test, testDirPath, saveReport, showResult){
     return Promise.all([
-                        testCommandLineInternal(test, testDirPath, false, saveReport),
-                        testCommandLineInternal(test, testDirPath, true, saveReport)
+                        testCommandLineInternal(test, testDirPath, false, saveReport, showResult),
+                        testCommandLineInternal(test, testDirPath, true, saveReport, showResult)
                         ]);
 }
 
@@ -779,70 +868,101 @@ function endReport(saveReport){
 	}
 }
 
-var runTests = function () {
-	var args = process.argv;
+var printResult = function(output, expected) {
+    console.log('Actual:');
+    console.log(output);
+    console.log('Expected:');
+    console.log(expected);
+    //                    expected.forEach(function(exp){console.log(exp)});
+    console.log('Result: '+(output === expected));
+}
+
+// testDirPath: path to test data
+// singleTestName: if defined, represents the test name to be executed in format
+//                 otherwise all tests are executed
+function executeTests (testDirPath, singleTestName, showResult) {
+    console.log('Test dir: '+testDirPath);
 	var saveReport = true;
 	initReport(saveReport);
-
-	temp.mkdir('dircompare-test', function (err, testDirPath) {
-        if (err) {
-            throw err;
-        }
-
-        function onError (err) {
-            console.error('Error occurred:', err);
-        }
-
-        function onExtracted () {
-            Promise.resolve(tests).then(function(tests){
-                // Run sync tests
-                var syncTestsPromises = [];
-                tests.filter(function(test){return !test.onlyCommandLine;})
-                //                tests.filter(function(test){return test.name==='test009_2';})
-                .forEach(function(test){
-                    syncTestsPromises.push(testSync(test, testDirPath, saveReport));
-                });
-                return Promise.all(syncTestsPromises);
-            }).then(function(){
-                console.log();
-                console.log('Sync tests: ' + syncCount + ', failed: ' + syncFailed.toString().yellow + ', succeeded: ' + syncSuccessful.toString().green);
-                console.log();
-            }).then(function(){
-                // Run async tests
-                var asyncTestsPromises = [];
-                tests.filter(function(test){return !test.onlyCommandLine;})
-                //                tests.filter(function(test){return test.name==='test009_2';})
-                .forEach(function(test){
-                    asyncTestsPromises.push(testAsync(test, testDirPath, saveReport));
-                });
-                return Promise.all(asyncTestsPromises);
-            }).then(function(){
-                console.log();
-                console.log('Async tests: ' + asyncCount + ', failed: ' + asyncFailed.toString().yellow + ', succeeded: ' + asyncSuccessful.toString().green);
-                console.log();
-            }).then(function(){
-                // Run command line tests
-                var commandLinePromises = [];
-                tests.filter(function(test){return !test.onlyLibrary;})
-                // tests.filter(function(test){return test.name=='test002_3';})
-                .forEach(function(test){
-                    commandLinePromises.push(testCommandLine(test, testDirPath, saveReport));
-                });
-                return Promise.all(commandLinePromises);
-            }).then(function(){
-                console.log();
-                console.log('Command line tests: ' + cmdLineCount + ', failed: ' + cmdLineFailed.toString().yellow + ', succeeded: ' + cmdLineSuccessful.toString().green);
-            }).then(function(){
-                console.log();
-                console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
-                endReport(saveReport);
-                process.exitCode = failed>0?1:0
-                process.chdir(__dirname);  // allow temp dir to be removed
-            });
-        }
-
-         untar(__dirname + "/testdir.tar", testDirPath, onExtracted, onError);
+    Promise.resolve(tests).then(function(tests){
+        // Run sync tests
+        var syncTestsPromises = [];
+        tests.filter(function(test){return !test.onlyCommandLine;})
+        .filter(function(test){return singleTestName?test.name===singleTestName:true;})
+        .forEach(function(test){
+            syncTestsPromises.push(testSync(test, testDirPath, saveReport, showResult));
+        });
+        return Promise.all(syncTestsPromises);
+    }).then(function(){
+        console.log();
+        console.log('Sync tests: ' + syncCount + ', failed: ' + syncFailed.toString().yellow + ', succeeded: ' + syncSuccessful.toString().green);
+        console.log();
+    }).then(function(){
+        // Run async tests
+        var asyncTestsPromises = [];
+        tests.filter(function(test){return !test.onlyCommandLine;})
+        .filter(function(test){return !test.onlySync;})
+        .filter(function(test){return singleTestName?test.name===singleTestName:true;})
+        .forEach(function(test){
+            asyncTestsPromises.push(testAsync(test, testDirPath, saveReport, showResult));
+        });
+        return Promise.all(asyncTestsPromises);
+    }).then(function(){
+        console.log();
+        console.log('Async tests: ' + asyncCount + ', failed: ' + asyncFailed.toString().yellow + ', succeeded: ' + asyncSuccessful.toString().green);
+        console.log();
+    }).then(function(){
+        // Run command line tests
+        var commandLinePromises = [];
+        tests.filter(function(test){return !test.onlyLibrary;})
+        .filter(function(test){return singleTestName?test.name===singleTestName:true;})
+        .forEach(function(test){
+            commandLinePromises.push(testCommandLine(test, testDirPath, saveReport, showResult));
+        });
+        return Promise.all(commandLinePromises);
+    }).then(function(){
+        console.log();
+        console.log('Command line tests: ' + cmdLineCount + ', failed: ' + cmdLineFailed.toString().yellow + ', succeeded: ' + cmdLineSuccessful.toString().green);
+    }).then(function(){
+        console.log();
+        console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
+        endReport(saveReport);
+        process.exitCode = failed>0?1:0
+        process.chdir(__dirname);  // allow temp dir to be removed
     });
 }
 
-runTests();
+
+var main = function () {
+	var args = process.argv;
+    var singleTestName = undefined, unpacked = false, showResult = false;
+    args.forEach(function(arg){
+        if(arg.match('unpacked')) {
+            unpacked = true
+        }
+        if(arg.match('show-result')) {
+            showResult = true
+        }
+        if(arg.match(/test\d\d\d_\d/)) {
+            singleTestName = arg
+        }
+    })
+
+    if(unpacked){
+        executeTests(__dirname+'/testdir', singleTestName, showResult)
+    }
+    else {
+    	temp.mkdir('dircompare-test', function (err, testDirPath) {
+            if (err) {
+                throw err;
+            }
+
+            function onError (err) {
+                console.error('Error occurred:', err);
+            }
+            untar(__dirname + "/testdir.tar", testDirPath, function(){executeTests(testDirPath, singleTestName, showResult)}, onError);
+        });
+    }
+}
+
+main();

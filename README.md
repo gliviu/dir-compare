@@ -86,7 +86,8 @@ Options:
 * noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
 * includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
 * excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
-* resultBuilder: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js)
+* resultBuilder: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js).
+* compareFileSync, compareFileAsync: Callbacks for file comparison. See [Compare files by content](#compare-files-by-content).
 
 Result:
 
@@ -121,6 +122,29 @@ Result:
     * date2: modification date (stat.mtime)
     * level: depth
 
+## Compare files by content
+As of version 1.5.0, custom file comparison handlers may be specified.
+Included handlers are:
+* `dircompare.fileCompareHandlers.defaultFileCompare.compareSync`
+* `dircompare.fileCompareHandlers.defaultFileCompare.compareAsync`
+* `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
+
+The line based comparator can be used to ignore line ending and white space differences. This comparator is not available in [CLI](#command-line) version.
+```javascript
+var dircompare = require('dir-compare');
+
+var options = {
+  compareContent: true,
+  compareFileSync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync,
+  ignoreLineEnding: true,
+  ignoreWhiteSpaces: true
+};
+
+var path1 = '...';
+var path2 = '...';
+var res = dircompare.compareSync(path1, path2, options);
+console.log(res)
+```
 
 ## Command line
 ```
@@ -166,10 +190,9 @@ Result:
 ```
 
 ## Changelog
-* v1.3.0
-	* added date tolerance option
-* v1.2.0
-	* added compare by date option
+* v1.5.0 added option to ignore line endings and white space differences
+* v1.3.0 added date tolerance option
+* v1.2.0 added compare by date option
 * v1.1.0
     * detect symlink loops
     * improved color scheme for command line utility

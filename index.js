@@ -5,7 +5,8 @@ var Promise = require('bluebird');
 var compareSyncInternal = require('./compareSync');
 var compareAsyncInternal = require('./compareAsync');
 var defaultResultBuilderCallback = require('./defaultResultBuilderCallback');
-var defaultCompareFileCallback = require('./defaultCompareFileCallback');
+var defaultFileCompare = require('./file_compare_handlers/defaultFileCompare');
+var lineBasedFileCompare = require('./file_compare_handlers/lineBasedFileCompare');
 var common = require('./common');
 var compareSync = function (path1, path2, options) {
     'use strict';
@@ -94,10 +95,10 @@ var prepareOptions = function(options){
         clone.resultBuilder = defaultResultBuilderCallback;
     }
     if (!clone.compareFileSync) {
-        clone.compareFileSync = defaultCompareFileCallback.compareSync;
+        clone.compareFileSync = defaultFileCompare.compareSync;
     }
     if (!clone.compareFileAsync) {
-        clone.compareFileAsync = defaultCompareFileCallback.compareAsync;
+        clone.compareFileAsync = defaultFileCompare.compareAsync;
     }
     clone.dateTolerance = clone.dateTolerance || 1000;
     clone.dateTolerance = Number(clone.dateTolerance)
@@ -179,5 +180,9 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  */
 module.exports = {
     compareSync : compareSync,
-    compare : compareAsync
+    compare : compareAsync,
+    fileCompareHandlers: {
+        defaultFileCompare: defaultFileCompare,
+        lineBasedFileCompare: lineBasedFileCompare
+    }
 };
