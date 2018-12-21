@@ -1,6 +1,7 @@
 // Compare files line by line with options to ignore line endings and white space differencies.
 'use strict'
 var fs = require('fs')
+var alloc = require('./common').alloc;
 
 var BUF_SIZE = 4096
 var compareSync = function (path1, stat1, path2, stat2, options) {
@@ -9,8 +10,8 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
     try {
         fd1 = fs.openSync(path1, 'r');
         fd2 = fs.openSync(path2, 'r');
-        var buf1 = new Buffer(BUF_SIZE);
-        var buf2 = new Buffer(BUF_SIZE);
+        var buf1 = alloc(BUF_SIZE);
+        var buf2 = alloc(BUF_SIZE);
         var progress = 0;
         var last1='', last2=''
         while (true) {

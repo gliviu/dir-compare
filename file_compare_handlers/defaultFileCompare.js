@@ -3,6 +3,7 @@ var bufferEqual = require('buffer-equal');
 var Promise = require('bluebird');
 var FileDescriptorQueue = require('./fileDescriptorQueue');
 var fdQueue = new FileDescriptorQueue(8);
+var alloc = require('./common').alloc;
 /**
  * Compares two partial buffers.
  */
@@ -23,8 +24,8 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
     try {
         fd1 = fs.openSync(path1, 'r');
         fd2 = fs.openSync(path2, 'r');
-        var buf1 = new Buffer(bufSize);
-        var buf2 = new Buffer(bufSize);
+        var buf1 = alloc(bufSize);
+        var buf2 = alloc(bufSize);
         var progress = 0;
         while (true) {
             var size1 = fs.readSync(fd1, buf1, 0, bufSize, null);
@@ -57,8 +58,8 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
     return Promise.all([wrapper.open(path1, 'r'), wrapper.open(path2, 'r')]).then(function (fds) {
         fd1 = fds[0];
         fd2 = fds[1];
-        var buf1 = new Buffer(bufSize);
-        var buf2 = new Buffer(bufSize);
+        var buf1 = alloc(bufSize);
+        var buf2 = alloc(bufSize);
         var progress = 0;
         var compareAsyncInternal = function () {
             return Promise.all([
