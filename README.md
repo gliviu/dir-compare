@@ -4,6 +4,8 @@ Node JS directory compare
 
 [![Build Status](https://api.travis-ci.org/gliviu/dir-compare.svg?branch=master)](https://travis-ci.org/gliviu/dir-compare)
 [![Build status](https://ci.appveyor.com/api/projects/status/fpnqkr2gfg7pwkxk/branch/master?svg=true)](https://ci.appveyor.com/project/gliviu/dir-compare)
+[![codecov.io](http://codecov.io/github/gliviu/dir-compare/coverage.svg?branch=master)](http://codecov.io/github/gliviu/dir-compare?branch=master)
+
 
 ## Installation
 ```shell
