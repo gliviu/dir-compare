@@ -16,7 +16,10 @@ var Streams = require('memory-streams');
 var compareSync = require('../index').compareSync;
 var compareAsync = require('../index').compare;
 var untar = require('./untar');
-var linecomp = require('../index').fileCompareHandlers.lineBasedFileCompare
+var semver = require('semver')
+
+var lineAsyncCompare = require('../index').fileCompareHandlers.lineBasedFileCompare.compareAsync
+var lineSyncCompare =  require('../index').fileCompareHandlers.lineBasedFileCompare.compareSync
 
 var count = 0, failed = 0, successful = 0;
 var syncCount = 0, syncFailed = 0, syncSuccessful = 0;
@@ -80,6 +83,7 @@ function passed (value, type) {
  * * onlyCommandLine - Test is run only on command line.
  * * skipStatisticsCheck - Do not call checkStatistics() after each library test.
  * * onlySync - only apply for synchronous compare
+ * * nodeVersionSupport - limit test to specific node versions; ie. '>=2.5.0'
  */
 var tests = [
              {
@@ -584,85 +588,85 @@ var tests = [
                  description: 'should ignore line endings',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreLineEnding: true,
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
              {
                  name: 'test011_2', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
                  description: 'should not ignore line endings',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreLineEnding: false,
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
              {
                  name: 'test011_3', path1: 'd35/lf-spaces', path2: 'd35/lf-tabs',
                  description: 'should ignore white spaces',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreWhiteSpaces: true
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
              {
                  name: 'test011_4', path1: 'd35/crlf-spaces', path2: 'd35/lf-tabs',
                  description: 'should ignore white spaces and line endings',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreLineEnding: true,
                      ignoreWhiteSpaces: true
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
              {
                  name: 'test011_5', path1: 'd35/lf-spaces', path2: 'd35/lf-tabs',
                  description: 'should not ignore white spaces',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreWhiteSpaces: false
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
              {
                  name: 'test011_6', path1: 'd35/lf-spaces', path2: 'd35/lf-mix',
                  description: 'should ignore mixed white spaces',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreWhiteSpaces: true
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
              {
                  name: 'test011_7', path1: 'd35/lf-tabs', path2: 'd35/lf-mix',
                  description: 'should ignore mixed white spaces',
                  options: {
                      compareContent: true,
-                     compareFileSync: linecomp.compareSync,
+                     compareFileSync: lineSyncCompare,
+                     compareFileAsync: lineAsyncCompare,
                      ignoreWhiteSpaces: true
                  },
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
-                 onlySync: true
              },
          ];
 
@@ -889,6 +893,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         var syncTestsPromises = [];
         tests.filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
+        .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .forEach(function(test){
             syncTestsPromises.push(testSync(test, testDirPath, saveReport, showResult));
         });
@@ -902,6 +907,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         var asyncTestsPromises = [];
         tests.filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return !test.onlySync;})
+        .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
         .forEach(function(test){
             asyncTestsPromises.push(testAsync(test, testDirPath, saveReport, showResult));
@@ -915,6 +921,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         // Run command line tests
         var commandLinePromises = [];
         tests.filter(function(test){return !test.onlyLibrary;})
+        .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
         .forEach(function(test){
             commandLinePromises.push(testCommandLine(test, testDirPath, saveReport, showResult));

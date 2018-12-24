@@ -130,6 +130,7 @@ Included handlers are:
 * `dircompare.fileCompareHandlers.defaultFileCompare.compareSync`
 * `dircompare.fileCompareHandlers.defaultFileCompare.compareAsync`
 * `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
+* `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
 
 The line based comparator can be used to ignore line ending and white space differences. This comparator is not available in [CLI](#command-line) version.
 ```javascript
@@ -138,6 +139,7 @@ var dircompare = require('dir-compare');
 var options = {
   compareContent: true,
   compareFileSync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync,
+  compareFileAsync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync,
   ignoreLineEnding: true,
   ignoreWhiteSpaces: true
 };
@@ -146,6 +148,9 @@ var path1 = '...';
 var path2 = '...';
 var res = dircompare.compareSync(path1, path2, options);
 console.log(res)
+
+dircompare.compare(path1, path2, options)
+.then(res => console.log(res))
 ```
 
 ## Command line

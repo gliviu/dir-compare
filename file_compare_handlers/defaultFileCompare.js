@@ -4,6 +4,10 @@ var Promise = require('bluebird');
 var FileDescriptorQueue = require('./fileDescriptorQueue');
 var fdQueue = new FileDescriptorQueue(8);
 var alloc = require('./common').alloc;
+var wrapper = require('./common').wrapper(fdQueue);
+var closeFilesSync = require('./common').closeFilesSync;
+var closeFilesAsync = require('./common').closeFilesAsync;
+
 /**
  * Compares two partial buffers.
  */
@@ -44,11 +48,6 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
     }
 };
 
-var wrapper = {
-        open : Promise.promisify(fdQueue.open),
-        read : Promise.promisify(fs.read),
-};
-
 /**
  * Compares two files by content using bufSize as buffer length.
  */
@@ -80,35 +79,15 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
             });
         };
         return compareAsyncInternal().then(function (result) {
-            closeFilesAsync(fd1, fd2);
+            closeFilesAsync(fd1, fd2, fdQueue);
             return result;
         });
     }).catch(function (error) {
-        closeFilesAsync(fd1, fd2);
+        closeFilesAsync(fd1, fd2, fdQueue);
         return error;
     });
 };
 
-var closeFilesSync = function(fd1, fd2){
-    if (fd1) {
-        fs.closeSync(fd1);
-    }
-    if (fd2) {
-        fs.closeSync(fd2);
-    }
-}
-var closeFilesAsync = function(fd1, fd2){
-    if (fd1) {
-        fdQueue.close(fd1, function(err){
-          if(err){console.log(err);}
-        });
-    }
-    if (fd2) {
-    	fdQueue.close(fd2, function(err){
-        if(err){console.log(err);}
-      });
-    }
-}
 module.exports = {
     compareSync : compareSync,
     compareAsync : compareAsync

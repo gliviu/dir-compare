@@ -3,4 +3,4 @@
 /tests/report.txt
 /tests/testdir
 /coverage/
-test.js
+test*.js
