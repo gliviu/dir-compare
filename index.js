@@ -43,12 +43,24 @@ var compareSync = function (path1, path2, options) {
     return statistics;
 };
 
+var wrapper = {
+    realPath : Promise.promisify(fs.realpath),
+}
+
 var compareAsync = function (path1, path2, options) {
     'use strict';
-    // realpathSync() is necessary for loop detection to work properly
-    path1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
-    path2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
-    return Promise.resolve().then(function(xx){
+    return Promise.resolve()
+    .then(function(){
+        return Promise.all([wrapper.realPath(path1), wrapper.realPath(path2)])
+    })
+    .then(function(realPaths){
+        var realPath1 = realPaths[0]
+        var realPath2 = realPaths[1]
+        // realpath() is necessary for loop detection to work properly
+        path1 = pathUtils.normalize(pathUtils.resolve(realPath1))
+        path2 = pathUtils.normalize(pathUtils.resolve(realPath2))
+    })
+    .then(function(){
         var statistics = {
                 distinct : 0,
                 equal : 0,
