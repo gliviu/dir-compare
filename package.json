@@ -1,6 +1,6 @@
 {
     "name": "dir-compare",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "description": "Node JS directory compare",
     "main": "index.js",
     "repository": {
