@@ -85,7 +85,8 @@ function passed (value, type) {
  * * onlySync - only apply for synchronous compare
  * * nodeVersionSupport - limit test to specific node versions; ie. '>=2.5.0'
  */
-var tests = [
+var getTests = function(testDirPath){
+    var res = [
              {
                  name: 'test001_1', path1: 'd1', path2: 'd2',
                  options: {compareSize: true,},
@@ -668,7 +669,46 @@ var tests = [
                  displayOptions: {nocolors: true},
                  onlyLibrary: true,
              },
+             ////////////////////////////////////////////////////
+             // Relative paths                                 //
+             ////////////////////////////////////////////////////
+             {
+                 name: 'test012_0', path1: 'd1', path2: 'd2',
+                 description: 'should report relative paths',
+                 options: {},
+                 onlyLibrary: true,
+                 withRelativePath: true,
+                 print: function(res, writer, program){printRelativePathResult(res, testDirPath, writer)}
+             },
+             {
+                 name: 'test012_1', path1: 'd1/A6/../../d1', path2: 'd2',
+                 description: 'should report absolute paths',
+                 options: {},
+                 onlyLibrary: true,
+                 withRelativePath: false,
+                 print: function(res, writer, program){printRelativePathResult(res, testDirPath, writer)}
+             },
+             {
+                 name: 'test012_2', path1: testDirPath+'/d1', path2: 'd2',
+                 description: 'should report absolute and relative paths',
+                 options: {},
+                 onlyLibrary: true,
+                 withRelativePath: true,
+                 print: function(res, writer, program){printRelativePathResult(res, testDirPath, writer)}
+             },
          ];
+         return res;
+}
+
+var printRelativePathResult = function(res, testDirPath, writer) {
+    var result = res.diffSet.map(function(diff){
+        return util.format('path1: %s, path2: %s',
+        diff.path1, diff.path2)});
+    result = JSON.stringify(result)
+    result = result.replace(/\\\\/g, "/")
+    result = result.replace(new RegExp(testDirPath.replace(/\\/g, "/"), 'g'), 'absolute_path')
+    writer.write(result);
+}
 
 //Matches date (ie 2014-11-18T21:32:39.000Z)
 var normalizeDateRegexp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/gm;
@@ -888,7 +928,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
     console.log('Test dir: '+testDirPath);
 	var saveReport = true;
 	initReport(saveReport);
-    Promise.resolve(tests).then(function(tests){
+    Promise.resolve(getTests(testDirPath)).then(function(tests){
         // Run sync tests
         var syncTestsPromises = [];
         tests.filter(function(test){return !test.onlyCommandLine;})
@@ -905,7 +945,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
     }).then(function(){
         // Run async tests
         var asyncTestsPromises = [];
-        tests.filter(function(test){return !test.onlyCommandLine;})
+        getTests(testDirPath).filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return !test.onlySync;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
@@ -920,7 +960,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
     }).then(function(){
         // Run command line tests
         var commandLinePromises = [];
-        tests.filter(function(test){return !test.onlyLibrary;})
+        getTests(testDirPath).filter(function(test){return !test.onlyLibrary;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
         .forEach(function(test){

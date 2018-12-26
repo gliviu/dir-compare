@@ -1,7 +1,7 @@
 'use strict'
 
 var pathUtils = require('path');
-var common = require('./common'); 
+var common = require('./common');
 
 module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet) {
     diffSet.push({

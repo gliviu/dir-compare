@@ -11,8 +11,8 @@ var common = require('./common');
 var compareSync = function (path1, path2, options) {
     'use strict';
     // realpathSync() is necessary for loop detection to work properly
-    path1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
-    path2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
+    var absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
+    var absolutePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
     var statistics = {
         distinct : 0,
         equal : 0,
@@ -34,8 +34,8 @@ var compareSync = function (path1, path2, options) {
         diffSet = [];
     }
     compareSyncInternal(
-        common.buildEntry(path1, pathUtils.basename(path1)),
-        common.buildEntry(path2, pathUtils.basename(path2)),
+        common.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
+        common.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
         0, '', options, statistics, diffSet);
     completeStatistics(statistics);
     statistics.diffSet = diffSet;
@@ -49,6 +49,7 @@ var wrapper = {
 
 var compareAsync = function (path1, path2, options) {
     'use strict';
+    var absolutePath1, absolutePath2
     return Promise.resolve()
     .then(function(){
         return Promise.all([wrapper.realPath(path1), wrapper.realPath(path2)])
@@ -57,8 +58,8 @@ var compareAsync = function (path1, path2, options) {
         var realPath1 = realPaths[0]
         var realPath2 = realPaths[1]
         // realpath() is necessary for loop detection to work properly
-        path1 = pathUtils.normalize(pathUtils.resolve(realPath1))
-        path2 = pathUtils.normalize(pathUtils.resolve(realPath2))
+        absolutePath1 = pathUtils.normalize(pathUtils.resolve(realPath1))
+        absolutePath2 = pathUtils.normalize(pathUtils.resolve(realPath2))
     })
     .then(function(){
         var statistics = {
@@ -82,8 +83,8 @@ var compareAsync = function (path1, path2, options) {
                 asyncDiffSet = [];
             }
         return compareAsyncInternal(
-          common.buildEntry(path1, pathUtils.basename(path1)),
-          common.buildEntry(path2, pathUtils.basename(path2)),
+          common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
+          common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
           0, '', options, statistics, asyncDiffSet).then(
                 function(){
                     completeStatistics(statistics);

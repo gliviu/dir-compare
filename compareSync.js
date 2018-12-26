@@ -7,27 +7,29 @@ var PATH_SEP = pathUtils.sep
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (path, options) {
-    if (!path) {
+var getEntries = function (absolutePath, path, options) {
+    if (!absolutePath) {
         return [];
     } else {
-        var statPath = fs.statSync(path);
+        var statPath = fs.statSync(absolutePath);
         if (statPath.isDirectory()) {
-           var entries = fs.readdirSync(path);
+           var entries = fs.readdirSync(absolutePath);
 
            var res = [];
            entries.forEach(function (entryName) {
+               var entryAbsolutePath = absolutePath + PATH_SEP + entryName;
                var entryPath = path + PATH_SEP + entryName;
-               var lstatEntry = fs.lstatSync(entryPath);
+               var lstatEntry = fs.lstatSync(entryAbsolutePath);
                var isSymlink = lstatEntry.isSymbolicLink();
                var statEntry;
                if(options.skipSymlinks && isSymlink){
                    statEntry = undefined;
                } else{
-                   statEntry = fs.statSync(entryPath);
+                   statEntry = fs.statSync(entryAbsolutePath);
                }
                var entry = {
                    name : entryName,
+                   absolutePath : entryAbsolutePath,
                    path : entryPath,
                    stat : statEntry,
                    lstat : lstatEntry,
@@ -42,10 +44,11 @@ var getEntries = function (path, options) {
            });
            return options.ignoreCase?res.sort(common.compareEntryIgnoreCase):res.sort(common.compareEntryCaseSensitive);
        } else {
-           var name = pathUtils.basename(path);
+           var name = pathUtils.basename(absolutePath);
            return [
                {
                    name : name,
+                   absolutePath: absolutePath,
                    path : path,
                    stat : statPath,
                    toString : function () {
@@ -71,25 +74,27 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
 
     var symlinkCachePath1, symlinkCachePath2;
     if(rootEntry1 && !loopDetected1){
-        symlinkCachePath1 = rootEntry1.symlink?fs.realpathSync(rootEntry1.path):rootEntry1.path;
+        symlinkCachePath1 = rootEntry1.symlink?fs.realpathSync(rootEntry1.absolutePath):rootEntry1.absolutePath;
         symlinkCache.dir1[symlinkCachePath1] = true;
     }
     if(rootEntry2 && !loopDetected2){
-        symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.path):rootEntry2.path;
+        symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.absolutePath):rootEntry2.absolutePath;
         symlinkCache.dir2[symlinkCachePath2] = true;
     }
+    var absolutePath1 = rootEntry1?rootEntry1.absolutePath:undefined;
+    var absolutePath2 = rootEntry2?rootEntry2.absolutePath:undefined;
     var path1 = rootEntry1?rootEntry1.path:undefined;
     var path2 = rootEntry2?rootEntry2.path:undefined;
-    var entries1 = loopDetected1?[]:getEntries(path1, options);
-    var entries2 = loopDetected2?[]:getEntries(path2, options);
+    var entries1 = loopDetected1?[]:getEntries(absolutePath1, path1, options);
+    var entries2 = loopDetected2?[]:getEntries(absolutePath2, path2, options);
     var i1 = 0, i2 = 0;
     while (i1 < entries1.length || i2 < entries2.length) {
         var entry1 = entries1[i1];
         var entry2 = entries2[i2];
         var n1 = entry1 ? entry1.name : undefined;
         var n2 = entry2 ? entry2.name : undefined;
-        var p1 = entry1 ? entry1.path : undefined;
-        var p2 = entry2 ? entry2.path : undefined;
+        var p1 = entry1 ? entry1.absolutePath : undefined;
+        var p2 = entry2 ? entry2.absolutePath : undefined;
         var fileStat1 = entry1 ? entry1.stat : undefined;
         var fileStat2 = entry2 ? entry2.stat : undefined;
         var type1, type2;

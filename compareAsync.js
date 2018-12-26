@@ -9,22 +9,23 @@ var PATH_SEP = pathUtils.sep
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (path, options, loopDetected) {
-    if (!path || loopDetected) {
+var getEntries = function (absolutePath, path, options, loopDetected) {
+    if (!absolutePath || loopDetected) {
         return Promise.resolve([]);
     } else{
-        return fsPromise.stat(path).then(
+        return fsPromise.stat(absolutePath).then(
                 function(statPath){
                     if(statPath.isDirectory()){
-                        return fsPromise.readdir(path).then(
+                        return fsPromise.readdir(absolutePath).then(
                                 function(rawEntries){
-                                    return buildEntries(path, rawEntries, options);
+                                    return buildEntries(absolutePath, path, rawEntries, options);
                                 });
                     } else{
-                        var name = pathUtils.basename(path);
+                        var name = pathUtils.basename(absolutePath);
                         return [
                             {
                                 name : name,
+                                absolutePath: absolutePath,
                                 path : path,
                                 stat : statPath,
                                 toString : function () {
@@ -37,10 +38,10 @@ var getEntries = function (path, options, loopDetected) {
     }
 }
 
-var buildEntries = function(path, rawEntries, options){
+var buildEntries = function(absolutePath, path, rawEntries, options){
     var promisedEntries = [];
     rawEntries.forEach(function (entryName) {
-        promisedEntries.push(buildEntry(path, entryName, options));
+        promisedEntries.push(buildEntry(absolutePath, path, entryName, options));
     });
     return Promise.all(promisedEntries).then(
             function(entries){
@@ -55,19 +56,21 @@ var buildEntries = function(path, rawEntries, options){
             });
 }
 
-var buildEntry = function(path, entryName, options){
+var buildEntry = function(absolutePath, path, entryName, options){
+    var entryAbsolutePath = absolutePath + PATH_SEP + entryName;
     var entryPath = path + PATH_SEP + entryName;
-    return Promise.resolve(fsPromise.lstat(entryPath)).then(function(lstatEntry){
+    return Promise.resolve(fsPromise.lstat(entryAbsolutePath)).then(function(lstatEntry){
         var isSymlink = lstatEntry.isSymbolicLink();
         var statPromise;
         if(options.skipSymlinks && isSymlink){
             statPromise = Promise.resolve(undefined);
         } else{
-            statPromise = fsPromise.stat(entryPath);
+            statPromise = fsPromise.stat(entryAbsolutePath);
         }
         return statPromise.then(function(statEntry){
             return {
                 name : entryName,
+                absolutePath : entryAbsolutePath,
                 path : entryPath,
                 stat : statEntry,
                 lstat : lstatEntry,
@@ -93,17 +96,19 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
 
     var symlinkCachePath1, symlinkCachePath2;
     if(rootEntry1 && !loopDetected1){
-        symlinkCachePath1 = rootEntry1.symlink?fs.realpathSync(rootEntry1.path):rootEntry1.path;
+        symlinkCachePath1 = rootEntry1.symlink?fs.realpathSync(rootEntry1.absolutePath):rootEntry1.absolutePath;
         symlinkCache.dir1[symlinkCachePath1] = true;
     }
     if(rootEntry2 && !loopDetected2){
-        symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.path):rootEntry2.path;
+        symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.absolutePath):rootEntry2.absolutePath;
         symlinkCache.dir2[symlinkCachePath2] = true;
     }
+    var absolutePath1 = rootEntry1?rootEntry1.absolutePath:undefined;
+    var absolutePath2 = rootEntry2?rootEntry2.absolutePath:undefined;
     var path1 = rootEntry1?rootEntry1.path:undefined;
     var path2 = rootEntry2?rootEntry2.path:undefined;
 
-    return Promise.all([getEntries(path1, options, loopDetected1), getEntries(path2, options, loopDetected2)]).then(
+    return Promise.all([getEntries(absolutePath1, path1, options, loopDetected1), getEntries(absolutePath2, path2, options, loopDetected2)]).then(
             function(entriesResult){
                 var entries1 = entriesResult[0];
                 var entries2 = entriesResult[1];
@@ -116,8 +121,8 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     var entry2 = entries2[i2];
                     var n1 = entry1 ? entry1.name : undefined;
                     var n2 = entry2 ? entry2.name : undefined;
-                    var p1 = entry1 ? entry1.path : undefined;
-                    var p2 = entry2 ? entry2.path : undefined;
+                    var p1 = entry1 ? entry1.absolutePath : undefined;
+                    var p2 = entry2 ? entry2.absolutePath : undefined;
                     var fileStat1 = entry1 ? entry1.stat : undefined;
                     var fileStat2 = entry2 ? entry2.stat : undefined;
                     var type1, type2;

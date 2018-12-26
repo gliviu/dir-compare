@@ -5,7 +5,7 @@ var pathUtils = require('path');
 module.exports = {
     detectLoop : function(entry, symlinkCache){
         if(entry && entry.symlink){
-            var realPath = fs.realpathSync(entry.path);
+            var realPath = fs.realpathSync(entry.absolutePath);
             if(symlinkCache[realPath]){
                 return true;
             }
@@ -28,12 +28,13 @@ module.exports = {
     	return cloned;
     },
 
-    buildEntry : function(path, name){
-        var statEntry = fs.statSync(path);
-        var lstatEntry = fs.lstatSync(path);
+    buildEntry : function(absolutePath, path, name){
+        var statEntry = fs.statSync(absolutePath);
+        var lstatEntry = fs.lstatSync(absolutePath);
         var isSymlink = lstatEntry.isSymbolicLink();
         return {
             name : name,
+            absolutePath: absolutePath,
             path : path,
             stat : statEntry,
             lstat : lstatEntry,

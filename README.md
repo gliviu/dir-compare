@@ -110,9 +110,9 @@ Result:
 * differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
 * same: true if directories are identical
 * diffSet - List of changes (present if Options.noDiffSet is false)
-    * path1: absolute path not including file/directory name,
-    * path2: absolute path not including file/directory name,
-    * relativePath: common path relative to root,
+    * path1: path not including file/directory name; can be relative or absolute depending on call to compare(),
+    * path2: path not including file/directory name; can be relative or absolute depending on call to compare(),
+    * relativePath: path relative to root,
     * name1: file/directory name
     * name2: file/directory name
     * state: one of equal, left, right, distinct,
