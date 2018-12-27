@@ -38,10 +38,7 @@ module.exports = {
             path : path,
             stat : statEntry,
             lstat : lstatEntry,
-            symlink : isSymlink,
-            toString : function () {
-                return this.name;
-            }
+            symlink : isSymlink
         };
     },
 

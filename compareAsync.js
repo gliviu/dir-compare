@@ -27,10 +27,7 @@ var getEntries = function (absolutePath, path, options, loopDetected) {
                                 name : name,
                                 absolutePath: absolutePath,
                                 path : path,
-                                stat : statPath,
-                                toString : function () {
-                                    return this.name;
-                                }
+                                stat : statPath
                             }
                         ];
                     }
@@ -74,10 +71,7 @@ var buildEntry = function(absolutePath, path, entryName, options){
                 path : entryPath,
                 stat : statEntry,
                 lstat : lstatEntry,
-                symlink : isSymlink,
-                toString : function () {
-                    return this.name;
-                }
+                symlink : isSymlink
             };
         });
     });
@@ -145,85 +139,55 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
 
                     // process entry
                     if (cmp === 0) {
-                        // Both left/right exist and have the same name
-                        if (type1 === type2) {
-                            var samePromise = undefined, same = undefined;
-                            if(type1==='file'){
-                                if (options.compareSize && fileStat1.size !== fileStat2.size) {
-                                    same = false;
-                                } else if(options.compareDate && !common.sameDate(fileStat1.mtime, fileStat2.mtime, options.dateTolerance)){
-                                    same = false;
-                                } else if(options.compareContent){
-                                    var cmpFile = function(entry1, entry2, type1, type2){
-                                        var subDiffSet;
-                                        if(!options.noDiffSet){
-                                            subDiffSet = [];
-                                            diffSet.push(subDiffSet);
-                                        }
-                                        samePromise = options.compareFileAsync(p1, fileStat1, p2, fileStat2, options).then(function(comparisonResult){
-                                        	var same, error;
-                                        	if(typeof(comparisonResult) === "boolean"){
-                                        		same = comparisonResult;
-                                        	} else{
-                                        		error = comparisonResult;
-                                        	}
-
-                                            return {entry1: entry1, entry2: entry2, same: same, error: error, type1: type1, type2: type2, diffSet: subDiffSet};
-                                        });
+                        // Both left/right exist and have the same name and type
+                        var samePromise = undefined, same = undefined;
+                        if(type1==='file'){
+                            if (options.compareSize && fileStat1.size !== fileStat2.size) {
+                                same = false;
+                            } else if(options.compareDate && !common.sameDate(fileStat1.mtime, fileStat2.mtime, options.dateTolerance)){
+                                same = false;
+                            } else if(options.compareContent){
+                                var cmpFile = function(entry1, entry2, type1, type2){
+                                    var subDiffSet;
+                                    if(!options.noDiffSet){
+                                        subDiffSet = [];
+                                        diffSet.push(subDiffSet);
                                     }
-                                    cmpFile(entry1, entry2, type1, type2);
-                                } else{
-                                    same = true;
+                                    samePromise = options.compareFileAsync(p1, fileStat1, p2, fileStat2, options).then(function(comparisonResult){
+                                    	var same, error;
+                                    	if(typeof(comparisonResult) === "boolean"){
+                                    		same = comparisonResult;
+                                    	} else{
+                                    		error = comparisonResult;
+                                    	}
+
+                                        return {entry1: entry1, entry2: entry2, same: same, error: error, type1: type1, type2: type2, diffSet: subDiffSet};
+                                    });
                                 }
+                                cmpFile(entry1, entry2, type1, type2);
                             } else{
                                 same = true;
                             }
-                            if(same !== undefined){
-                                doStats(entry1, entry2, same, statistics, options, level, relativePath, diffSet, type1, type2);
-                            } else{
-                                compareFilePromises.push(samePromise);
-                            }
-
-                        } else {
-                            // File and directory with same name
-                            if(!options.noDiffSet){
-                                options.resultBuilder(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
-                            }
-                            statistics.distinct+=2;
-                            statistics.distinctFiles++;
-                            statistics.distinctDirs++;
+                        } else{
+                            same = true;
                         }
+                        if(same !== undefined){
+                            doStats(entry1, entry2, same, statistics, options, level, relativePath, diffSet, type1, type2);
+                        } else{
+                            compareFilePromises.push(samePromise);
+                        }
+
                         i1++;
                         i2++;
-                        if(!options.skipSubdirs){
-                            if (type1 === 'directory' && type2 === 'directory') {
-                                var subDiffSet;
-                                if(!options.noDiffSet){
-                                    subDiffSet = [];
-                                    diffSet.push(subDiffSet);
-                                }
-                                comparePromises.push(compare(entry1, entry2, level + 1,
-                                        relativePath + PATH_SEP + entry1.name,
-                                        options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
-                            } else if (type1 === 'directory') {
-                                var subDiffSet;
-                                if(!options.noDiffSet){
-                                    subDiffSet = [];
-                                    diffSet.push(subDiffSet);
-                                }
-                                comparePromises.push(compare(entry1, undefined,
-                                        level + 1, relativePath + PATH_SEP
-                                        + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
-                            } else if (type2 === 'directory') {
-                                var subDiffSet;
-                                if(!options.noDiffSet){
-                                    subDiffSet = [];
-                                    diffSet.push(subDiffSet);
-                                }
-                                comparePromises.push(compare(undefined, entry2,
-                                        level + 1, relativePath + PATH_SEP
-                                        + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
+                        if(!options.skipSubdirs && type1 === 'directory'){
+                            var subDiffSet;
+                            if(!options.noDiffSet){
+                                subDiffSet = [];
+                                diffSet.push(subDiffSet);
                             }
+                            comparePromises.push(compare(entry1, entry2, level + 1,
+                                    relativePath + PATH_SEP + entry1.name,
+                                    options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     } else if (cmp < 0) {
                         // Right missing

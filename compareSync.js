@@ -33,10 +33,7 @@ var getEntries = function (absolutePath, path, options) {
                    path : entryPath,
                    stat : statEntry,
                    lstat : lstatEntry,
-                   symlink : isSymlink,
-                   toString : function () {
-                       return this.name;
-                   }
+                   symlink : isSymlink
                };
                if (common.filterEntry(entry, options)){
                    res.push(entry);
@@ -50,10 +47,7 @@ var getEntries = function (absolutePath, path, options) {
                    name : name,
                    absolutePath: absolutePath,
                    path : path,
-                   stat : statPath,
-                   toString : function () {
-                       return this.name;
-                   }
+                   stat : statPath
                }
 
            ];
@@ -117,50 +111,34 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
 
         // process entry
         if (cmp === 0) {
-            // Both left/right exist and have the same name
-            if (type1 === type2) {
-                var same;
-                if(type1==='file'){
-                    if (options.compareSize && fileStat1.size !== fileStat2.size) {
-                        same = false;
-                    } else if(options.compareDate && !common.sameDate(fileStat1.mtime, fileStat2.mtime, options.dateTolerance)){
-                        same = false;
-                    } else if(options.compareContent){
-                        same = options.compareFileSync(p1, fileStat1, p2, fileStat2, options);
-                    } else{
-                        same = true;
-                    }
+            // Both left/right exist and have the same name and type
+            var same;
+            if(type1==='file'){
+                if (options.compareSize && fileStat1.size !== fileStat2.size) {
+                    same = false;
+                } else if(options.compareDate && !common.sameDate(fileStat1.mtime, fileStat2.mtime, options.dateTolerance)){
+                    same = false;
+                } else if(options.compareContent){
+                    same = options.compareFileSync(p1, fileStat1, p2, fileStat2, options);
                 } else{
                     same = true;
                 }
-                if(!options.noDiffSet){
-                    options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet);
-                }
-                same ? statistics.equal++ : statistics.distinct++;
-                if(type1==='file'){
-                    same ? statistics.equalFiles++ : statistics.distinctFiles++;
-                } else{
-                    same ? statistics.equalDirs++ : statistics.distinctDirs++;
-                }
-            } else {
-                // File and directory with same name
-                if(!options.noDiffSet){
-                    options.resultBuilder(entry1, entry2, 'distinct', level, relativePath, options, statistics, diffSet);
-                }
-                statistics.distinct+=2;
-                statistics.distinctFiles++;
-                statistics.distinctDirs++;
+            } else{
+                same = true;
+            }
+            if(!options.noDiffSet){
+                options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet);
+            }
+            same ? statistics.equal++ : statistics.distinct++;
+            if(type1==='file'){
+                same ? statistics.equalFiles++ : statistics.distinctFiles++;
+            } else{
+                same ? statistics.equalDirs++ : statistics.distinctDirs++;
             }
             i1++;
             i2++;
-            if(!options.skipSubdirs){
-                if (type1 === 'directory' && type2 === 'directory') {
-                    compare(entry1, entry2, level + 1, relativePath + PATH_SEP + entry1.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
-                } else if (type1 === 'directory') {
-                    compare(entry1, undefined, level + 1, relativePath + PATH_SEP + entry1.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
-                } else if (type2 === 'directory') {
-                    compare(undefined, entry2, level + 1, relativePath + PATH_SEP + entry2.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
-                }
+            if(!options.skipSubdirs && type1 === 'directory'){
+                compare(entry1, entry2, level + 1, relativePath + PATH_SEP + entry1.name, options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache));
             }
         } else if (cmp < 0) {
             // Right missing
