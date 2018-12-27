@@ -158,6 +158,7 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
  *  resultBuilder: Callback for constructing result.
  *  	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
+ *  compareFileSync, compareFileAsync: Callbacks for file comparison. 
  *
  * Output format:
  *  distinct: number of distinct entries

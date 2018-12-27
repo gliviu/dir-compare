@@ -55,7 +55,9 @@ interface Test {
     onlyCommandLine: boolean,
     skipStatisticsCheck: boolean,
     onlySync: boolean,
-    nodeVersionSupport: boolean
+    onlyAsync: boolean,
+    nodeVersionSupport: boolean,
+    runAsync: () => Promise<string>
 }
 
 
@@ -116,7 +118,9 @@ function passed (value, type) {
  * * onlyCommandLine - Test is run only on command line.
  * * skipStatisticsCheck - Do not call checkStatistics() after each library test.
  * * onlySync - only apply for synchronous compare
+ * * onlyAsync - only apply for synchronous compare
  * * nodeVersionSupport - limit test to specific node versions; ie. '>=2.5.0'
+ * * runAsync - execute hand-written async test
  */
 var getTests = function(testDirPath){
     var res : Partial<Test>[] = [
@@ -169,6 +173,26 @@ var getTests = function(testDirPath){
                  commandLineOptions: '',
                  exitCode: 1,
              },
+             {
+                 name: 'test001_9', path1: 'd1/a1.txt', path2: 'd2/a1.txt',
+                 description: 'should compare two files',
+                 options: {compareSize: true,},
+                 displayOptions: {nocolors: true},
+                 commandLineOptions: '',
+                 exitCode: 0,
+             },
+             {
+                 name: 'test001_10',
+                 description: 'should propagate async exception',
+                 onlyAsync: true,
+                 onlyLibrary: true,
+                 runAsync: function(){
+                     return compareAsync(testDirPath+'/d1', testDirPath+'/none', {})
+                     .then(function(res){return 'res: ' + JSON.stringify(res)})
+                     .catch(function(error){return 'error occurred'})
+                 }
+             },
+
 
              ////////////////////////////////////////////////////
              // Filters                                        //
@@ -847,19 +871,33 @@ var testAsync = function(test, testDirPath, saveReport, showResult){
         path1 = test.path1?testDirPath + '/' + test.path1:'';
         path2 = test.path2?testDirPath + '/' + test.path2:'';
     }
-    return compareAsync(path1, path2, test.options).then(
-            function(result){
-                // PRINT DETAILS
+    var promise;
+    if(test.runAsync){
+        promise = test.runAsync()
+        .then(function(result){
+                return {output: result, statisticsCheck: true}
+        })
+    } else {
+        promise = compareAsync(path1, path2, test.options)
+        .then(function(result){
                 var writer = new Streams.WritableStream();
                 var print = test.print?test.print:defaultPrint;
                 print(result, writer, test.displayOptions);
+                var statisticsCheck = checkStatistics(result, test);
                 var output = normalize(writer.toString()).trim();
+                return {output: output, statisticsCheck: statisticsCheck}
+        })
+    }
+    return promise.then(
+            function(result){
+                var output = result.output;
+                var statisticsCheck = result.statisticsCheck;
+
                 var expected = getExpected(test);
 
                 if (showResult) {
                     printResult(output, expected)
                 }
-                var statisticsCheck = checkStatistics(result, test);
                 var res = expected===output && statisticsCheck;
                 report(test.name, 'async', output, null, res, saveReport);
                 console.log(test.name + ' async: ' + passed(res, 'async'));
@@ -967,6 +1005,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         // Run sync tests
         var syncTestsPromises: Promise<any>[] = [];
         tests.filter(function(test){return !test.onlyCommandLine;})
+        .filter(function(test){return !test.onlyAsync})
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .forEach(function(test){
@@ -981,7 +1020,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         // Run async tests
         var asyncTestsPromises: Promise<any>[] = [];
         getTests(testDirPath).filter(function(test){return !test.onlyCommandLine;})
-        .filter(function(test){return !test.onlySync;})
+        .filter(function(test){return !test.onlySync})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
         .forEach(function(test){

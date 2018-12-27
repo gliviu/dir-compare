@@ -11,12 +11,8 @@ var closeFilesAsync = require('./common').closeFilesAsync;
 /**
  * Compares two partial buffers.
  */
-var compareBuffers = function(buf1, buf2, contentSize, allocatedSize){
-    if(contentSize===allocatedSize){
-        return bufferEqual(buf1, buf2);
-    } else{
-        return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize));
-    }
+var compareBuffers = function(buf1, buf2, contentSize){
+    return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize));
 }
 
 /**
@@ -39,7 +35,7 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
             } else if (size1 === 0) {
                 // End of file reached
                 return true;
-            } else if (!compareBuffers(buf1, buf2, size1, bufSize)) {
+            } else if (!compareBuffers(buf1, buf2, size1)) {
                 return false;
             }
         }
@@ -71,7 +67,7 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
                 } else if (size1 === 0) {
                     // End of file reached
                     return true;
-                } else if (!compareBuffers(buf1, buf2, size1, bufSize)) {
+                } else if (!compareBuffers(buf1, buf2, size1)) {
                     return false;
                 } else {
                     return compareAsyncInternal();
