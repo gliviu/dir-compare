@@ -3,12 +3,18 @@
     "version": "1.5.4",
     "description": "Node JS directory compare",
     "main": "index.js",
+    "types": "index.d.ts",
     "repository": {
         "type": "git",
         "url": "https://github.com/gliviu/dir-compare"
     },
-    "keywords": ["compare", "directory", "folder"],
+    "keywords": [
+        "compare",
+        "directory",
+        "folder"
+    ],
     "dependencies": {
+        "@types/node": "^10.12.18",
         "buffer-equal": "1.0.0",
         "colors": "1.0.3",
         "commander": "2.9.0",
@@ -16,12 +22,12 @@
         "bluebird": "3.4.1"
     },
     "devDependencies": {
-        "shelljs": "0.3.0",
-        "tar-fs": "1.13.0",
-        "temp": "0.8.1",
         "istanbul": "0.4.5",
         "memory-streams": "0.1.0",
-        "semver": "5.6.0"
+        "semver": "5.6.0",
+        "shelljs": "0.3.0",
+        "tar-fs": "1.13.0",
+        "temp": "0.8.1"
     },
     "bin": {
         "dircompare": "dircompare.js"
