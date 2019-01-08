@@ -1,6 +1,9 @@
 /node_modules/
 .project
+.vscode
 /tests/report.txt
 /tests/testdir
 /coverage/
 test*.js
+test*.js.map
+test*.ts

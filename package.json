@@ -27,12 +27,14 @@
         "semver": "5.6.0",
         "shelljs": "0.3.0",
         "tar-fs": "1.13.0",
-        "temp": "0.8.1"
+        "temp": "0.8.1",
+        "typescript": "3.2.2"
     },
     "bin": {
         "dircompare": "dircompare.js"
     },
     "scripts": {
+        "pretest": "tsc -p tsconfig.json",
         "test": "istanbul cover tests/runTests.js"
     },
     "author": "Liviu Grigorescu",

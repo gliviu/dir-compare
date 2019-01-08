@@ -18,62 +18,57 @@ $ npm install dir-compare -g
 for command line utility.
 
 ## Library usage
-Synchronous mode:
+
 ```javascript
 var dircompare = require('dir-compare');
+var format = require('util').format;
+
 var options = {compareSize: true};
 var path1 = '...';
 var path2 = '...';
+
+var states = {'equal' : '==', 'left' : '->', 'right' : '<-', 'distinct' : '<>'};
+
+// Synchronous
 var res = dircompare.compareSync(path1, path2, options);
-console.log('equal: ' + res.equal);
-console.log('distinct: ' + res.distinct);
-console.log('left: ' + res.left);
-console.log('right: ' + res.right);
-console.log('differences: ' + res.differences);
-console.log('same: ' + res.same);
-var format = require('util').format;
+console.log(format('equal: %s, distinct: %s, left: %s, right: %s, differences: %s, same: %s',
+            res.equal, res.distinct, res.left, res.right, res.differences, res.same));
 res.diffSet.forEach(function (entry) {
-    var state = {
-        'equal' : '==',
-        'left' : '->',
-        'right' : '<-',
-        'distinct' : '<>'
-    }[entry.state];
+    var state = states[entry.state];
     var name1 = entry.name1 ? entry.name1 : '';
     var name2 = entry.name2 ? entry.name2 : '';
-
     console.log(format('%s(%s)%s%s(%s)', name1, entry.type1, state, name2, entry.type2));
 });
+
+// Asynchronous
+dircompare.compare(path1, path2, options)
+  .then(res => {
+      console.log(format('equal: %s, distinct: %s, left: %s, right: %s, differences: %s, same: %s',
+                  res.equal, res.distinct, res.left, res.right, res.differences, res.same));
+      res.diffSet.forEach(entry => {
+          var state = states[entry.state];
+          var name1 = entry.name1 ? entry.name1 : '';
+          var name2 = entry.name2 ? entry.name2 : '';
+
+          console.log(format('%s(%s)%s%s(%s)', name1, entry.type1, state, name2, entry.type2));
+      });
+  })
+  .catch(error => console.error(error));
 ```
-Asynchronous:
-```javascript
-var dircompare = require('dir-compare');
-var options = {compareSize: true};
+
+Typescript
+```typescript
+import { compare, compareSync, Options } from "dir-compare";
 var path1 = '...';
 var path2 = '...';
-dircompare.compare(path1, path2, options).then(function(res){
-    console.log('equal: ' + res.equal);
-    console.log('distinct: ' + res.distinct);
-    console.log('left: ' + res.left);
-    console.log('right: ' + res.right);
-    console.log('differences: ' + res.differences);
-    console.log('same: ' + res.same);
-    var format = require('util').format;
-    res.diffSet.forEach(function (entry) {
-        var state = {
-            'equal' : '==',
-            'left' : '->',
-            'right' : '<-',
-            'distinct' : '<>'
-        }[entry.state];
-        var name1 = entry.name1 ? entry.name1 : '';
-        var name2 = entry.name2 ? entry.name2 : '';
+var options: Partial<Options> = {compareSize: true};
 
-        console.log(format('%s(%s)%s%s(%s)', name1, entry.type1, state, name2, entry.type2));
-    });    
-}).catch(function(error){
-    console.error(error);
-})
+var res = compareSync(path1, path2, options);
+console.log(res)
+
+compare(path1, path2, options)
+  .then(res => console.log(res))
+  .catch(error => console.error(error));
 ```
 
 Options:
@@ -197,6 +192,7 @@ dircompare.compare(path1, path2, options)
 ```
 
 ## Changelog
+* v1.6.0 typescript support
 * v1.5.0 added option to ignore line endings and white space differences
 * v1.3.0 added date tolerance option
 * v1.2.0 added compare by date option
