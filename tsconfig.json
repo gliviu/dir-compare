@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "es5",
+      "module": "commonjs",
+      "sourceMap": true
+    },
+    "files": [
+      "./node_modules/@types/node/index.d.ts",
+      "./index.d.ts"
+    ],
+    "include": [
+      "tests/*.ts",
+      "*.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }

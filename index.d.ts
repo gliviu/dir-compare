@@ -2,10 +2,15 @@
 
 import * as fs from "fs";
 
-export function compareSync(path1: string, path2: string, options?: Partial<Options>): Statistics;
-export function compare(path1: string, path2: string, options?: Partial<Options>): Promise<Statistics>;
+export function compareSync(path1: string, path2: string, options?: Partial<Options>): Partial<Statistics>;
+export function compare(path1: string, path2: string, options?: Partial<Options>): Promise<Partial<Statistics>>;
 
 export interface Options {
+    /**
+     * Properties to be used in various extension points ie. result builder.
+     */
+    [key: string]: any
+
     /**
      * Compares files by size. Defaults to 'false'.
      */
@@ -49,12 +54,12 @@ export interface Options {
     /**
      * File name filter. Comma separated minimatch patterns.
      */
-    includeFilter: boolean;
+    includeFilter: string;
 
     /**
      * File/directory name exclude filter. Comma separated minimatch patterns.
      */
-    excludeFilter: boolean;
+    excludeFilter: string;
 
     /**
      * Callback for constructing result - function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
@@ -91,6 +96,11 @@ export interface Entry {
 }
 
 export interface Statistics {
+    /**
+     * Any property is allowed if default result builder is not used.
+     */
+    [key: string]: any
+
     /**
      * number of distinct entries.
      */

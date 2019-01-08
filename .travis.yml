@@ -21,5 +21,6 @@ branches:
   only: master
 script:
   - npm install
+  - node_modules/typescript/bin/tsc -p tsconfig.json
   - node ./node_modules/istanbul/lib/cli.js cover tests/runTests.js
   - if ! [[ $(node --version) =~ v3.3.1|v0.11|v0.12 ]]; then codecov; else echo no codecov; fi;

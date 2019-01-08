@@ -3,8 +3,13 @@
 // * 'unpacked' will use ./testdir as test data; initialize this directory from testdir.tar with 'node extract.js' (note that regular untar will not work as it contains symlink loops)
 // * 'test000_0' specify a single test to run
 // * 'show-result' shows actual/expected for each test
+
+
 "use strict";
-var colors = require('colors');
+
+import { Options } from "..";
+
+var colors = require('colors/safe');
 var pathUtils = require('path');
 var shelljs = require('shelljs');
 var util = require('util');
@@ -25,6 +30,34 @@ var count = 0, failed = 0, successful = 0;
 var syncCount = 0, syncFailed = 0, syncSuccessful = 0;
 var asyncCount = 0, asyncFailed = 0, asyncSuccessful = 0;
 var cmdLineCount = 0, cmdLineFailed = 0, cmdLineSuccessful = 0;
+
+interface DisplayOptions {
+    showAll: boolean,
+    wholeReport: boolean,
+    nocolors: boolean,
+    csv: boolean,
+    noDiffIndicator: boolean
+}
+
+interface Test {
+    name: string,
+    path1: string,
+    path2: string,
+    description: string,
+    expected: string,
+    withRelativePath: boolean,
+    options: Partial<Options>,
+    commandLineOptions: string
+    exitCode: number,
+    displayOptions: Partial<DisplayOptions>,
+    print: any,
+    onlyLibrary: boolean,
+    onlyCommandLine: boolean,
+    skipStatisticsCheck: boolean,
+    onlySync: boolean,
+    nodeVersionSupport: boolean 
+}
+
 
 //Automatically track and cleanup files at exit
 temp.track();
@@ -65,7 +98,7 @@ function passed (value, type) {
         }
     }
 
-    return value ? 'Passed'.green : '!!!!FAILED!!!!'.yellow;
+    return value ? colors.green('Passed') : colors.yellow('!!!!FAILED!!!!');
 }
 
 /**
@@ -86,7 +119,7 @@ function passed (value, type) {
  * * nodeVersionSupport - limit test to specific node versions; ie. '>=2.5.0'
  */
 var getTests = function(testDirPath){
-    var res = [
+    var res : Partial<Test>[] = [
              {
                  name: 'test001_1', path1: 'd1', path2: 'd2',
                  options: {compareSize: true,},
@@ -505,6 +538,7 @@ var getTests = function(testDirPath){
                          statistics.test = 0;
                      }
                      statistics.test++;
+                     return undefined;
                  }},
                  displayOptions: {},
                  onlyLibrary: true,
@@ -520,6 +554,7 @@ var getTests = function(testDirPath){
                      }
                      statistics.test++;
                      diffSet.push(statistics.test);
+                     return undefined
                  }},
                  displayOptions: {},
                  onlyLibrary: true,
@@ -940,7 +975,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         return Promise.all(syncTestsPromises);
     }).then(function(){
         console.log();
-        console.log('Sync tests: ' + syncCount + ', failed: ' + syncFailed.toString().yellow + ', succeeded: ' + syncSuccessful.toString().green);
+        console.log('Sync tests: ' + syncCount + ', failed: ' + colors.yellow(syncFailed.toString()) + ', succeeded: ' + colors.green(syncSuccessful.toString()));
         console.log();
     }).then(function(){
         // Run async tests
@@ -955,7 +990,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         return Promise.all(asyncTestsPromises);
     }).then(function(){
         console.log();
-        console.log('Async tests: ' + asyncCount + ', failed: ' + asyncFailed.toString().yellow + ', succeeded: ' + asyncSuccessful.toString().green);
+        console.log('Async tests: ' + asyncCount + ', failed: ' + colors.yellow(asyncFailed.toString()) + ', succeeded: ' + colors.green(asyncSuccessful.toString()));
         console.log();
     }).then(function(){
         // Run command line tests
@@ -969,10 +1004,10 @@ function executeTests (testDirPath, singleTestName, showResult) {
         return Promise.all(commandLinePromises);
     }).then(function(){
         console.log();
-        console.log('Command line tests: ' + cmdLineCount + ', failed: ' + cmdLineFailed.toString().yellow + ', succeeded: ' + cmdLineSuccessful.toString().green);
+        console.log('Command line tests: ' + cmdLineCount + ', failed: ' + colors.yellow(cmdLineFailed.toString()) + ', succeeded: ' + colors.green(cmdLineSuccessful.toString()));
     }).then(function(){
         console.log();
-        console.log('All tests: ' + count + ', failed: ' + failed.toString().yellow + ', succeeded: ' + successful.toString().green);
+        console.log('All tests: ' + count + ', failed: ' + colors.yellow(failed.toString()) + ', succeeded: ' + colors.green(successful.toString()));
         endReport(saveReport);
         process.exitCode = failed>0?1:0
         process.chdir(__dirname);  // allow temp dir to be removed
