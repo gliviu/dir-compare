@@ -2,8 +2,8 @@
 
 import * as fs from "fs";
 
-export function compareSync(path1: string, path2: string, options?: Partial<Options>): Partial<Statistics>;
-export function compare(path1: string, path2: string, options?: Partial<Options>): Promise<Partial<Statistics>>;
+export function compareSync(path1: string, path2: string, options?: Partial<Options>): Statistics;
+export function compare(path1: string, path2: string, options?: Partial<Options>): Promise<Statistics>;
 
 export interface Options {
     /**
@@ -73,7 +73,7 @@ export interface Options {
         options: Partial<Options>,
         statistics: Statistics,
         diffset: Array<Difference> | undefined
-    ) => Difference;
+    ) => void;
 
     /**
      * File comparison handler.

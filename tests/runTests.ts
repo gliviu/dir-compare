@@ -55,7 +55,7 @@ interface Test {
     onlyCommandLine: boolean,
     skipStatisticsCheck: boolean,
     onlySync: boolean,
-    nodeVersionSupport: boolean 
+    nodeVersionSupport: boolean
 }
 
 
@@ -523,7 +523,7 @@ var getTests = function(testDirPath){
              {
                  name: 'test008_3', path1: 'd1', path2: 'd2',
                  expected: 'total: 17, equal: 3, distinct: 0, only left: 7, only right: 7',
-                 options: null,
+                 options: {},
                  displayOptions: {wholeReport: true, nocolors: true, noDiffIndicator: true},
                  onlyLibrary: true,
              },
@@ -538,7 +538,6 @@ var getTests = function(testDirPath){
                          statistics.test = 0;
                      }
                      statistics.test++;
-                     return undefined;
                  }},
                  displayOptions: {},
                  onlyLibrary: true,
@@ -553,8 +552,9 @@ var getTests = function(testDirPath){
                          statistics.test = 0;
                      }
                      statistics.test++;
-                     diffSet.push(statistics.test);
-                     return undefined
+                     if(diffSet) {
+                        diffSet.push(statistics.test);
+                     }
                  }},
                  displayOptions: {},
                  onlyLibrary: true,
@@ -965,7 +965,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
 	initReport(saveReport);
     Promise.resolve(getTests(testDirPath)).then(function(tests){
         // Run sync tests
-        var syncTestsPromises = [];
+        var syncTestsPromises: Promise<any>[] = [];
         tests.filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
@@ -979,7 +979,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         console.log();
     }).then(function(){
         // Run async tests
-        var asyncTestsPromises = [];
+        var asyncTestsPromises: Promise<any>[] = [];
         getTests(testDirPath).filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return !test.onlySync;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
@@ -994,7 +994,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
         console.log();
     }).then(function(){
         // Run command line tests
-        var commandLinePromises = [];
+        var commandLinePromises: Promise<any>[] = [];
         getTests(testDirPath).filter(function(test){return !test.onlyLibrary;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return singleTestName?test.name===singleTestName:true;})
@@ -1017,7 +1017,7 @@ function executeTests (testDirPath, singleTestName, showResult) {
 
 var main = function () {
 	var args = process.argv;
-    var singleTestName = undefined, unpacked = false, showResult = false;
+    var singleTestName, unpacked = false, showResult = false;
     args.forEach(function(arg){
         if(arg.match('unpacked')) {
             unpacked = true
