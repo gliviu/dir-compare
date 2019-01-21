@@ -1,23 +1,30 @@
-// Compare files line by line with options to ignore line endings and white space differencies.
-'use strict'
+/**
+ * Compare files line by line with options to ignore
+ * line endings and white space differencies.
+ */
 var fs = require('fs');
 var bufferEqual = require('buffer-equal');
 var Promise = require('bluebird');
 var FileDescriptorQueue = require('./fileDescriptorQueue');
-var fdQueue = new FileDescriptorQueue(8);
 var alloc = require('./common').alloc;
-var wrapper = require('./common').wrapper(fdQueue);
 var closeFilesSync = require('./common').closeFilesSync;
 var closeFilesAsync = require('./common').closeFilesAsync;
 
-var BUF_SIZE = 4096
+var MAX_CONCURRENT_FILE_COMPARE=8
+var BUF_SIZE=100000
+var fdQueue = new FileDescriptorQueue(MAX_CONCURRENT_FILE_COMPARE*2);
+var wrapper = require('./common').wrapper(fdQueue);
+var BuferPool = require('./bufferPool');
+var bufferPool = new BuferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
+
 var compareSync = function (path1, stat1, path2, stat2, options) {
     var fd1, fd2;
+    var bufferPair = bufferPool.allocateBuffers()
     try {
         fd1 = fs.openSync(path1, 'r');
         fd2 = fs.openSync(path2, 'r');
-        var buf1 = alloc(BUF_SIZE);
-        var buf2 = alloc(BUF_SIZE);
+        var buf1 = bufferPair.buf1;
+        var buf2 = bufferPair.buf2;
         var progress = 0;
         var last1='', last2=''
         while (true) {
@@ -43,17 +50,20 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
         }
     } finally {
         closeFilesSync(fd1, fd2);
+        bufferPool.freeBuffers(bufferPair)
     }
 };
 
 var compareAsync = function(path1, stat1, path2, stat2, options) {
     var fd1, fd2;
+    var bufferPair
     return Promise.all([wrapper.open(path1, 'r'), wrapper.open(path2, 'r')])
     .then(function(fds){
+        bufferPair = bufferPool.allocateBuffers()
         fd1 = fds[0]
         fd2 = fds[1]
-        var buf1 = alloc(BUF_SIZE);
-        var buf2 = alloc(BUF_SIZE);
+        var buf1 = bufferPair.buf1;
+        var buf2 = bufferPair.buf2;
         var progress = 0;
         var last1='', last2=''
         var compareAsyncInternal = function () {
@@ -83,15 +93,12 @@ var compareAsync = function(path1, stat1, path2, stat2, options) {
                 }
             })
         }
-        return compareAsyncInternal().then(function (result) {
-            closeFilesAsync(fd1, fd2, fdQueue);
-            return result;
-        });
+        return compareAsyncInternal()
     })
-    .catch(function (error) {
+    .finally(function() {
         closeFilesAsync(fd1, fd2, fdQueue);
-        return error;
-    });
+        bufferPool.freeBuffers(bufferPair)
+    })
 }
 
 var removeLineEnding = function (s) {
@@ -105,8 +112,7 @@ var removeWhiteSpaces = function (s) {
 
 
 function compareLines(lines1, lines2, options){
-    var i
-    for(i = 0; i < lines1.length - 1; i++) {
+    for(var i = 0; i < lines1.length - 1; i++) {
         var line1 = lines1[i]
         var line2 = lines2[i]
         if(options.ignoreLineEnding){
