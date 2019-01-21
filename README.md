@@ -192,7 +192,8 @@ dircompare.compare(path1, path2, options)
 ```
 
 ## Changelog
-* v1.6.0 typescript support
+* v1.7.0 performance improvements
+* v1.6.0 typescript support0
 * v1.5.0 added option to ignore line endings and white space differences
 * v1.3.0 added date tolerance option
 * v1.2.0 added compare by date option

@@ -1,7 +1,7 @@
 'use strict';
 
 var fs = require('fs');
-
+var Queue = require('./queue')
 /**
  * Limits the number of concurrent file handlers.
  * Use it as a wrapper over fs.open() and fs.close().
@@ -16,11 +16,11 @@ var fs = require('fs');
  *  As of node v7, calling fd.close without a callback is deprecated.
  */
 var FileDescriptorQueue = function(maxFilesNo) {
-	var pendingJobs = [];
+	var pendingJobs = new Queue();
 	var activeCount = 0;
 
 	var open = function(path, flags, callback) {
-		pendingJobs.push({
+		pendingJobs.enqueue({
 			path : path,
 			flags : flags,
 			callback : callback
@@ -29,8 +29,8 @@ var FileDescriptorQueue = function(maxFilesNo) {
 	}
 
 	var process = function() {
-		if (pendingJobs.length > 0 && activeCount < maxFilesNo) {
-			var job = pendingJobs.shift();
+		if (pendingJobs.getLength() > 0 && activeCount < maxFilesNo) {
+			var job = pendingJobs.dequeue();
 			activeCount++;
 			fs.open(job.path, job.flags, job.callback);
 		}
