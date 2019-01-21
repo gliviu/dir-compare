@@ -32,9 +32,7 @@ var FileDescriptorQueue = function(maxFilesNo) {
 		if (pendingJobs.length > 0 && activeCount < maxFilesNo) {
 			var job = pendingJobs.shift();
 			activeCount++;
-			fs.open(job.path, job.flags, function(err, fd) {
-				job.callback(err, fd);
-			});
+			fs.open(job.path, job.flags, job.callback);
 		}
 	}
 
