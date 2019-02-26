@@ -5,8 +5,10 @@
       "sourceMap": true,
       "strictNullChecks": true
     },
+    "compilerOptions": {
+      "types": ["node"]
+    },
     "files": [
-      "./node_modules/@types/node/index.d.ts",
       "./index.d.ts"
     ],
     "include": [
