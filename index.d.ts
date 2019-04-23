@@ -189,7 +189,9 @@ export interface Statistics {
 
 export type DifferenceState = "equal" | "left" | "right" | "distinct";
 export type DifferenceType = "missing" | "file" | "directory";
-export interface Difference {
+
+
+export interface DifferenceEqual {
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
      */
@@ -218,17 +220,17 @@ export interface Difference {
     /**
      * one of equal, left, right, distinct.
      */
-    state: DifferenceState;
+    state: 'equal';
 
     /**
      * one of missing, file, directory.
      */
-    type1: DifferenceType;
+    type1: 'file' | 'directory';
 
     /**
      * one of missing, file, directory.
      */
-    type2: DifferenceType;
+    type2: 'file' | 'directory';
 
     /**
      * file size.
@@ -255,6 +257,48 @@ export interface Difference {
      */
     level: number;
 }
+
+export interface DifferenceDistinct {
+    path1: string;
+    path2: string;
+    relativePath: string;
+    name1: string;
+    name2: string;
+    state: 'distinct';
+    type1: 'file' | 'directory';
+    type2: 'file' | 'directory';
+    size1: number;
+    size2: number;
+    date1: number;
+    date2: number;
+    level: number;
+}
+
+export interface DifferenceLeft {
+    path1: string;
+    relativePath: string;
+    name1: string;
+    state: 'left';
+    type1: 'file' | 'directory';
+    type2: 'missing';
+    size1: number;
+    date1: number;
+    level: number;
+}
+
+export interface DifferenceRight {
+    path2: string;
+    relativePath: string;
+    name2: string;
+    state: 'right';
+    type1: 'missing';
+    type2: 'file' | 'directory';
+    size2: number;
+    date2: number;
+    level: number;
+}
+
+export type Difference = DifferenceEqual | DifferenceDistinct | DifferenceLeft | DifferenceRight
 
 export type CompareFileSync = (
     path1: string,
