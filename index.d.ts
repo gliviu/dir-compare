@@ -276,24 +276,32 @@ export interface DifferenceDistinct {
 
 export interface DifferenceLeft {
     path1: string;
+    path2: undefined;
     relativePath: string;
     name1: string;
+    name2: undefined;
     state: 'left';
     type1: 'file' | 'directory';
     type2: 'missing';
     size1: number;
+    size2: undefined;
     date1: number;
+    date2: undefined;
     level: number;
 }
 
 export interface DifferenceRight {
+    path1: undefined;
     path2: string;
     relativePath: string;
+    name1: undefined;
     name2: string;
     state: 'right';
     type1: 'missing';
     type2: 'file' | 'directory';
+    size1: undefined;
     size2: number;
+    date1: undefined;
     date2: number;
     level: number;
 }
