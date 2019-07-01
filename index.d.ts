@@ -193,12 +193,12 @@ export interface Difference {
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
      */
-    path1: string;
+    path1?: string;
 
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
      */
-    path2: string;
+    path2?: string;
 
     /**
      * path relative to root.
@@ -208,12 +208,12 @@ export interface Difference {
     /**
      * file/directory name.
      */
-    name1: string;
+    name1?: string;
 
     /**
      * file/directory name.
      */
-    name2: string;
+    name2?: string;
 
     /**
      * one of equal, left, right, distinct.
@@ -233,22 +233,22 @@ export interface Difference {
     /**
      * file size.
      */
-    size1: number;
+    size1?: number;
 
     /**
      * file size.
      */
-    size2: number;
+    size2?: number;
 
     /**
      * modification date (stat.mtime).
      */
-    date1: number;
+    date1?: number;
 
     /**
      * modification date (stat.mtime).
      */
-    date2: number;
+    date2?: number;
 
     /**
      * depth.
