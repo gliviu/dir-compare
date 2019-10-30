@@ -14,7 +14,6 @@
         "folder"
     ],
     "dependencies": {
-        "@types/node": "^12.11.7",
         "bluebird": "3.4.1",
         "buffer-equal": "1.0.0",
         "colors": "1.0.3",
@@ -22,6 +21,7 @@
         "minimatch": "3.0.2"
     },
     "devDependencies": {
+        "@types/node": "^12.11.7",
         "copyfiles": "^1.2.0",
         "istanbul": "0.4.5",
         "memory-streams": "0.1.0",
@@ -30,7 +30,9 @@
         "tar-fs": "1.13.0",
         "temp": "0.9.0",
         "typescript": "^3.6.4",
-        "markdown-toc": "^1.2.0"
+        "markdown-toc": "^1.2.0",
+        "tslint": "^5.20.0",
+        "tslint-config-prettier": "^1.13.0"
     },
     "bin": {
         "dircompare": "dircompare.js"
@@ -40,8 +42,10 @@
         "copydeps": "copyfiles \"tests/expected/**\" tests/testdir.tar package.json build",
         "copyjs": "copyfiles -e \"build/**\" -e \"tests/testdir/**\" -e \"node_modules/**\" \"**/*.js\" build",
         "build": "tsc && npm run copyjs && npm run copydeps",
-        "pretest": "npm run build",
+        "lint": "tslint -p tsconfig.json",
+        "pretest": "npm install && npm run build",
         "test": "istanbul cover build/tests/runTests.js",
+        "extest": "npm run pretest && tests/extended/runall.sh",
         "toc": "markdown-toc README.md"
     },
     "author": "Liviu Grigorescu",
