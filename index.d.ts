@@ -2,8 +2,8 @@
 
 import * as fs from "fs";
 
-export function compareSync(path1: string, path2: string, options?: Partial<Options>): Statistics;
-export function compare(path1: string, path2: string, options?: Partial<Options>): Promise<Statistics>;
+export function compareSync(path1: string, path2: string, options?: Options): Statistics;
+export function compare(path1: string, path2: string, options?: Options): Promise<Statistics>;
 
 export interface Options {
     /**
@@ -14,63 +14,63 @@ export interface Options {
     /**
      * Compares files by size. Defaults to 'false'.
      */
-    compareSize: boolean;
+    compareSize?: boolean;
 
     /**
      *  Compares files by date of modification (stat.mtime). Defaults to 'false'.
      */
-    compareDate: boolean;
+    compareDate?: boolean;
 
     /**
      * Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
      */
-    dateTolerance: number;
+    dateTolerance?: number;
 
     /**
      *  Compares files by content. Defaults to 'false'.
      */
-    compareContent: boolean;
+    compareContent?: boolean;
 
     /**
      * Skips sub directories. Defaults to 'false'.
      */
-    skipSubdirs: boolean;
+    skipSubdirs?: boolean;
 
     /**
      * Ignore symbolic links. Defaults to 'false'.
      */
-    skipSymlinks: boolean;
+    skipSymlinks?: boolean;
 
     /**
      * Ignores case when comparing names. Defaults to 'false'.
      */
-    ignoreCase: boolean;
+    ignoreCase?: boolean;
 
     /**
      * Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
      */
-    noDiffSet: boolean;
+    noDiffSet?: boolean;
 
     /**
      * File name filter. Comma separated minimatch patterns.
      */
-    includeFilter: string;
+    includeFilter?: string;
 
     /**
      * File/directory name exclude filter. Comma separated minimatch patterns.
      */
-    excludeFilter: string;
+    excludeFilter?: string;
 
     /**
      * Callback for constructing result - function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
      */
-    resultBuilder: (
+    resultBuilder?: (
         entry1: Entry | undefined,
         entry2: Entry | undefined,
         state: DifferenceState,
         level: number,
         relativePath: string,
-        options: Partial<Options>,
+        options: Options,
         statistics: Statistics,
         diffset: Array<Difference> | undefined
     ) => void;
@@ -78,12 +78,12 @@ export interface Options {
     /**
      * File comparison handler.
      */
-    compareFileSync: CompareFileSync;
+    compareFileSync?: CompareFileSync;
 
     /**
      * File comparison handler.
      */
-    compareFileAsync: CompareFileAsync;
+    compareFileAsync?: CompareFileAsync;
 }
 
 export interface Entry {
@@ -127,6 +127,11 @@ export interface Statistics {
     differences: number;
 
     /**
+     * total number of entries (differences+equal).
+     */
+    total: number;
+
+    /**
      * number of distinct files.
      */
     distinctFiles: number;
@@ -152,6 +157,11 @@ export interface Statistics {
     differencesFiles: number;
 
     /**
+     * total number of files (differencesFiles+equalFiles).
+     */
+    totalFiles: number
+
+    /**
      * number of distinct directories.
      */
     distinctDirs: number;
@@ -175,6 +185,11 @@ export interface Statistics {
      * total number of different directories (distinctDirs+leftDirs+rightDirs).
      */
     differencesDirs: number;
+
+    /**
+     * total number of directories (differencesDirs+equalDirs).
+     */
+    totalDirs: number;
 
     /**
      * true if directories are identical.
@@ -261,7 +276,7 @@ export type CompareFileSync = (
     stat1: fs.Stats,
     path2: string,
     stat2: fs.Stats,
-    options: Partial<Options>
+    options: Options
 ) => boolean;
 
 export type CompareFileAsync = (
@@ -269,7 +284,7 @@ export type CompareFileAsync = (
     stat1: fs.Stats,
     path2: string,
     stat2: fs.Stats,
-    options: Partial<Options>
+    options: Options
 ) => Promise<boolean>;
 
 export const fileCompareHandlers: {

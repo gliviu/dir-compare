@@ -96,21 +96,24 @@ Options:
 
 Result:
 
-* distinct: number of distinct files or directories
-* equal: number of equal files or directories
-* left: number of files or directories only in path1
-* right: number of files or directories only in path2
+* distinct: number of distinct entries
+* equal: number of equal entries
+* left: number of entries only in path1
+* right: number of entries only in path2
 * differences: total number of differences (distinct+left+right)
+* total: total number of entries (differences+equal)
 * distinctFiles: number of distinct files
 * equalFiles: number of equal files
 * leftFiles: number of files only in path1
 * rightFiles: number of files only in path2
 * differencesFiles: total number of different files (distinctFiles+leftFiles+rightFiles)
+* totalFiles: total number of files (differencesFiles+equalFiles)
 * distinctDirs: number of distinct directories
 * equalDirs: number of equal directories
 * leftDirs: number of directories only in path1
 * rightDirs: number of directories only in path2
 * differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
+* totalDirs: total number of directories (differencesDirs+equalDirs)
 * same: true if directories are identical
 * diffSet - List of changes (present if Options.noDiffSet is false)
     * path1: path not including file/directory name; can be relative or absolute depending on call to compare(),
