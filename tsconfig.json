@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-      "target": "es2017",
+      "target": "es5",
       "module": "commonjs",
       "outDir": "build",
       "sourceMap": true,
@@ -18,6 +18,7 @@
     ],
     "exclude": [
       "node_modules",
+      "build",
       "test*.js",
       "test*.ts",
     ]

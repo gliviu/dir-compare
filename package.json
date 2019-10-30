@@ -22,20 +22,25 @@
         "bluebird": "3.4.1"
     },
     "devDependencies": {
+        "copyfiles": "^1.2.0",
         "istanbul": "0.4.5",
         "memory-streams": "0.1.0",
         "semver": "5.6.0",
         "shelljs": "0.3.0",
         "tar-fs": "1.13.0",
         "temp": "0.9.0",
-        "typescript": "^3.2.2"
+        "typescript": "^3.6.4"
     },
     "bin": {
         "dircompare": "dircompare.js"
     },
     "scripts": {
-        "pretest": "tsc",
-        "test": "istanbul cover tests/runTests.js"
+        "clean": "rm -rf build node_modules",
+        "copydeps": "copyfiles \"tests/expected/**\" tests/testdir.tar package.json build",
+        "copyjs": "copyfiles -e \"build/**\" -e \"tests/testdir/**\" -e \"node_modules/**\" \"**/*.js\" build",
+        "build": "tsc && npm run copyjs && npm run copydeps",
+        "pretest": "npm run build",
+        "test": "istanbul cover build/tests/runTests.js"
     },
     "author": "Liviu Grigorescu",
     "license": "MIT",
