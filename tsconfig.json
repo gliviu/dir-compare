@@ -1,21 +1,24 @@
 {
     "compilerOptions": {
-      "target": "es5",
+      "target": "es2017",
       "module": "commonjs",
+      "outDir": "build",
       "sourceMap": true,
-      "strictNullChecks": true
-    },
-    "compilerOptions": {
-      "types": ["node"]
+      "strictNullChecks": true,
+      "declaration": true,
+      "composite": true,
+      "declarationMap": true
     },
     "files": [
       "./index.d.ts"
     ],
     "include": [
-      "tests/*.ts",
-      "*.ts"
+      "**/*.ts",
+      "**/*.js",
     ],
     "exclude": [
-      "node_modules"
+      "node_modules",
+      "test*.js",
+      "test*.ts",
     ]
   }

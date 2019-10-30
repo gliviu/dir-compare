@@ -14,7 +14,7 @@
         "folder"
     ],
     "dependencies": {
-        "@types/node": "^10.12.18",
+        "@types/node": "^12.11.7",
         "buffer-equal": "1.0.0",
         "colors": "1.0.3",
         "commander": "2.9.0",
@@ -34,7 +34,7 @@
         "dircompare": "dircompare.js"
     },
     "scripts": {
-        "pretest": "tsc -p tsconfig.json",
+        "pretest": "tsc",
         "test": "istanbul cover tests/runTests.js"
     },
     "author": "Liviu Grigorescu",

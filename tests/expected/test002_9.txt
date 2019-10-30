@@ -1,0 +1,16 @@
+[/.A3] missing<-.a1.txt
+[/.A3] .a2.e2==.a2.e2
+[/.A3] a1.txt->missing
+[/A1.e1] missing<-a1.e2
+[/A2] a1.txt==a1.txt
+[/] ..a8.txt==..a8.txt
+[/] .a5.txt==.a5.txt
+[/] .a7==.a7
+[/] a1.txt->missing
+[/] missing<-a1.txt.e1
+[/] a2.e1==a2.e1
+[/] a3.e1.e2==a3.e1.e2
+[/] a6==a6
+[/] a9.txt.e1==a9.txt.e1
+Entries are different
+total: 14, equal: 9, distinct: 0, only left: 2, only right: 3

@@ -8,6 +8,9 @@ var defaultResultBuilderCallback = require('./defaultResultBuilderCallback');
 var defaultFileCompare = require('./file_compare_handlers/defaultFileCompare');
 var lineBasedFileCompare = require('./file_compare_handlers/lineBasedFileCompare');
 var common = require('./common');
+
+var ROOT_PATH = pathUtils.sep
+
 var compareSync = function (path1, path2, options) {
     'use strict';
     // realpathSync() is necessary for loop detection to work properly
@@ -36,7 +39,7 @@ var compareSync = function (path1, path2, options) {
     compareSyncInternal(
         common.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
         common.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
-        0, '', options, statistics, diffSet);
+        0, ROOT_PATH, options, statistics, diffSet);
     completeStatistics(statistics);
     statistics.diffSet = diffSet;
 
@@ -85,7 +88,7 @@ var compareAsync = function (path1, path2, options) {
         return compareAsyncInternal(
           common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
           common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
-          0, '', options, statistics, asyncDiffSet).then(
+          0, ROOT_PATH, options, statistics, asyncDiffSet).then(
                 function(){
                     completeStatistics(statistics);
                     if(!options.noDiffSet){

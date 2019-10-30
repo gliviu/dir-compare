@@ -1,0 +1,15 @@
+[/A2/A4/A5] missing<-.a1.e1.e2
+[/A2/A4/A5] missing<-a2.e4
+[/A2/A4] a1.e2.e1->missing
+[/A2/A4] missing<-a1.e3
+[/] ..a8.txt==..a8.txt
+[/] .a5.txt==.a5.txt
+[/] .a7==.a7
+[/] a1.txt->missing
+[/] missing<-a1.txt.e1
+[/] a2.e1==a2.e1
+[/] a3.e1.e2==a3.e1.e2
+[/] a6==a6
+[/] a9.txt.e1==a9.txt.e1
+Entries are different
+total: 13, equal: 7, distinct: 0, only left: 2, only right: 4

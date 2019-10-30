@@ -9,7 +9,7 @@ var PATH_SEP = pathUtils.sep
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (absolutePath, path, options, loopDetected) {
+var getEntries = function (absolutePath, relativePath, path, options, loopDetected) {
     if (!absolutePath || loopDetected) {
         return Promise.resolve([]);
     } else{
@@ -18,7 +18,7 @@ var getEntries = function (absolutePath, path, options, loopDetected) {
                     if(statPath.isDirectory()){
                         return fsPromise.readdir(absolutePath).then(
                                 function(rawEntries){
-                                    return buildEntries(absolutePath, path, rawEntries, options);
+                                    return buildEntries(absolutePath, relativePath, path, rawEntries, options);
                                 });
                     } else{
                         var name = pathUtils.basename(absolutePath);
@@ -35,7 +35,7 @@ var getEntries = function (absolutePath, path, options, loopDetected) {
     }
 }
 
-var buildEntries = function(absolutePath, path, rawEntries, options){
+var buildEntries = function(absolutePath, relativePath, path, rawEntries, options){
     var promisedEntries = [];
     rawEntries.forEach(function (entryName) {
         promisedEntries.push(buildEntry(absolutePath, path, entryName, options));
@@ -45,7 +45,7 @@ var buildEntries = function(absolutePath, path, rawEntries, options){
                 var result = [];
                 entries.forEach(function(entry){
 
-                    if (common.filterEntry(entry, options)){
+                    if (common.filterEntry(entry, relativePath, options)){
                         result.push(entry);
                     }
                 });
@@ -102,7 +102,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
     var path1 = rootEntry1?rootEntry1.path:undefined;
     var path2 = rootEntry2?rootEntry2.path:undefined;
 
-    return Promise.all([getEntries(absolutePath1, path1, options, loopDetected1), getEntries(absolutePath2, path2, options, loopDetected2)]).then(
+    return Promise.all([getEntries(absolutePath1, relativePath, path1, options, loopDetected1), getEntries(absolutePath2, relativePath, path2, options, loopDetected2)]).then(
             function(entriesResult){
                 var entries1 = entriesResult[0];
                 var entries2 = entriesResult[1];
@@ -186,7 +186,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                                 diffSet.push(subDiffSet);
                             }
                             comparePromises.push(compare(entry1, entry2, level + 1,
-                                    relativePath + PATH_SEP + entry1.name,
+                                    pathUtils.join(relativePath, entry1.name),
                                     options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     } else if (cmp < 0) {
@@ -209,7 +209,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                             }
                             comparePromises.push(compare(entry1, undefined,
                                     level + 1,
-                                    relativePath + PATH_SEP + entry1.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
+                                    pathUtils.join(relativePath, entry1.name), options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     } else {
                         // Left missing
@@ -233,7 +233,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                             }
                             comparePromises.push(compare(undefined, entry2,
                                     level + 1,
-                                    relativePath + PATH_SEP + entry2.name, options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
+                                    pathUtils.join(relativePath, entry2.name), options, statistics, subDiffSet, common.cloneSymlinkCache(symlinkCache)));
                         }
                     }
                 }

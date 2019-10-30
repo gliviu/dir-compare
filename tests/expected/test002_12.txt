@@ -1,0 +1,3 @@
+[/A2] a1.txt==a1.txt
+Entries are different
+total: 1, equal: 1, distinct: 0, only left: 0, only right: 0

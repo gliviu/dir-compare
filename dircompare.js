@@ -37,17 +37,24 @@ program.on('--help', function(){
     console.log('  --date-tolerance defaults to 1000 ms. Two files are considered to have');
     console.log('  the same date if the difference between their modification dates fits');
     console.log('  within date tolerance.');
-    console.log('');
+    console.log();
     console.log('  Exit codes:');
     console.log('    0 - entries are identical');
     console.log('    1 - entries are different');
     console.log('    2 - error occurred');
-    console.log('');
+    console.log();
     console.log('  Examples:');
     console.log('  compare by content         dircompare -c dir1 dir2');
-    console.log('  exclude filter             dircompare -x .git dir1 dir2');
-    console.log('  include filter             dircompare -f *.js,*.yml dir1 dir2');
     console.log('  show only different files  dircompare -d dir1 dir2');
+    console.log()
+    console.log('  exclude filter             dircompare -x ".git,node_modules" dir1 dir2');
+    console.log('                             dircompare -x "/tests/expected" dir1 dir2');
+    console.log('                             dircompare -x "**/expected" dir1 dir2');
+    console.log('                             dircompare -x "**/tests/**/*.ts" dir1 dir2');
+    console.log()
+    console.log('  include filter             dircompare -f "*.js,*.yml" dir1 dir2');
+    console.log('                             dircompare -f "/tests/**/*.js" dir1 dir2');
+    console.log('                             dircompare -f "**/tests/**/*.ts" dir1 dir2');
 });
 
 // Fix for https://github.com/tj/commander.js/issues/125

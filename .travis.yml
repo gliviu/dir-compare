@@ -17,8 +17,6 @@ node_js:
   - "4"
   - "0.12"
   - "0.11"
-branches:
-  only: master
 script:
   - npm install
   - node_modules/typescript/bin/tsc -p tsconfig.json

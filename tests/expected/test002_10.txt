@@ -1,0 +1,7 @@
+[/.A3] missing<-.a1.txt
+[/.A3] a1.txt->missing
+[/] ..a8.txt==..a8.txt
+[/] .a5.txt==.a5.txt
+[/] a1.txt->missing
+Entries are different
+total: 5, equal: 2, distinct: 0, only left: 2, only right: 1

@@ -81,17 +81,17 @@ Options:
 * skipSymlinks: true/false - Ignore symbolic links. Defaults to 'false'.
 * ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
 * noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
-* includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
-* excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+* includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns. See [Glob patterns](#glob-patterns) below.
+* excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.  See [Glob patterns](#glob-patterns) below.
 * resultBuilder: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js).
 * compareFileSync, compareFileAsync: Callbacks for file comparison. See [Compare files by content](#compare-files-by-content).
 
 Result:
 
-* distinct: number of distinct entries
-* equal: number of equal entries
-* left: number of entries only in path1
-* right: number of entries only in path2
+* distinct: number of distinct files or directories
+* equal: number of equal files or directories
+* left: number of files or directories only in path1
+* right: number of files or directories only in path2
 * differences: total number of differences (distinct+left+right)
 * distinctFiles: number of distinct files
 * equalFiles: number of equal files
@@ -118,6 +118,26 @@ Result:
     * date1: modification date (stat.mtime)
     * date2: modification date (stat.mtime)
     * level: depth
+
+##  Glob patterns
+[Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
+
+The pattern is matched against the relative path of the entry being compared.
+
+Following examples assume we are comparing two [dir-compare](https://github.com/gliviu/dir-compare) code bases.
+
+
+```
+dircompare -x ".git,node_modules" dir1 dir2')    exclude git and node modules directories
+dircompare -x "expected" dir1 dir2')             exclude '/tests/expected' directory
+dircompare -x "/tests/expected" dir1 dir2')      exclude '/tests/expected' directory
+dircompare -x "**/expected" dir1 dir2')          exclude '/tests/expected' directory
+dircompare -x "**/tests/**/*.js" dir1 dir2')     exclude all js files in '/tests' directory and subdirectories
+dircompare -f "*.js,*.yml" dir1 dir2')           include js and yaml files
+dircompare -f "/tests/**/*.js" dir1 dir2')       include all js files in '/tests' directory and subdirectories
+dircompare -f "**/tests/**/*.ts" dir1 dir2')     include all js files in '/tests' directory and subdirectories
+```
+
 
 ## Compare files by content
 As of version 1.5.0, custom file comparison handlers may be specified.
@@ -186,9 +206,16 @@ dircompare.compare(path1, path2, options)
 
   Examples:
   compare by content         dircompare -c dir1 dir2
-  exclude filter             dircompare -x .git dir1 dir2
-  include filter             dircompare -f *.js,*.yml dir1 dir2
   show only different files  dircompare -d dir1 dir2
+
+  exclude filter             dircompare -x ".git,node_modules" dir1 dir2
+                             dircompare -x "/tests/expected" dir1 dir2
+                             dircompare -x "**/expected" dir1 dir2
+                             dircompare -x "**/tests/**/*.ts" dir1 dir2
+  
+  include filter             dircompare -f "*.js,*.yml" dir1 dir2
+                             dircompare -f "/tests/**/*.js" dir1 dir2
+                             dircompare -f "**/tests/**/*.ts" dir1 dir2
 ```
 
 ## Changelog

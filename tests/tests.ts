@@ -125,6 +125,7 @@ export function getTests(testDirPath){
              // Filters                                        //
              ////////////////////////////////////////////////////
              {
+                 description: 'include files by name',
                  name: 'test002_0', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, includeFilter: '*.e1'},
                  displayOptions: {showAll: true, nocolors: true},
@@ -132,20 +133,23 @@ export function getTests(testDirPath){
                  exitCode: 1,
              },
              {
-                 name: 'test002_1', path1: 'd1', path2: 'd10',
+                description: 'include files by name; show directories in report',
+                name: 'test002_1', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, includeFilter: '*.e1'},
+                displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                commandLineOptions: '-aw -f "*.e1"',
+                exitCode: 1,
+            },
+            {
+                 description: 'exclude directories by name; show directories in report',
+                 name: 'test002_2', path1: 'd1', path2: 'd10',
                  options: {compareSize: true, excludeFilter: '.x'},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw -x .x',
                  exitCode: 1,
              },
              {
-                 name: 'test002_2', path1: 'd6', path2: 'd7',
-                 options: {compareSize: true, includeFilter: '*.e1'},
-                 displayOptions: {showAll: true, wholeReport: true, nocolors: true},
-                 commandLineOptions: '-aw -f "*.e1"',
-                 exitCode: 1,
-             },
-             {
+                 description: 'exclude files by name',
                  name: 'test002_3', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, excludeFilter: '*.txt'},
                  displayOptions: {showAll: true, nocolors: true},
@@ -153,6 +157,7 @@ export function getTests(testDirPath){
                  exitCode: 1,
              },
              {
+                 description: 'exclude files by name; show directories in report',
                  name: 'test002_4', path1: 'd1', path2: 'd2',
                  options: {compareSize: true, excludeFilter: '*.txt'},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
@@ -160,6 +165,7 @@ export function getTests(testDirPath){
                  exitCode: 1,
              },
              {
+                 description: 'exclude files and directories by name with multiple patterns; match names beginning with dot',
                  name: 'test002_5', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, excludeFilter: '*.e1,*.e2'},
                  displayOptions: {showAll: true, nocolors: true},
@@ -167,13 +173,77 @@ export function getTests(testDirPath){
                  exitCode: 1,
              },
              {
+                 description: 'exclude files by name with multiple patterns;  match names beginning with dot; show directories in report',
                  name: 'test002_6', path1: 'd6', path2: 'd7',
                  options: {compareSize: true, excludeFilter: '*.e1,*.e2'},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw -x "*.e1,*.e2"',
                  exitCode: 1,
              },
-             // TODO: test both --exclude and --filter in the same run
+             {
+                description: 'include files by path',
+                name: 'test002_7', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, includeFilter: '**/A2/**/*.e*'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -f "**/A2/**/*.e*"',
+                exitCode: 1,
+            },
+            {
+                description: 'exclude directories by path',
+                name: 'test002_8', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, excludeFilter: '**/A4/**'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -x "**/A4/**"',
+                exitCode: 1,
+            },
+            {
+                description: 'exclude files by path',
+                name: 'test002_9', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, excludeFilter: '**/A2/**/*.e*'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -x "**/A2/**/*.e*"',
+                exitCode: 1,
+            },
+            {
+                description: 'simultaneous use of include/exclude patterns',
+                name: 'test002_10', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, includeFilter: '*.txt' , excludeFilter: 'A2'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -f "*.txt" -x A2',
+                exitCode: 1,
+            },
+            {
+                description: 'include directories by relative path ("/...")',
+                name: 'test002_11', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, includeFilter: '/A2/**'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -f "/A2/**"',
+                exitCode: 1,
+            },
+            {
+                description: 'include files by relative path ("/...")',
+                name: 'test002_12', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, includeFilter: '/A2/**/*.txt'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -f "/A2/**/*.txt"',
+                exitCode: 1,
+            },
+            {
+                description: 'exclude files and directories by relative path ("/...")',
+                name: 'test002_13', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, excludeFilter: '/A2/**/*.txt,/.A3/**,/A1.e1'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -x "/A2/**/*.txt,/.A3/**,/A1.e1"',
+                exitCode: 1,
+            },
+            {
+                description: 'include all files in root directory',
+                name: 'test002_14', path1: 'd6', path2: 'd7',
+                options: {compareSize: true, includeFilter: '/*'},
+                displayOptions: {showAll: true, nocolors: true},
+                commandLineOptions: '-a -f "/*"',
+                exitCode: 1,
+            },
 
              ////////////////////////////////////////////////////
              // Compare by content                             //
