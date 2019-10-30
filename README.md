@@ -6,8 +6,15 @@ Node JS directory compare
 [![Build status](https://ci.appveyor.com/api/projects/status/fpnqkr2gfg7pwkxk/branch/master?svg=true)](https://ci.appveyor.com/project/gliviu/dir-compare)
 [![codecov.io](http://codecov.io/github/gliviu/dir-compare/coverage.svg?branch=master)](http://codecov.io/github/gliviu/dir-compare?branch=master)
 
+- [Installation](#installation)
+- [Library](#library)
+  * [Use](#use)
+  * [Glob patterns](#glob-patterns)
+  * [Compare files by content](#compare-files-by-content)
+- [Command line](#command-line)
+- [Changelog](#changelog)
 
-## Installation
+# Installation
 ```shell
 $ npm install dir-compare
 ```
@@ -17,8 +24,9 @@ $ npm install dir-compare -g
 ```
 for command line utility.
 
-## Library usage
+# Library
 
+## Use
 ```javascript
 var dircompare = require('dir-compare');
 var format = require('util').format;
@@ -168,7 +176,7 @@ dircompare.compare(path1, path2, options)
 .then(res => console.log(res))
 ```
 
-## Command line
+# Command line
 ```
   Usage: dircompare [options] leftdir rightdir
 
@@ -218,7 +226,8 @@ dircompare.compare(path1, path2, options)
                              dircompare -f "**/tests/**/*.ts" dir1 dir2
 ```
 
-## Changelog
+# Changelog
+* v1.8.0 globstar patterns, typescript corrections
 * v1.7.0 performance improvements
 * v1.6.0 typescript support
 * v1.5.0 added option to ignore line endings and white space differences
