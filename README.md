@@ -230,7 +230,10 @@ dircompare.compare(path1, path2, options)
 ```
 
 # Changelog
-* v1.8.0 globstar patterns, typescript corrections
+* v1.8.0 
+    * globstar patterns
+    * typescript corrections
+    * removed support for node 0.11, 0.12, iojs
 * v1.7.0 performance improvements
 * v1.6.0 typescript support
 * v1.5.0 added option to ignore line endings and white space differences
