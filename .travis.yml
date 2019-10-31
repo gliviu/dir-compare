@@ -6,9 +6,10 @@ install:
   - npm install -g codecov
 node_js:
   - "node"
+  - "13"
+  - "12"
   - "11"
   - "10"
-  - "9"
   - "8"
   - "7"
   - "6"
@@ -17,5 +18,5 @@ node_js:
 script:
   - node --version
   - npm --version
-  - npm test
+  - npm run coverage
   - if ! [[ $(node --version) =~ v3.3.1|v0.11|v0.12 ]]; then codecov; else echo no codecov; fi;
