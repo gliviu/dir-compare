@@ -18,6 +18,7 @@ node_js:
   - "0.12"
   - "0.11"
 script:
-  - npm install
+  - node --version
+  - npm --version
   - npm test
   - if ! [[ $(node --version) =~ v3.3.1|v0.11|v0.12 ]]; then codecov; else echo no codecov; fi;

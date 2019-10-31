@@ -1,3 +1,5 @@
+#!/bin/bash
+
 l1=linux-4.3
 l2=linux-4.4
 if [ -f /tmp/$l1.tar.gz ]; then

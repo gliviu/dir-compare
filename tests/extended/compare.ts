@@ -1,12 +1,12 @@
 import { compareSync, compare, Options, fileCompareHandlers } from "../..";
 
-var path1 = '/tmp/linux-4.3';
-var path2 = '/tmp/linux-4.4';
+const path1 = '/tmp/linux-4.3';
+const path2 = '/tmp/linux-4.4';
 
 interface Test {
     testId: string,
     description: string,
-    options: any,
+    options: Options,
     expected: string
 }
 
@@ -61,20 +61,6 @@ const tests: Test[] = [
 
 ]
 
-
-async function run() {
-
-    console.log('Sync')
-    for (const test of tests) {
-        await runSingleTest(test, compareSync)
-    }
-
-    console.log('Async')
-    for (const test of tests) {
-        await runSingleTest(test, compare)
-    }
-}
-
 async function runSingleTest(test: Test, compareFn: (...args: any[]) => any) {
     const t1 = Date.now()
     const compareResult = await compareFn(path1, path2, test.options)
@@ -85,4 +71,22 @@ async function runSingleTest(test: Test, compareFn: (...args: any[]) => any) {
     console.log(`${test.description}: ${testResult}`)
 }
 
-run()
+async function main() {
+    console.log("Start compare test");
+    console.log('Sync')
+    for (const test of tests) {
+        await runSingleTest(test, compareSync)
+    }
+
+    console.log('Async')
+    for (const test of tests) {
+        await runSingleTest(test, compare)
+    }
+    console.log("Done");
+}
+
+main()
+.catch(error => {
+    console.error(error)
+    process.exit(1)
+})

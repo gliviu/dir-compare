@@ -21,26 +21,25 @@ interface RunOptions {
 
 import { getTests } from "./tests";
 
-var colors = require('colors/safe');
-var pathUtils = require('path');
-var shelljs = require('shelljs');
-var util = require('util');
-var fs = require('fs');
-var temp = require('temp');
-var defaultPrint = require('../print');
-var Promise = require('bluebird');
-var Streams = require('memory-streams');
-var compareSync = require('../index').compareSync;
-var compareAsync = require('../index').compare;
-var untar = require('./untar');
-var semver = require('semver')
+import colors = require('colors/safe');
+import pathUtils = require('path');
+import shelljs = require('shelljs');
+import util = require('util');
+import fs = require('fs');
+import temp = require('temp');
+import defaultPrint = require('../print');
+import Promise = require('bluebird');
+import Streams = require('memory-streams');
+import { compare as compareAsync, compareSync as compareSync} from "..";
+import untar = require('./untar');
+import semver = require('semver')
 
-var count = 0, failed = 0, successful = 0;
-var syncCount = 0, syncFailed = 0, syncSuccessful = 0;
-var asyncCount = 0, asyncFailed = 0, asyncSuccessful = 0;
-var cmdLineCount = 0, cmdLineFailed = 0, cmdLineSuccessful = 0;
+let count = 0, failed = 0, successful = 0;
+let syncCount = 0, syncFailed = 0, syncSuccessful = 0;
+let asyncCount = 0, asyncFailed = 0, asyncSuccessful = 0;
+let cmdLineCount = 0, cmdLineFailed = 0, cmdLineSuccessful = 0;
 
-//Automatically track and cleanup files at exit
+// Automatically track and cleanup files at exit
 temp.track();
 
 
@@ -83,8 +82,8 @@ function passed (value, type) {
 }
 
 
-//Matches date (ie 2014-11-18T21:32:39.000Z)
-var normalizeDateRegexp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/gm;
+// Matches date (ie 2014-11-18T21:32:39.000Z)
+const normalizeDateRegexp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/gm;
 
 function normalize (str) {
   str = str.replace(normalizeDateRegexp, 'x');
@@ -93,48 +92,48 @@ function normalize (str) {
   return str;
 }
 
-var checkStatistics = function(statistics, test){
+const checkStatistics = function(statistics, test){
     if(test.skipStatisticsCheck){
         return true;
     }
-    if (statistics.differences != statistics.left + statistics.right + statistics.distinct) {
+    if (statistics.differences !== statistics.left + statistics.right + statistics.distinct) {
         return false;
     }
-    if (statistics.differencesFiles != statistics.leftFiles + statistics.rightFiles + statistics.distinctFiles) {
+    if (statistics.differencesFiles !== statistics.leftFiles + statistics.rightFiles + statistics.distinctFiles) {
         return false;
     }
-    if (statistics.differencesDirs != statistics.leftDirs + statistics.rightDirs + statistics.distinctDirs) {
+    if (statistics.differencesDirs !== statistics.leftDirs + statistics.rightDirs + statistics.distinctDirs) {
         return false;
     }
-    if (statistics.total != statistics.equal + statistics.differences) {
+    if (statistics.total !== statistics.equal + statistics.differences) {
         return false;
     }
-    if (statistics.totalFiles != statistics.equalFiles + statistics.differencesFiles) {
+    if (statistics.totalFiles !== statistics.equalFiles + statistics.differencesFiles) {
         return false;
     }
-    if (statistics.totalDirs != statistics.equalDirs +  + statistics.differencesDirs) {
+    if (statistics.totalDirs !== statistics.equalDirs +  + statistics.differencesDirs) {
         return false;
     }
 
-    if (statistics.total != statistics.totalDirs +  + statistics.totalFiles) {
+    if (statistics.total !== statistics.totalDirs +  + statistics.totalFiles) {
         return false;
     }
-    if (statistics.equal != statistics.equalDirs +  + statistics.equalFiles) {
+    if (statistics.equal !== statistics.equalDirs +  + statistics.equalFiles) {
         return false;
     }
-    if (statistics.left != statistics.leftDirs +  + statistics.leftFiles) {
+    if (statistics.left !== statistics.leftDirs +  + statistics.leftFiles) {
         return false;
     }
-    if (statistics.right != statistics.rightDirs +  + statistics.rightFiles) {
+    if (statistics.right !== statistics.rightDirs +  + statistics.rightFiles) {
         return false;
     }
-    if (statistics.distinct != statistics.distinctDirs +  + statistics.distinctFiles) {
+    if (statistics.distinct !== statistics.distinctDirs +  + statistics.distinctFiles) {
         return false;
     }
     return true;
 }
 
-var getExpected = function(test){
+const getExpected = function(test){
 	if(test.expected){
         return test.expected.trim();
     } else{
@@ -142,9 +141,9 @@ var getExpected = function(test){
     }
 }
 
-var testSync = function(test, testDirPath, saveReport, runOptions: Partial<RunOptions>){
+const testSync = function(test, testDirPath, saveReport, runOptions: Partial<RunOptions>){
     process.chdir(testDirPath);
-    var path1, path2;
+    let path1, path2;
     if(test.withRelativePath){
         path1 = test.path1;
         path2 = test.path2;
@@ -157,16 +156,16 @@ var testSync = function(test, testDirPath, saveReport, runOptions: Partial<RunOp
     }).then(
             function(result){
                 // PRINT DETAILS
-                var writer = new Streams.WritableStream();
-                var print = test.print?test.print:defaultPrint;
+                const writer = new Streams.WritableStream();
+                const print = test.print?test.print:defaultPrint;
                 print(result, writer, test.displayOptions);
-                var output = normalize(writer.toString()).trim();
-                var expected = getExpected(test);
+                const output = normalize(writer.toString()).trim();
+                const expected = getExpected(test);
                 if (runOptions.showResult) {
                     printResult(output, expected)
                 }
-                var statisticsCheck = checkStatistics(result, test);
-                var res = expected===output && statisticsCheck;
+                const statisticsCheck = checkStatistics(result, test);
+                const res = expected===output && statisticsCheck;
                 report(test.name, 'sync', output, null, res, saveReport);
                 console.log(test.name + ' sync: ' + passed(res, 'sync'));
             }, function(error){
@@ -175,9 +174,9 @@ var testSync = function(test, testDirPath, saveReport, runOptions: Partial<RunOp
             });
 }
 
-var testAsync = function(test, testDirPath, saveReport, runOptions: Partial<RunOptions>){
+const testAsync = function(test, testDirPath, saveReport, runOptions: Partial<RunOptions>){
     process.chdir(testDirPath);
-    var path1, path2;
+    let path1, path2;
     if(test.withRelativePath){
         path1 = test.path1;
         path2 = test.path2;
@@ -185,7 +184,7 @@ var testAsync = function(test, testDirPath, saveReport, runOptions: Partial<RunO
         path1 = test.path1?testDirPath + '/' + test.path1:'';
         path2 = test.path2?testDirPath + '/' + test.path2:'';
     }
-    var promise;
+    let promise;
     if(test.runAsync){
         promise = test.runAsync()
         .then(function(result){
@@ -194,25 +193,25 @@ var testAsync = function(test, testDirPath, saveReport, runOptions: Partial<RunO
     } else {
         promise = compareAsync(path1, path2, test.options)
         .then(function(result){
-                var writer = new Streams.WritableStream();
-                var print = test.print?test.print:defaultPrint;
+                const writer = new Streams.WritableStream();
+                const print = test.print?test.print:defaultPrint;
                 print(result, writer, test.displayOptions);
-                var statisticsCheck = checkStatistics(result, test);
-                var output = normalize(writer.toString()).trim();
-                return {output: output, statisticsCheck: statisticsCheck}
+                const statisticsCheck = checkStatistics(result, test);
+                const output = normalize(writer.toString()).trim();
+                return {output, statisticsCheck}
         })
     }
     return promise.then(
             function(result){
-                var output = result.output;
-                var statisticsCheck = result.statisticsCheck;
+                const output = result.output;
+                const statisticsCheck = result.statisticsCheck;
 
-                var expected = getExpected(test);
+                const expected = getExpected(test);
 
                 if (runOptions.showResult) {
                     printResult(output, expected)
                 }
-                var res = expected===output && statisticsCheck;
+                const res = expected===output && statisticsCheck;
                 report(test.name, 'async', output, null, res, saveReport);
                 console.log(test.name + ' async: ' + passed(res, 'async'));
             }, function(error){
@@ -226,9 +225,9 @@ function testCommandLineInternal(test, testDirPath, async, saveReport, runOption
         return Promise.resolve();
     }
     return new Promise(function(resolve, reject) {
-        var dircompareJs = pathUtils.normalize(__dirname + '/../dircompare.js');
+        const dircompareJs = pathUtils.normalize(__dirname + '/../dircompare.js');
         process.chdir(testDirPath);
-        var path1, path2;
+        let path1, path2;
         if(test.withRelativePath){
             path1 = test.path1;
             path2 = test.path2;
@@ -236,34 +235,35 @@ function testCommandLineInternal(test, testDirPath, async, saveReport, runOption
             path1 = test.path1?testDirPath + '/' + test.path1:'';
             path2 = test.path2?testDirPath + '/' + test.path2:'';
         }
-        var command = util.format("node %s %s %s %s %s",
+        const command = util.format("node %s %s %s %s %s",
                 dircompareJs, test.commandLineOptions, async ? '--async' : '', path1, path2);
-        var shelljsResult = shelljs.exec(command, {
+        const shelljsResult = shelljs.exec(command, {
             silent : true
         });
-        var output = normalize(shelljsResult.output).trim();
-        var exitCode = shelljsResult.code;
+        const output = normalize(shelljsResult.output).trim();
+        const exitCode = shelljsResult.code;
 
-        var expectedExitCode = test.exitCode;
-        var res;
+        const expectedExitCode = test.exitCode;
+        let res;
+        let expectedOutput;
         if(expectedExitCode===2){
             // output not relevant for error codes
             res = (exitCode === expectedExitCode);
         } else{
-            var expectedOutput = getExpected(test);
+            expectedOutput = getExpected(test);
             res = expectedOutput===output && (exitCode === expectedExitCode);
         }
         if (runOptions.showResult) {
             printResult(output, expectedOutput)
         }
-        var testDescription = 'command line ' + (async?'async':'sync');
+        const testDescription = 'command line ' + (async?'async':'sync');
         report(test.name, testDescription, output, exitCode, res, saveReport);
         console.log(test.name + ' ' + testDescription + ': ' + passed(res, 'cmdLine'));
         resolve();
     })
 }
 
-var testCommandLine = function(test, testDirPath, saveReport, runOptions: Partial<RunOptions>){
+const testCommandLine = function(test, testDirPath, saveReport, runOptions: Partial<RunOptions>){
     return Promise.all([
                         testCommandLineInternal(test, testDirPath, false, saveReport, runOptions),
                         testCommandLineInternal(test, testDirPath, true, saveReport, runOptions)
@@ -279,14 +279,14 @@ function initReport(saveReport){
 		if(fs.existsSync(REPORT_FILE)){
 			fs.unlinkSync(REPORT_FILE);
 		}
-		var os = require('os');
-		var pjson = require('../package.json');
+		const os = require('os');
+		const pjson = require('../package.json');
 		fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s, dir-compare version: %s\n',
 				new Date(), process.version, os.platform(), os.release(), pjson.version));
 	}
 }
 
-var REPORT_FILE = __dirname + "/report.txt";
+const REPORT_FILE = __dirname + "/report.txt";
 function report(testName, testDescription, output, exitCode, result, saveReport){
     if(saveReport && !result){
 		    	fs.appendFileSync(REPORT_FILE, util.format(
@@ -302,7 +302,7 @@ function endReport(saveReport){
 	}
 }
 
-var printResult = function(output, expected) {
+const printResult = function(output, expected) {
     console.log('Actual:');
     console.log(output);
     console.log('Expected:');
@@ -316,11 +316,11 @@ var printResult = function(output, expected) {
 //                 otherwise all tests are executed
 function executeTests (testDirPath, runOptions: Partial<RunOptions>) {
     console.log('Test dir: '+testDirPath);
-	var saveReport = !runOptions.noReport;
+	const saveReport = !runOptions.noReport;
     initReport(saveReport);
     Promise.resolve(getTests(testDirPath)).then(function(tests){
         // Run sync tests
-        var syncTestsPromises: Promise<any>[] = [];
+        const syncTestsPromises: Array<Promise<any>> = [];
         tests.filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return !test.onlyAsync})
         .filter(function(test){return runOptions.singleTestName?test.name===runOptions.singleTestName:true;})
@@ -335,7 +335,7 @@ function executeTests (testDirPath, runOptions: Partial<RunOptions>) {
         console.log();
     }).then(function(){
         // Run async tests
-        var asyncTestsPromises: Promise<any>[] = [];
+        const asyncTestsPromises: Array<Promise<any>> = [];
         getTests(testDirPath).filter(function(test){return !test.onlyCommandLine;})
         .filter(function(test){return !test.onlySync})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
@@ -350,7 +350,7 @@ function executeTests (testDirPath, runOptions: Partial<RunOptions>) {
         console.log();
     }).then(function(){
         // Run command line tests
-        var commandLinePromises: Promise<any>[] = [];
+        const commandLinePromises: Array<Promise<any>> = [];
         getTests(testDirPath).filter(function(test){return !test.onlyLibrary;})
         .filter(function(test){return test.nodeVersionSupport===undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
         .filter(function(test){return runOptions.singleTestName?test.name===runOptions.singleTestName:true;})
@@ -371,9 +371,9 @@ function executeTests (testDirPath, runOptions: Partial<RunOptions>) {
 }
 
 
-var main = function () {
-	var args = process.argv;
-    let runOptions: Partial<RunOptions> = {
+const main = function () {
+	const args = process.argv;
+    const runOptions: Partial<RunOptions> = {
         unpacked: false,
         showResult: false,
         skipCli: false,
@@ -407,8 +407,8 @@ var main = function () {
                 throw err;
             }
 
-            function onError (err) {
-                console.error('Error occurred:', err);
+            function onError (error) {
+                console.error('Error occurred:', error);
             }
             untar(__dirname + "/testdir.tar", testDirPath, function(){executeTests(testDirPath, runOptions)}, onError);
         });

@@ -1,0 +1,14 @@
+{
+    "extends": ["tslint:recommended", "tslint-config-prettier"],
+    "rules": {
+        "interface-name" : [true, "never-prefix"],
+        "no-console": false,
+        "ordered-imports": false,
+        "object-literal-sort-keys": false,
+        "no-floating-promises": true,
+        "no-string-throw": false,
+        "radix": false,
+        "only-arrow-functions": false,
+        "one-variable-per-declaration": false
+    }
+}
