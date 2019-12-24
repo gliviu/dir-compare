@@ -2,8 +2,8 @@
     "name": "dir-compare",
     "version": "1.8.0",
     "description": "Node JS directory compare",
-    "main": "index.js",
-    "types": "index.d.ts",
+    "main": "src/index.js",
+    "types": "src/index.d.ts",
     "repository": {
         "type": "git",
         "url": "https://github.com/gliviu/dir-compare"
@@ -12,6 +12,9 @@
         "compare",
         "directory",
         "folder"
+    ],
+    "files": [
+        "src"
     ],
     "dependencies": {
         "bluebird": "3.4.1",
@@ -28,18 +31,18 @@
         "shelljs": "0.3.0",
         "tar-fs": "1.16.2",
         "temp": "0.9.0",
+        "ts-node": "^8.5.4",
         "tslint": "^5.20.0",
         "tslint-config-prettier": "^1.13.0",
-        "typescript": "^3.6.4"
+        "typescript": "^3.7.4"
     },
     "bin": {
-        "dircompare": "dircompare.js"
+        "dircompare": "src/dircompare.js"
     },
     "scripts": {
-        "clean": "rm -rf build node_modules",
+        "clean": "rm -rf build",
         "copydeps": "copyfiles \"tests/expected/**\" tests/testdir.tar package.json build",
-        "copyjs": "copyfiles -e \"build/**\" -e \"tests/testdir/**\" -e \"node_modules/**\" \"**/*.js\" build",
-        "build": "tsc && npm run copyjs && npm run copydeps",
+        "build": "tsc && npm run copydeps",
         "lint": "tslint -p tsconfig.json",
         "pretest": "npm install && npm run build",
         "test": "node build/tests/runTests.js",

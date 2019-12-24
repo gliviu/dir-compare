@@ -5,21 +5,24 @@
       "outDir": "build",
       "sourceMap": true,
       "strictNullChecks": true,
+      "allowJs": true,
+      "resolveJsonModule": true,
       "declaration": true,
       "composite": true,
       "declarationMap": true
     },
     "files": [
-      "./index.d.ts"
+      "./src/index.d.ts"
     ],
     "include": [
       "**/*.ts",
       "**/*.js",
+      "package.json"
     ],
     "exclude": [
-      "node_modules",
       "build",
       "test*.js",
       "test*.ts",
+      "tests/testdir"
     ]
   }

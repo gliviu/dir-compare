@@ -1,4 +1,21 @@
-// Usage: node runTests [unpacked] [test000_0] [showresult] [skipcli] [noReport]
+import { getTests } from "./tests";
+import pjson = require('../package.json');
+
+import colors = require('colors/safe');
+import pathUtils = require('path');
+import shelljs = require('shelljs');
+import util = require('util');
+import fs = require('fs');
+import temp = require('temp');
+import defaultPrint = require('../src/print');
+import Promise = require('bluebird');
+import Streams = require('memory-streams');
+import { compare as compareAsync, compareSync as compareSync} from "../src";
+import untar = require('./untar');
+import semver = require('semver')
+
+
+// Usage: node runTests [unpacked] [test001_1] [showresult] [skipcli] [noReport]
 interface RunOptions {
     // Use ./testdir instead of testdir.tar as test data.
     // Run 'node extract.js' to initialize ./testdir.
@@ -19,20 +36,6 @@ interface RunOptions {
 }
 
 
-import { getTests } from "./tests";
-
-import colors = require('colors/safe');
-import pathUtils = require('path');
-import shelljs = require('shelljs');
-import util = require('util');
-import fs = require('fs');
-import temp = require('temp');
-import defaultPrint = require('../print');
-import Promise = require('bluebird');
-import Streams = require('memory-streams');
-import { compare as compareAsync, compareSync as compareSync} from "..";
-import untar = require('./untar');
-import semver = require('semver')
 
 let count = 0, failed = 0, successful = 0;
 let syncCount = 0, syncFailed = 0, syncSuccessful = 0;
@@ -225,7 +228,7 @@ function testCommandLineInternal(test, testDirPath, async, saveReport, runOption
         return Promise.resolve();
     }
     return new Promise(function(resolve, reject) {
-        const dircompareJs = pathUtils.normalize(__dirname + '/../dircompare.js');
+        const dircompareJs = pathUtils.normalize(__dirname + '/../src/dircompare.js');
         process.chdir(testDirPath);
         let path1, path2;
         if(test.withRelativePath){
@@ -274,13 +277,13 @@ function printError(error){
 	return error instanceof Error ? error.stack : error;
 }
 
+
 function initReport(saveReport){
 	if(saveReport){
 		if(fs.existsSync(REPORT_FILE)){
 			fs.unlinkSync(REPORT_FILE);
 		}
 		const os = require('os');
-		const pjson = require('../package.json');
 		fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s, dir-compare version: %s\n',
 				new Date(), process.version, os.platform(), os.release(), pjson.version));
 	}

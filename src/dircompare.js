@@ -8,7 +8,7 @@ var util = require('util');
 var Promise = require('bluebird');
 var print = require('./print');
 var common = require('./common');
-var pjson = require('./package.json');
+var pjson = require('../package.json');
 
 program
 .version(pjson.version)
