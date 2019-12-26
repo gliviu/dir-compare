@@ -2,7 +2,7 @@
 
 ROOTDIR=$(dirname "$0")/../../build/tests/extended
 
-for file in compare.js concurrent.js leaks-sync.js leaks-async.js
+for file in compare.js async.js concurrent.js leaks-sync.js leaks-async.js
 do
   node $ROOTDIR/$file
   if [[ $? -ne 0 ]]; then

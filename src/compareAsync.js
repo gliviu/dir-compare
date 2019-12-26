@@ -4,63 +4,20 @@ var pathUtils = require('path');
 var Promise = require('bluebird');
 var fsPromise = require('./fsPromise');
 
-var PATH_SEP = pathUtils.sep
-
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (absolutePath, relativePath, path, options, loopDetected) {
-    if (!absolutePath || loopDetected) {
+var getEntries = function (rootEntry, relativePath, loopDetected, options) {
+    if (!rootEntry || loopDetected) {
         return Promise.resolve([]);
-    } else{
-        return fsPromise.stat(absolutePath).then(
-                function(statPath){
-                    if(statPath.isDirectory()){
-                        return fsPromise.readdir(absolutePath).then(
-                                function(rawEntries){
-                                    return buildEntries(absolutePath, relativePath, path, rawEntries, options);
-                                });
-                    } else{
-                        var name = pathUtils.basename(absolutePath);
-                        return [
-                            {
-                                name : name,
-                                absolutePath: absolutePath,
-                                path : path,
-                                stat : statPath
-                            }
-                        ];
-                    }
-                });
     }
-}
-
-var buildEntries = function(absolutePath, relativePath, path, rawEntries, options){
-    var promisedEntries = [];
-    rawEntries.forEach(function (entryName) {
-        promisedEntries.push(buildEntry(absolutePath, path, entryName, options));
-    });
-    return Promise.all(promisedEntries).then(
-            function(entries){
-                var result = [];
-                entries.forEach(function(entry){
-
-                    if (common.filterEntry(entry, relativePath, options)){
-                        result.push(entry);
-                    }
-                });
-                return options.ignoreCase?result.sort(common.compareEntryIgnoreCase):result.sort(common.compareEntryCaseSensitive);
-            });
-}
-
-var buildEntry = function(absolutePath, path, entryName, options){
-    var entryAbsolutePath = absolutePath + PATH_SEP + entryName;
-    var entryPath = path + PATH_SEP + entryName;
-    var entry = common.buildEntry(entryAbsolutePath, entryPath, entryName)
-    if (options.skipSymlinks && entry.symlink) {
-        entry.stat = undefined;
+    if (rootEntry.isDirectory) {
+        return fsPromise.readdir(rootEntry.absolutePath)
+            .then(function (entries) {
+                return common.buildDirEntries(rootEntry, entries, relativePath, options)
+            })
     }
-    return Promise.resolve(entry);
+    return Promise.resolve([rootEntry]);
 }
 
 /**
@@ -83,12 +40,8 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.absolutePath):rootEntry2.absolutePath;
         symlinkCache.dir2[symlinkCachePath2] = true;
     }
-    var absolutePath1 = rootEntry1?rootEntry1.absolutePath:undefined;
-    var absolutePath2 = rootEntry2?rootEntry2.absolutePath:undefined;
-    var path1 = rootEntry1?rootEntry1.path:undefined;
-    var path2 = rootEntry2?rootEntry2.path:undefined;
 
-    return Promise.all([getEntries(absolutePath1, relativePath, path1, options, loopDetected1), getEntries(absolutePath2, relativePath, path2, options, loopDetected2)]).then(
+    return Promise.all([getEntries(rootEntry1, relativePath, loopDetected1, options), getEntries(rootEntry2, relativePath, loopDetected2, options)]).then(
             function(entriesResult){
                 var entries1 = entriesResult[0];
                 var entries2 = entriesResult[1];
@@ -99,8 +52,6 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                 while (i1 < entries1.length || i2 < entries2.length) {
                     var entry1 = entries1[i1];
                     var entry2 = entries2[i2];
-                    var n1 = entry1 ? entry1.name : undefined;
-                    var n2 = entry2 ? entry2.name : undefined;
                     var p1 = entry1 ? entry1.absolutePath : undefined;
                     var p2 = entry2 ? entry2.absolutePath : undefined;
                     var fileStat1 = entry1 ? entry1.stat : undefined;

@@ -2,45 +2,18 @@ var fs = require('fs');
 var pathUtils = require('path');
 var common = require('./common');
 
-var PATH_SEP = pathUtils.sep
-
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (absolutePath, relativePath, path, options) {
-    if (!absolutePath) {
+var getEntries = function (rootEntry, relativePath, loopDetected, options) {
+    if (!rootEntry || loopDetected) {
         return [];
-    } else {
-        var statPath = fs.statSync(absolutePath);
-        if (statPath.isDirectory()) {
-           var entries = fs.readdirSync(absolutePath);
-
-           var res = [];
-           entries.forEach(function (entryName) {
-               var entryAbsolutePath = absolutePath + PATH_SEP + entryName;
-               var entryPath = path + PATH_SEP + entryName;
-               var entry = common.buildEntry(entryAbsolutePath, entryPath, entryName)
-               if(options.skipSymlinks && entry.symlink){
-                   entry.stat = undefined;
-               }
-               if (common.filterEntry(entry, relativePath, options)){
-                   res.push(entry);
-               }
-           });
-           return options.ignoreCase?res.sort(common.compareEntryIgnoreCase):res.sort(common.compareEntryCaseSensitive);
-       } else {
-           var name = pathUtils.basename(absolutePath);
-           return [
-               {
-                   name : name,
-                   absolutePath: absolutePath,
-                   path : path,
-                   stat : statPath
-               }
-
-           ];
-       }
     }
+    if (rootEntry.isDirectory) {
+        var entries = fs.readdirSync(rootEntry.absolutePath);
+        return common.buildDirEntries(rootEntry, entries, relativePath, options)
+    }
+    return [rootEntry];
 }
 
 /**
@@ -63,18 +36,12 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         symlinkCachePath2 = rootEntry2.symlink?fs.realpathSync(rootEntry2.absolutePath):rootEntry2.absolutePath;
         symlinkCache.dir2[symlinkCachePath2] = true;
     }
-    var absolutePath1 = rootEntry1?rootEntry1.absolutePath:undefined;
-    var absolutePath2 = rootEntry2?rootEntry2.absolutePath:undefined;
-    var path1 = rootEntry1?rootEntry1.path:undefined;
-    var path2 = rootEntry2?rootEntry2.path:undefined;
-    var entries1 = loopDetected1?[]:getEntries(absolutePath1, relativePath, path1, options);
-    var entries2 = loopDetected2?[]:getEntries(absolutePath2, relativePath, path2, options);
+    var entries1 = getEntries(rootEntry1, relativePath, loopDetected1, options);
+    var entries2 = getEntries(rootEntry2, relativePath, loopDetected2, options);
     var i1 = 0, i2 = 0;
     while (i1 < entries1.length || i2 < entries2.length) {
         var entry1 = entries1[i1];
         var entry2 = entries2[i2];
-        var n1 = entry1 ? entry1.name : undefined;
-        var n2 = entry2 ? entry2.name : undefined;
         var p1 = entry1 ? entry1.absolutePath : undefined;
         var p2 = entry2 ? entry2.absolutePath : undefined;
         var fileStat1 = entry1 ? entry1.stat : undefined;

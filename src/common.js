@@ -2,6 +2,8 @@ var fs = require('fs');
 var minimatch = require('minimatch');
 var pathUtils = require('path');
 
+var PATH_SEP = pathUtils.sep
+
 module.exports = {
     detectLoop : function(entry, symlinkCache){
         if(entry && entry.symlink){
@@ -15,18 +17,32 @@ module.exports = {
 
     cloneSymlinkCache : function(symlinkCache){
         return {
-            dir1 : this.shallowClone(symlinkCache.dir1),
-            dir2 : this.shallowClone(symlinkCache.dir2)
+            dir1 : shallowClone(symlinkCache.dir1),
+            dir2 : shallowClone(symlinkCache.dir2)
         }
     },
 
-    shallowClone : function(obj){
-    	var cloned = {};
-    	Object.keys(obj).forEach(function(key){
-    		cloned[key] = obj[key];
-    	});
-    	return cloned;
-    },
+	/**
+	 * Returns the sorted list of entries in a directory.
+	 */
+	buildDirEntries: function (rootEntry, entries, relativePath, options) {
+		var res = [];
+		for (var i = 0; i < entries.length; i++) {
+			var entryName = entries[i];
+			var entryAbsolutePath = rootEntry.absolutePath + PATH_SEP + entryName;
+			var entryPath = rootEntry.path + PATH_SEP + entryName;
+
+			var entry = this.buildEntry(entryAbsolutePath, entryPath, entryName)
+			if (options.skipSymlinks && entry.symlink) {
+				entry.stat = undefined;
+			}
+
+			if (filterEntry(entry, relativePath, options)) {
+				res.push(entry);
+			}
+		}
+		return options.ignoreCase ? res.sort(this.compareEntryIgnoreCase) : res.sort(this.compareEntryCaseSensitive);
+	},
 
 	buildEntry: function (absolutePath, path, name) {
 		var stats = getStatIgnoreBrokenLink(absolutePath);
@@ -60,43 +76,9 @@ module.exports = {
 	},
 
 	/**
-	 * Matches path by pattern.
-	 */
-	match : function(path, pattern){
-	    var patternArray = pattern.split(',');
-	    for(var i = 0; i<patternArray.length; i++){
-	        var pat = patternArray[i];
-	        if(minimatch(path, pat, { dot: true, matchBase: true})){ //nocase
-	            return true;
-	        }
-	    }
-	    return false;
-	},
-
-	/**
-	 * Filter entries by file name. Returns true if the file is to be processed.
-	 */
-	filterEntry : function(entry, relativePath, options){
-	    if (entry.symlink && options.skipSymlinks){
-	        return false;
-		}
-		var path = pathUtils.join(relativePath, entry.name)
-		
-        if ((entry.stat.isFile() && options.includeFilter) && (!this.match(path, options.includeFilter))) {
-            return false;
-        }
-
-        if ((options.excludeFilter) && (this.match(path, options.excludeFilter))) {
-            return false;
-        }
-
-        return true;
-	},
-
-	/**
 	 * Comparator for directory entries sorting.
 	 */
-	compareEntryCaseSensitive : function (a, b, ignoreCase) {
+	compareEntryCaseSensitive : function (a, b) {
 		if(a.isBrokenLink && b.isBrokenLink) {
 			return strcmp(a.name, b.name)
 		} else if(a.isBrokenLink) {
@@ -115,7 +97,7 @@ module.exports = {
 	/**
 	 * Comparator for directory entries sorting.
 	 */
-	compareEntryIgnoreCase : function (a, b, ignoreCase) {
+	compareEntryIgnoreCase : function (a, b) {
 		if(a.isBrokenLink && b.isBrokenLink) {
 			return strcmp(a.name, b.name)
 		} else if(a.isBrokenLink) {
@@ -141,7 +123,8 @@ module.exports = {
 	
     isNumeric : function(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
-    }
+    },
+
 }
 
 
@@ -163,6 +146,48 @@ function getStatIgnoreBrokenLink(absolutePath) {
 		}
 		throw error
 	}
+}
+
+/**
+ * Filter entries by file name. Returns true if the file is to be processed.
+ */
+function filterEntry(entry, relativePath, options) {
+	if (entry.symlink && options.skipSymlinks) {
+		return false;
+	}
+	var path = pathUtils.join(relativePath, entry.name)
+
+	if ((entry.stat.isFile() && options.includeFilter) && (!match(path, options.includeFilter))) {
+		return false;
+	}
+
+	if ((options.excludeFilter) && (match(path, options.excludeFilter))) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Matches path by pattern.
+ */
+function match(path, pattern) {
+	var patternArray = pattern.split(',');
+	for (var i = 0; i < patternArray.length; i++) {
+		var pat = patternArray[i];
+		if (minimatch(path, pat, { dot: true, matchBase: true })) { //nocase
+			return true;
+		}
+	}
+	return false;
+}
+
+function shallowClone(obj){
+	var cloned = {};
+	Object.keys(obj).forEach(function(key){
+		cloned[key] = obj[key];
+	});
+	return cloned;
 }
 
 function strcmp(str1, str2) {
