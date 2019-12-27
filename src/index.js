@@ -16,21 +16,7 @@ var compareSync = function (path1, path2, options) {
     // realpathSync() is necessary for loop detection to work properly
     var absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
     var absolutePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
-    var statistics = {
-        distinct : 0,
-        equal : 0,
-        left : 0,
-        right : 0,
-        distinctFiles : 0,
-        equalFiles : 0,
-        leftFiles : 0,
-        rightFiles : 0,
-        distinctDirs : 0,
-        equalDirs : 0,
-        leftDirs : 0,
-        rightDirs : 0,
-        same : undefined
-    };
+    var statistics = initStats();
     var diffSet;
     options = prepareOptions(options);
     if(!options.noDiffSet){
@@ -65,26 +51,12 @@ var compareAsync = function (path1, path2, options) {
         absolutePath2 = pathUtils.normalize(pathUtils.resolve(realPath2))
     })
     .then(function(){
-        var statistics = {
-                distinct : 0,
-                equal : 0,
-                left : 0,
-                right : 0,
-                distinctFiles : 0,
-                equalFiles : 0,
-                leftFiles : 0,
-                rightFiles : 0,
-                distinctDirs : 0,
-                equalDirs : 0,
-                leftDirs : 0,
-                rightDirs : 0,
-                same : undefined
-            };
-            options = prepareOptions(options);
-            var asyncDiffSet;
-            if(!options.noDiffSet){
-                asyncDiffSet = [];
-            }
+        var statistics = initStats();
+        options = prepareOptions(options);
+        var asyncDiffSet;
+        if (!options.noDiffSet) {
+            asyncDiffSet = [];
+        }
         return compareAsyncInternal(
           common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
           common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
@@ -124,6 +96,27 @@ var prepareOptions = function(options){
     return clone;
 }
 
+var initStats = function(){
+    return {
+        distinct : 0,
+        equal : 0,
+        left : 0,
+        right : 0,
+        distinctFiles : 0,
+        equalFiles : 0,
+        leftFiles : 0,
+        rightFiles : 0,
+        distinctDirs : 0,
+        equalDirs : 0,
+        leftDirs : 0,
+        rightDirs : 0,
+        leftBrokenLinks: 0,
+        rightBrokenLinks: 0,
+        distinctBrokenLinks: 0,
+        same : undefined
+    }
+}
+
 var completeStatistics = function(statistics){
     statistics.differences = statistics.distinct + statistics.left + statistics.right;
     statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles;
@@ -131,6 +124,7 @@ var completeStatistics = function(statistics){
     statistics.total = statistics.equal+statistics.differences;
     statistics.totalFiles = statistics.equalFiles+statistics.differencesFiles;
     statistics.totalDirs = statistics.equalDirs+statistics.differencesDirs;
+    statistics.totalBrokenLinks = statistics.leftBrokenLinks+statistics.rightBrokenLinks+statistics.distinctBrokenLinks
     statistics.same = statistics.differences ? false : true;
 }
 
@@ -182,6 +176,10 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *  rightDirs: number of directories only in path2
  *  differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
  *  totalDirs: total number of directories (differencesDirs+equalDirs)
+ *  leftBrokenLinks: number of broken links only in path1
+ *  rightBrokenLinks: number of broken links only in path2
+ *  distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
+ *  totalBrokenLinks: total number of broken links
  *  same: true if directories are identical
  *  diffSet - List of changes (present if Options.noDiffSet is false)
  *      path1: absolute path not including file/directory name,
@@ -190,8 +188,8 @@ var rebuildAsyncDiffSet = function(statistics, asyncDiffSet, diffSet){
  *      name1: file/directory name
  *      name2: file/directory name
  *      state: one of equal, left, right, distinct,
- *      type1: one of missing, file, directory
- *      type2: one of missing, file, directory
+ *      type1: one of missing, file, directory, broken-link
+ *      type2: one of missing, file, directory, broken-link
  *      size1: file size
  *      size2: file size
  *      date1: modification date (stat.mtime)

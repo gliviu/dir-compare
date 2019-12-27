@@ -100,7 +100,7 @@ var run = function(){
                 abort = true;
             }
             if(!fs.existsSync(path2)){
-                console.error(util.format("path '%s' missing"), path2);
+                console.error(util.format("Path '%s' missing"), path2);
                 abort = true;
             }
             if(!abort){

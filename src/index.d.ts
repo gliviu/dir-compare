@@ -192,6 +192,26 @@ export interface Statistics {
     totalDirs: number;
 
     /**
+     * number of broken links only in path1
+     */
+    leftBrokenLinks: number;
+
+    /**
+     * number of broken links only in path2
+     */
+    rightBrokenLinks: number;
+
+    /**
+     * number of broken links with same name appearing in both path1 and path2
+     */
+    distinctBrokenLinks: number;
+
+    /**
+     * total number of broken links
+     */
+    totalBrokenLinks: number;
+
+    /**
      * true if directories are identical.
      */
     same: boolean;
@@ -203,7 +223,7 @@ export interface Statistics {
 }
 
 export type DifferenceState = "equal" | "left" | "right" | "distinct";
-export type DifferenceType = "missing" | "file" | "directory";
+export type DifferenceType = "missing" | "file" | "directory" | "broken-link";
 export interface Difference {
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().

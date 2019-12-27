@@ -25,6 +25,7 @@ var print = function(res, writer, program){
     var cleft = nocolor;
     var cright = nocolor;
     var cdir = nocolor;
+    var cbrokenlinks = nocolor;
     var cmissing = program.nocolors?nocolor:colors.yellow;
 
     // calculate relative path length for pretty print
@@ -51,9 +52,9 @@ var print = function(res, writer, program){
             var color, show = true;
 
             if(!program.wholeReport){
-                // show only files
+                // show only files or broken links
                 var type = detail.type1!=='missing'?detail.type1:detail.type2;
-                if(type!=='file'){
+                if(type!=='file' && type!=='broken-link'){
                     show = false;
                 }
             }
@@ -108,13 +109,18 @@ var print = function(res, writer, program){
     if(!program.noDiffIndicator){
         writer.write(res.same?cequal('Entries are identical\n'):cdistinct('Entries are different\n'));
     }
-    writer.write(util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s\n',
-            statTotal,
-            cequal(statEqual),
-            cdistinct(statDistinct),
-            cleft(statLeft),
-            cright(statRight)
-    ));
+    var stats = util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
+        statTotal,
+        cequal(statEqual),
+        cdistinct(statDistinct),
+        cleft(statLeft),
+        cright(statRight)
+    )
+    if (res.totalBrokenLinks > 0) {
+        stats += util.format(', broken links: %s', cbrokenlinks(res.totalBrokenLinks))
+    }
+    stats += '\n'
+    writer.write(stats);
 }
 
 /**
@@ -148,7 +154,7 @@ var printPretty = function(writer, program, detail, color, dircolor, missingcolo
     }
     var cmpentrylen = getCompareFile(detail, "??", missingcolor).length;
     var cmpentry = getCompareFile(detail, color(state), missingcolor);
-    if(program.wholeReport){
+    if(program.wholeReport || type==='broken-link'){
         writer.write(util.format('[%s] %s(%s)\n', path, cmpentry, type));
     } else{
         writer.write(util.format('[%s] %s\n', path, cmpentry));

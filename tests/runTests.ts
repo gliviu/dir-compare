@@ -114,23 +114,26 @@ const checkStatistics = function(statistics, test){
     if (statistics.totalFiles !== statistics.equalFiles + statistics.differencesFiles) {
         return false;
     }
-    if (statistics.totalDirs !== statistics.equalDirs +  + statistics.differencesDirs) {
+    if (statistics.totalDirs !== statistics.equalDirs + statistics.differencesDirs) {
+        return false;
+    }
+    if (statistics.totalBrokenLinks !== statistics.leftBrokenLinks + statistics.rightBrokenLinks + statistics.distinctBrokenLinks) {
         return false;
     }
 
-    if (statistics.total !== statistics.totalDirs +  + statistics.totalFiles) {
+    if (statistics.total !== statistics.totalDirs + statistics.totalFiles + statistics.totalBrokenLinks) {
         return false;
     }
-    if (statistics.equal !== statistics.equalDirs +  + statistics.equalFiles) {
+    if (statistics.equal !== statistics.equalDirs + statistics.equalFiles) {
         return false;
     }
-    if (statistics.left !== statistics.leftDirs +  + statistics.leftFiles) {
+    if (statistics.left !== statistics.leftDirs + statistics.leftFiles + statistics.leftBrokenLinks) {
         return false;
     }
-    if (statistics.right !== statistics.rightDirs +  + statistics.rightFiles) {
+    if (statistics.right !== statistics.rightDirs + statistics.rightFiles + statistics.rightBrokenLinks) {
         return false;
     }
-    if (statistics.distinct !== statistics.distinctDirs +  + statistics.distinctFiles) {
+    if (statistics.distinct !== statistics.distinctDirs + statistics.distinctFiles + statistics.distinctBrokenLinks) {
         return false;
     }
     return true;

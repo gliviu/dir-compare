@@ -56,25 +56,11 @@ var buildEntries = function(absolutePath, relativePath, path, rawEntries, option
 var buildEntry = function(absolutePath, path, entryName, options){
     var entryAbsolutePath = absolutePath + PATH_SEP + entryName;
     var entryPath = path + PATH_SEP + entryName;
-    return Promise.resolve(fsPromise.lstat(entryAbsolutePath)).then(function(lstatEntry){
-        var isSymlink = lstatEntry.isSymbolicLink();
-        var statPromise;
-        if(options.skipSymlinks && isSymlink){
-            statPromise = Promise.resolve(undefined);
-        } else{
-            statPromise = fsPromise.stat(entryAbsolutePath);
-        }
-        return statPromise.then(function(statEntry){
-            return {
-                name : entryName,
-                absolutePath : entryAbsolutePath,
-                path : entryPath,
-                stat : statEntry,
-                lstat : lstatEntry,
-                symlink : isSymlink
-            };
-        });
-    });
+    var entry = common.buildEntry(entryAbsolutePath, entryPath, entryName)
+    if (options.skipSymlinks && entry.symlink) {
+        entry.stat = undefined;
+    }
+    return Promise.resolve(entry);
 }
 
 /**
@@ -125,15 +111,15 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     var cmp;
                     if (i1 < entries1.length && i2 < entries2.length) {
                         cmp = options.ignoreCase?common.compareEntryIgnoreCase(entry1, entry2):common.compareEntryCaseSensitive(entry1, entry2);
-                        type1 = common.getType(fileStat1);
-                        type2 = common.getType(fileStat2);
+                        type1 = common.getType(entry1);
+                        type2 = common.getType(entry2);
                     } else if (i1 < entries1.length) {
-                        type1 = common.getType(fileStat1);
+                        type1 = common.getType(entry1);
                         type2 = common.getType(undefined);
                         cmp = -1;
                     } else {
                         type1 = common.getType(undefined);
-                        type2 = common.getType(fileStat2);
+                        type2 = common.getType(entry2);
                         cmp = 1;
                     }
 
@@ -168,8 +154,12 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                             } else{
                                 same = true;
                             }
-                        } else{
+                        } else if(type1==='directory'){
                             same = true;
+                        } else if(type1==='broken-link'){
+                            same = false;
+                        } else {
+                            throw new Error('Unexpected type ' + type1);
                         }
                         if(same !== undefined){
                             doStats(entry1, entry2, same, statistics, options, level, relativePath, diffSet, type1, type2);
@@ -197,8 +187,12 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         statistics.left++;
                         if(type1==='file'){
                             statistics.leftFiles++;
-                        } else{
+                        } else if(type1==='directory'){
                             statistics.leftDirs++;
+                        } else if(type1==='broken-link'){
+                            statistics.leftBrokenLinks++;
+                        } else {
+                            throw new Error('Unexpected type ' + type1);
                         }
                         i1++;
                         if (type1 === 'directory' && !options.skipSubdirs) {
@@ -221,8 +215,12 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         statistics.right++;
                         if(type2==='file'){
                             statistics.rightFiles++;
-                        } else{
+                        } else if(type2==='directory'){
                             statistics.rightDirs++;
+                        } else if(type2==='broken-link'){
+                            statistics.rightBrokenLinks++;
+                        } else {
+                            throw new Error('Unexpected type ' + type2);
                         }
                         i2++;
                         if (type2 === 'directory' && !options.skipSubdirs) {
@@ -259,8 +257,12 @@ var doStats = function(entry1, entry2, same, statistics, options, level, relativ
     same ? statistics.equal++ : statistics.distinct++;
     if(type1==='file'){
         same ? statistics.equalFiles++ : statistics.distinctFiles++;
-    } else{
+    } else if(type1==='directory'){
         same ? statistics.equalDirs++ : statistics.distinctDirs++;
+    } else if(type1==='broken-link'){
+        statistics.distinctBrokenLinks++;
+    } else {
+        throw new Error('Unexpected type ' + type1);
     }
 }
 

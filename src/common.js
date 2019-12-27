@@ -28,33 +28,35 @@ module.exports = {
     	return cloned;
     },
 
-    buildEntry : function(absolutePath, path, name){
-        var statEntry = fs.statSync(absolutePath);
-        var lstatEntry = fs.lstatSync(absolutePath);
-        var isSymlink = lstatEntry.isSymbolicLink();
-        return {
-            name : name,
-            absolutePath: absolutePath,
-            path : path,
-            stat : statEntry,
-            lstat : lstatEntry,
-            symlink : isSymlink
-        };
-    },
+	buildEntry: function (absolutePath, path, name) {
+		var stats = getStatIgnoreBrokenLink(absolutePath);
+		
+		return {
+			name: name,
+			absolutePath: absolutePath,
+			path: path,
+			stat: stats.stat,
+			lstat: stats.lstat,
+			symlink: stats.lstat.isSymbolicLink(),
+			isBrokenLink: stats.isBrokenLink,
+			isDirectory: stats.stat.isDirectory()
+		};
+	},
 
 	/**
 	 * One of 'missing','file','directory'
 	 */
-	getType : function(fileStat) {
-		if (fileStat) {
-			if (fileStat.isDirectory()) {
-				return 'directory';
-			} else {
-				return 'file';
-			}
-		} else {
+	getType: function (entry) {
+		if (!entry) {
 			return 'missing';
 		}
+		if (entry.isBrokenLink) {
+			return 'broken-link';
+		}
+		if (entry.isDirectory) {
+			return 'directory';
+		}
+		return 'file';
 	},
 
 	/**
@@ -95,14 +97,18 @@ module.exports = {
 	 * Comparator for directory entries sorting.
 	 */
 	compareEntryCaseSensitive : function (a, b, ignoreCase) {
-	    if (a.stat.isDirectory() && b.stat.isFile()) {
+		if(a.isBrokenLink && b.isBrokenLink) {
+			return strcmp(a.name, b.name)
+		} else if(a.isBrokenLink) {
+			return -1
+		} else if(b.isBrokenLink) {
+			return 1
+		} else if (a.stat.isDirectory() && b.stat.isFile()) {
 	        return -1;
 	    } else if (a.stat.isFile() && b.stat.isDirectory()) {
 	        return 1;
 	    } else {
-	    	// http://stackoverflow.com/questions/1179366/is-there-a-javascript-strcmp
-	    	var str1 = a.name, str2 = b.name;
-	    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
+			return strcmp(a.name, b.name)
 	    }
 	},
 
@@ -110,14 +116,18 @@ module.exports = {
 	 * Comparator for directory entries sorting.
 	 */
 	compareEntryIgnoreCase : function (a, b, ignoreCase) {
-	    if (a.stat.isDirectory() && b.stat.isFile()) {
+		if(a.isBrokenLink && b.isBrokenLink) {
+			return strcmp(a.name, b.name)
+		} else if(a.isBrokenLink) {
+			return -1
+		} else if(b.isBrokenLink) {
+			return 1
+		} else if (a.stat.isDirectory() && b.stat.isFile()) {
 	        return -1;
 	    } else if (a.stat.isFile() && b.stat.isDirectory()) {
 	        return 1;
 	    } else {
-	    	// http://stackoverflow.com/questions/1179366/is-there-a-javascript-strcmp
-	    	var str1 = a.name.toLowerCase(), str2 = b.name.toLowerCase();
-	    	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
+			return strcmp(a.name.toLowerCase(), b.name.toLowerCase())
 	    }
 	},
 
@@ -132,4 +142,29 @@ module.exports = {
     isNumeric : function(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
+}
+
+
+function getStatIgnoreBrokenLink(absolutePath) {
+	var lstat = fs.lstatSync(absolutePath);
+	try {
+		return {
+			stat: fs.statSync(absolutePath),
+			lstat: lstat,
+			isBrokenLink: false
+		}
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			return {
+				stat: lstat,
+				lstat: lstat,
+				isBrokenLink: true
+			}
+		}
+		throw error
+	}
+}
+
+function strcmp(str1, str2) {
+	return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
 }

@@ -114,6 +114,10 @@ Result:
 * rightDirs: number of directories only in path2
 * differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
 * totalDirs: total number of directories (differencesDirs+equalDirs)
+* leftBrokenLinks: number of broken links only in path1
+* rightBrokenLinks: number of broken links only in path2
+* distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
+* totalBrokenLinks: total number of broken links
 * same: true if directories are identical
 * diffSet - List of changes (present if Options.noDiffSet is false)
     * path1: path not including file/directory name; can be relative or absolute depending on call to compare(),
@@ -122,8 +126,8 @@ Result:
     * name1: file/directory name
     * name2: file/directory name
     * state: one of equal, left, right, distinct,
-    * type1: one of missing, file, directory
-    * type2: one of missing, file, directory
+    * type1: one of missing, file, directory, broken-link
+    * type2: one of missing, file, directory, broken-link
     * size1: file size
     * size2: file size
     * date1: modification date (stat.mtime)

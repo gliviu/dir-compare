@@ -450,7 +450,7 @@ export function getTests(testDirPath){
              },
              {
                  name: 'test005_15', path1: 'd25', path2: 'd25',
-                 description: 'do not fail when missing symlinks are encountered',
+                 description: 'do not fail when missing symlinks are encountered and skipSymlinks option is used',
                  options: {compareSize: true, ignoreCase: true, skipSymlinks: true},
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw --skip-symlinks',
@@ -486,6 +486,26 @@ export function getTests(testDirPath){
                  displayOptions: {showAll: true, wholeReport: true, nocolors: true},
                  commandLineOptions: '-aw',
                  exitCode: 0,
+             },
+
+             ////////////////////////////////////////////////////
+             // Broken symlinks                                //
+             ////////////////////////////////////////////////////
+             {
+                name: 'test005_30', path1: '#16/a', path2: '#16/b',
+                description: "handle broken links (left)",
+                options: {compareSize: true, ignoreCase: true},
+                displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                commandLineOptions: '-aw',
+                exitCode: 1,
+             },
+             {
+                name: 'test005_31', path1: '#16/b', path2: '#16/a',
+                description: "handle broken links (right)",
+                options: {compareSize: true, ignoreCase: true},
+                displayOptions: {showAll: true, wholeReport: true, nocolors: true},
+                commandLineOptions: '-aw',
+                exitCode: 1,
              },
 
              ////////////////////////////////////////////////////
