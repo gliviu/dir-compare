@@ -40,7 +40,7 @@
         "dircompare": "src/dircompare.js"
     },
     "scripts": {
-        "clean": "rm -rf build",
+        "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
         "copydeps": "copyfiles \"tests/expected/**\" tests/testdir.tar package.json build",
         "build": "tsc && npm run copydeps",
         "lint": "tslint -p tsconfig.json",

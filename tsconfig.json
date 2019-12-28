@@ -23,6 +23,7 @@
       "build",
       "test*.js",
       "test*.ts",
-      "tests/testdir"
+      "tests/testdir",
+      "coverage"
     ]
   }

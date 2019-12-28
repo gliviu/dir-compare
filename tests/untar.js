@@ -28,7 +28,7 @@ var extractFiles = function (tarFile, output, onExtracted, onError) {
                             } else if (statTarget.isDirectory()) {
                                 fs.symlinkSync(target, linkPath, 'junction')
                             } else {
-                                throw 'unsupported'
+                                throw new Error('unsupported')
                             }
                         } else {
                             fs.symlinkSync(target, linkPath, 'junction')

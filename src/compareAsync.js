@@ -50,6 +50,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             var i1 = 0, i2 = 0
             var comparePromises = []
             var compareFilePromises = []
+            var subDiffSet
 
             while (i1 < entries1.length || i2 < entries2.length) {
                 var entry1 = entries1[i1]
@@ -88,7 +89,6 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     i1++
                     i2++
                     if (!options.skipSubdirs && type1 === 'directory') {
-                        var subDiffSet
                         if (!options.noDiffSet) {
                             subDiffSet = []
                             diffSet.push(subDiffSet)
@@ -103,7 +103,6 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     stats.updateStatisticsLeft(type1, statistics)
                     i1++
                     if (type1 === 'directory' && !options.skipSubdirs) {
-                        var subDiffSet
                         if (!options.noDiffSet) {
                             subDiffSet = []
                             diffSet.push(subDiffSet)
@@ -118,7 +117,6 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     stats.updateStatisticsRight(type2, statistics)
                     i2++
                     if (type2 === 'directory' && !options.skipSubdirs) {
-                        var subDiffSet
                         if (!options.noDiffSet) {
                             subDiffSet = []
                             diffSet.push(subDiffSet)

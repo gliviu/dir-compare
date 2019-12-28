@@ -22,11 +22,11 @@ var print = function (res, writer, program) {
     // calculate relative path length for pretty print
     var relativePathMaxLength = 0, fileNameMaxLength = 0
     if (!program.csv && res.diffSet) {
-        res.diffSet.forEach(function (detail) {
-            if (detail.relativePath.length > relativePathMaxLength) {
-                relativePathMaxLength = detail.relativePath.length
+        res.diffSet.forEach(function (diff) {
+            if (diff.relativePath.length > relativePathMaxLength) {
+                relativePathMaxLength = diff.relativePath.length
             }
-            var len = getCompareFile(detail, '??', cmissing).length
+            var len = getCompareFile(diff, '??', cmissing).length
             if (len > fileNameMaxLength) {
                 fileNameMaxLength = len
             }
@@ -164,15 +164,15 @@ var getCompareFile = function (detail, state, missingcolor) {
 var printCsv = function (writer, detail, color) {
     var size1 = '', size2 = ''
     if (detail.type1 === 'file') {
-        size1 = detail.size1 != undefined ? detail.size1 : ''
+        size1 = detail.size1 !== undefined ? detail.size1 : ''
     }
     if (detail.type2 === 'file') {
-        size2 = detail.size2 != undefined ? detail.size2 : ''
+        size2 = detail.size2 !== undefined ? detail.size2 : ''
     }
 
     var date1 = '', date2 = ''
-    date1 = detail.date1 != undefined ? detail.date1.toISOString() : ''
-    date2 = detail.date2 != undefined ? detail.date2.toISOString() : ''
+    date1 = detail.date1 !== undefined ? detail.date1.toISOString() : ''
+    date2 = detail.date2 !== undefined ? detail.date2.toISOString() : ''
 
     var type = ''
     type = detail.type1 !== 'missing' ? detail.type1 : detail.type2

@@ -5,8 +5,8 @@ var compareRules = require('./compareEntry')
 var stats = require('./stats')
 
 /**
-* Returns the sorted list of entries in a directory.
-*/
+ * Returns the sorted list of entries in a directory.
+ */
 var getEntries = function (rootEntry, relativePath, loopDetected, options) {
     if (!rootEntry || loopDetected) {
         return []
@@ -19,8 +19,8 @@ var getEntries = function (rootEntry, relativePath, loopDetected, options) {
 }
 
 /**
-* Compares two directories synchronously.
-*/
+ * Compares two directories synchronously.
+ */
 var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
     symlinkCache = symlinkCache || {
         dir1: {},
