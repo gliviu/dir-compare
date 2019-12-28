@@ -1,6 +1,7 @@
 var fs = require('fs')
 var pathUtils = require('path')
 var common = require('./common')
+var compareRules = require('./compareEntry')
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -42,10 +43,6 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
     while (i1 < entries1.length || i2 < entries2.length) {
         var entry1 = entries1[i1]
         var entry2 = entries2[i2]
-        var p1 = entry1 ? entry1.absolutePath : undefined
-        var p2 = entry2 ? entry2.absolutePath : undefined
-        var fileStat1 = entry1 ? entry1.stat : undefined
-        var fileStat2 = entry2 ? entry2.stat : undefined
         var type1, type2
 
         // compare entry name (-1, 0, 1)
@@ -69,19 +66,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             // Both left/right exist and have the same name and type
             var same
             if (type1 === 'file') {
-                if (options.compareSize && fileStat1.size !== fileStat2.size) {
-                    same = false
-                } else if (options.compareDate && !common.sameDate(fileStat1.mtime, fileStat2.mtime, options.dateTolerance)) {
-                    same = false
-                } else if (options.compareContent) {
-                    same = options.compareFileSync(p1, fileStat1, p2, fileStat2, options)
-                } else {
-                    same = true
-                }
+                same = compareRules.compareFileSync(entry1, entry2, options)
             } else if (type1 === 'directory') {
-                same = true
+                same = compareRules.compareDirectory()
             } else if (type1 === 'broken-link') {
-                same = false
+                same = compareRules.compareBrokenLink()
             } else {
                 throw new Error('Unexpected type ' + type1)
             }

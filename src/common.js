@@ -113,14 +113,6 @@ module.exports = {
 		}
 	},
 
-    /**
-     * Compares two dates and returns true/false depending on tolerance (milliseconds).
-     * Two dates are considered equal if the difference in milliseconds between them is less or equal than tolerance.
-     */
-	sameDate: function (date1, date2, tolerance) {
-		return Math.abs(date1.getTime() - date2.getTime()) <= tolerance ? true : false
-	},
-
 	isNumeric: function (n) {
 		return !isNaN(parseFloat(n)) && isFinite(n)
 	},
