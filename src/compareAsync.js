@@ -75,18 +75,9 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                 // process entry
                 if (cmp === 0) {
                     // Both left/right exist and have the same name and type
-                    var samePromise = undefined, same = undefined
-                    if (type1 === 'file') {
-                        var compareRes = compareRules.compareFileAsync(entry1, entry2, type1, type2, diffSet, options)
-                        same = compareRes.same
-                        samePromise = compareRes.samePromise
-                    } else if (type1 === 'directory') {
-                        same = compareRules.compareDirectory()
-                    } else if (type1 === 'broken-link') {
-                        same = compareRules.compareBrokenLink()
-                    } else {
-                        throw new Error('Unexpected type ' + type1)
-                    }
+                    var compareAsyncRes = compareRules.compareEntryAsync(entry1, entry2, type1, diffSet, options)
+                    var samePromise = compareAsyncRes.samePromise
+                    var same = compareAsyncRes.same
                     if (same !== undefined) {
                         options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
                         stats.updateStatisticsBoth(same, type1, statistics)

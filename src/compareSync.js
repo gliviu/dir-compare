@@ -65,16 +65,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         // process entry
         if (cmp === 0) {
             // Both left/right exist and have the same name and type
-            var same
-            if (type1 === 'file') {
-                same = compareRules.compareFileSync(entry1, entry2, options)
-            } else if (type1 === 'directory') {
-                same = compareRules.compareDirectory()
-            } else if (type1 === 'broken-link') {
-                same = compareRules.compareBrokenLink()
-            } else {
-                throw new Error('Unexpected type ' + type1)
-            }
+            var same = compareRules.compareEntrySync(entry1, entry2, type1, options)
             options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
             stats.updateStatisticsBoth(same, type1, statistics)
             i1++
