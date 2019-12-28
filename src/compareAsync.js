@@ -114,11 +114,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     }
                 } else {
                     // Left missing
-                    if (!options.noDiffSet) {
-                        var subDiffSet = []
-                        diffSet.push(subDiffSet)
-                        options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet)
-                    }
+                    options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet)
                     stats.updateStatisticsRight(type2, statistics)
                     i2++
                     if (type2 === 'directory' && !options.skipSubdirs) {
