@@ -2,10 +2,11 @@ var fs = require('fs')
 var pathUtils = require('path')
 var common = require('./common')
 var compareRules = require('./compareEntry')
+var stats = require('./stats')
 
 /**
- * Returns the sorted list of entries in a directory.
- */
+* Returns the sorted list of entries in a directory.
+*/
 var getEntries = function (rootEntry, relativePath, loopDetected, options) {
     if (!rootEntry || loopDetected) {
         return []
@@ -18,8 +19,8 @@ var getEntries = function (rootEntry, relativePath, loopDetected, options) {
 }
 
 /**
- * Compares two directories synchronously.
- */
+* Compares two directories synchronously.
+*/
 var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
     symlinkCache = symlinkCache || {
         dir1: {},
@@ -74,19 +75,8 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             } else {
                 throw new Error('Unexpected type ' + type1)
             }
-            if (!options.noDiffSet) {
-                options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
-            }
-            same ? statistics.equal++ : statistics.distinct++
-            if (type1 === 'file') {
-                same ? statistics.equalFiles++ : statistics.distinctFiles++
-            } else if (type1 === 'directory') {
-                same ? statistics.equalDirs++ : statistics.distinctDirs++
-            } else if (type1 === 'broken-link') {
-                statistics.distinctBrokenLinks++
-            } else {
-                throw new Error('Unexpected type ' + type1)
-            }
+            options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+            stats.updateStatisticsBoth(same, type1, statistics)
             i1++
             i2++
             if (!options.skipSubdirs && type1 === 'directory') {
@@ -94,38 +84,16 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             }
         } else if (cmp < 0) {
             // Right missing
-            if (!options.noDiffSet) {
-                options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
-            }
-            statistics.left++
-            if (type1 === 'file') {
-                statistics.leftFiles++
-            } else if (type1 === 'directory') {
-                statistics.leftDirs++
-            } else if (type1 === 'broken-link') {
-                statistics.leftBrokenLinks++
-            } else {
-                throw new Error('Unexpected type ' + type1)
-            }
+            options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
+            stats.updateStatisticsLeft(type1, statistics)
             i1++
             if (type1 === 'directory' && !options.skipSubdirs) {
                 compare(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))
             }
         } else {
             // Left missing
-            if (!options.noDiffSet) {
-                options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet)
-            }
-            statistics.right++
-            if (type2 === 'file') {
-                statistics.rightFiles++
-            } else if (type2 === 'directory') {
-                statistics.rightDirs++
-            } else if (type2 === 'broken-link') {
-                statistics.rightBrokenLinks++
-            } else {
-                throw new Error('Unexpected type ' + type2)
-            }
+            options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet)
+            stats.updateStatisticsRight(type2, statistics)
             i2++
             if (type2 === 'directory' && !options.skipSubdirs) {
                 compare(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))

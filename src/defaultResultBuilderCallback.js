@@ -4,6 +4,9 @@ var pathUtils = require('path')
 var common = require('./common')
 
 module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet) {
+    if (options.noDiffSet) {
+        return
+    }
     diffSet.push({
         path1: entry1 ? pathUtils.dirname(entry1.path) : undefined,
         path2: entry2 ? pathUtils.dirname(entry2.path) : undefined,

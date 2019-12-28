@@ -1,6 +1,7 @@
 var fs = require('fs')
 var common = require('./common')
 var compareRules = require('./compareEntry')
+var stats = require('./stats')
 var pathUtils = require('path')
 var Promise = require('bluebird')
 var fsPromise = require('./fsPromise')
@@ -87,7 +88,8 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         throw new Error('Unexpected type ' + type1)
                     }
                     if (same !== undefined) {
-                        doStats(entry1, entry2, same, statistics, options, level, relativePath, diffSet, type1, type2)
+                        options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
+                        stats.updateStatisticsBoth(same, type1, statistics)
                     } else {
                         compareFilePromises.push(samePromise)
                     }
@@ -106,19 +108,8 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     }
                 } else if (cmp < 0) {
                     // Right missing
-                    if (!options.noDiffSet) {
-                        options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
-                    }
-                    statistics.left++
-                    if (type1 === 'file') {
-                        statistics.leftFiles++
-                    } else if (type1 === 'directory') {
-                        statistics.leftDirs++
-                    } else if (type1 === 'broken-link') {
-                        statistics.leftBrokenLinks++
-                    } else {
-                        throw new Error('Unexpected type ' + type1)
-                    }
+                    options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
+                    stats.updateStatisticsLeft(type1, statistics)
                     i1++
                     if (type1 === 'directory' && !options.skipSubdirs) {
                         var subDiffSet
@@ -137,16 +128,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         diffSet.push(subDiffSet)
                         options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, subDiffSet)
                     }
-                    statistics.right++
-                    if (type2 === 'file') {
-                        statistics.rightFiles++
-                    } else if (type2 === 'directory') {
-                        statistics.rightDirs++
-                    } else if (type2 === 'broken-link') {
-                        statistics.rightBrokenLinks++
-                    } else {
-                        throw new Error('Unexpected type ' + type2)
-                    }
+                    stats.updateStatisticsRight(type2, statistics)
                     i2++
                     if (type2 === 'directory' && !options.skipSubdirs) {
                         var subDiffSet
@@ -167,28 +149,13 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         if (sameResult.error) {
                             return Promise.reject(sameResult.error)
                         } else {
-                            doStats(sameResult.entry1, sameResult.entry2, sameResult.same, statistics, options, level, relativePath, sameResult.diffSet, sameResult.type1, sameResult.type2)
+                            options.resultBuilder(sameResult.entry1, sameResult.entry2, sameResult.same ? 'equal' : 'distinct', level, relativePath, options, statistics, sameResult.diffSet)
+                            stats.updateStatisticsBoth(sameResult.same, sameResult.type1, statistics)
                         }
                     }
                 })
             })
         })
-}
-
-var doStats = function (entry1, entry2, same, statistics, options, level, relativePath, diffSet, type1, type2) {
-    if (!options.noDiffSet) {
-        options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
-    }
-    same ? statistics.equal++ : statistics.distinct++
-    if (type1 === 'file') {
-        same ? statistics.equalFiles++ : statistics.distinctFiles++
-    } else if (type1 === 'directory') {
-        same ? statistics.equalDirs++ : statistics.distinctDirs++
-    } else if (type1 === 'broken-link') {
-        statistics.distinctBrokenLinks++
-    } else {
-        throw new Error('Unexpected type ' + type1)
-    }
 }
 
 module.exports = compare
