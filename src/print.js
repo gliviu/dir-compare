@@ -148,7 +148,7 @@ var printPretty = function (writer, program, detail, color, dirColor, missingCol
         reason = util.format(' <%s>', detail.distinctReason)
     }
     if (program.wholeReport || type === 'broken-link') {
-        writer.write(util.format('[%s] %s(%s)%s\n', path, cmpEntry, type, reason))
+        writer.write(util.format('[%s] %s (%s)%s\n', path, cmpEntry, type, reason))
     } else {
         writer.write(util.format('[%s] %s%s\n', path, cmpEntry, reason))
     }
@@ -159,7 +159,7 @@ var getCompareFile = function (detail, state, missingcolor) {
     p2 = detail.name2 ? detail.name2 : ''
     var missing1 = detail.type1 === 'missing' ? missingcolor('missing') : ''
     var missing2 = detail.type2 === 'missing' ? missingcolor('missing') : ''
-    return util.format('%s%s%s%s%s', missing1, p1, state, missing2, p2)
+    return util.format('%s%s %s %s%s', missing1, p1, state, missing2, p2)
 }
 
 /**
