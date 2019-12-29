@@ -1,0 +1,10 @@
+path,name,state,type,size1,size2,date1,date2,reason
+/,a5,distinct,broken-link,,,2019-12-29T03:51:18.714Z,2019-12-29T03:51:30.550Z,broken-link
+/,A1,equal,directory,,,2016-09-23T14:04:59.000Z,2016-09-23T14:06:01.000Z,
+/A1,a3.txt,distinct,file,0,0,2014-11-25T21:50:41.000Z,2016-09-23T14:06:01.000Z,date
+/,a1.txt,distinct,file,2,2,2016-09-24T21:12:32.000Z,2016-09-24T21:12:41.000Z,date
+/,a2.txt,equal,file,0,0,2014-11-25T21:50:41.000Z,2014-11-25T21:50:41.000Z,
+/,a3.txt,distinct,file,2,2,2019-05-05T09:30:00.000Z,2019-05-05T09:30:00.000Z,content
+/,a4.txt,distinct,file,2,3,2019-05-05T09:30:00.000Z,2019-12-29T02:53:11.000Z,size
+Entries are different
+total: 7, equal: 2, distinct: 5, only left: 0, only right: 0, broken links: 1

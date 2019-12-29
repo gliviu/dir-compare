@@ -10,14 +10,14 @@ var PATH_SEP = pathUtils.sep
 // program: {showAll: true, exclude: '*.js'}
 //
 var print = function (res, writer, program) {
-    var nocolor = function (str) { return str }
-    var colorEqual = program.nocolors ? nocolor : colors.green
-    var colorDistinct = program.nocolors ? nocolor : colors.red
-    var colorLeft = nocolor
-    var colorRight = nocolor
-    var cdir = nocolor
-    var cbrokenlinks = nocolor
-    var cmissing = program.nocolors ? nocolor : colors.yellow
+    var noColor = function (str) { return str }
+    var colorEqual = program.nocolors ? noColor : colors.green
+    var colorDistinct = program.nocolors ? noColor : colors.red
+    var colorLeft = noColor
+    var colorRight = noColor
+    var colorDir = noColor
+    var colorBrokenLinks = noColor
+    var colorMissing = program.nocolors ? noColor : colors.yellow
 
     // calculate relative path length for pretty print
     var relativePathMaxLength = 0, fileNameMaxLength = 0
@@ -26,7 +26,7 @@ var print = function (res, writer, program) {
             if (diff.relativePath.length > relativePathMaxLength) {
                 relativePathMaxLength = diff.relativePath.length
             }
-            var len = getCompareFile(diff, '??', cmissing).length
+            var len = getCompareFile(diff, '??', colorMissing).length
             if (len > fileNameMaxLength) {
                 fileNameMaxLength = len
             }
@@ -35,7 +35,7 @@ var print = function (res, writer, program) {
 
     // csv header
     if (program.csv) {
-        writer.write('path,name,state,type,size1,size2,date1,date2\n')
+        writer.write('path,name,state,type,size1,size2,date1,date2,reason\n')
     }
     if (res.diffSet) {
         for (var i = 0; i < res.diffSet.length; i++) {
@@ -75,7 +75,7 @@ var print = function (res, writer, program) {
                     if (program.csv) {
                         printCsv(writer, detail, color)
                     } else {
-                        printPretty(writer, program, detail, color, cdir, cmissing, relativePathMaxLength, fileNameMaxLength)
+                        printPretty(writer, program, detail, color, colorDir, colorMissing, relativePathMaxLength, fileNameMaxLength)
                     }
                 }
             }
@@ -108,7 +108,7 @@ var print = function (res, writer, program) {
         colorRight(statRight)
     )
     if (res.totalBrokenLinks > 0) {
-        stats += util.format(', broken links: %s', cbrokenlinks(res.totalBrokenLinks))
+        stats += util.format(', broken links: %s', colorBrokenLinks(res.totalBrokenLinks))
     }
     stats += '\n'
     writer.write(stats)
@@ -143,10 +143,14 @@ var printPretty = function (writer, program, detail, color, dirColor, missingCol
         type = dirColor(type)
     }
     var cmpEntry = getCompareFile(detail, color(state), missingColor)
+    var reason = ''
+    if (program.reason && detail.distinctReason) {
+        reason = util.format(' <%s>', detail.distinctReason)
+    }
     if (program.wholeReport || type === 'broken-link') {
-        writer.write(util.format('[%s] %s(%s)\n', path, cmpEntry, type))
+        writer.write(util.format('[%s] %s(%s)%s\n', path, cmpEntry, type, reason))
     } else {
-        writer.write(util.format('[%s] %s\n', path, cmpEntry))
+        writer.write(util.format('[%s] %s%s\n', path, cmpEntry, reason))
     }
 }
 
@@ -179,8 +183,9 @@ var printCsv = function (writer, detail, color) {
 
     var path = detail.relativePath ? detail.relativePath : PATH_SEP
     var name = (detail.name1 ? detail.name1 : detail.name2)
+    var reason = detail.distinctReason || ''
 
-    writer.write(util.format('%s,%s,%s,%s,%s,%s,%s,%s\n', path, name, color(detail.state), type, size1, size2, date1, date2))
+    writer.write(util.format('%s,%s,%s,%s,%s,%s,%s,%s,%s\n', path, name, color(detail.state), type, size1, size2, date1, date2, reason))
 }
 
 module.exports = print

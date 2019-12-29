@@ -72,7 +72,8 @@ export interface Options {
         relativePath: string,
         options: Options,
         statistics: Statistics,
-        diffset: Array<Difference> | undefined
+        diffSet: Array<Difference> | undefined,
+        distinctReason: DistinctReason | undefined
     ) => void
 
     /**
@@ -224,6 +225,7 @@ export interface Statistics {
 
 export type DifferenceState = "equal" | "left" | "right" | "distinct"
 export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
+export type DistinctReason = "size" | "date" | "content" | "broken-link"
 export interface Difference {
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
@@ -289,6 +291,13 @@ export interface Difference {
      * depth.
      */
     level: number
+
+    /**
+     * Provides reason when two identically named entries are distinct.
+     * Not available if entries are equal.
+     * One of "size", "date", "content", "broken-link".
+     */
+    distinctReason?: DistinctReason
 }
 
 export type CompareFileSync = (

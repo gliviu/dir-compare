@@ -17,14 +17,13 @@ module.exports = {
 
     compareEntryAsync: function (entry1, entry2, type, diffSet, options) {
         if (type === 'file') {
-            var compareRes = compareFileAsync(entry1, entry2, type, diffSet, options)
-            return { same: compareRes.same, samePromise: compareRes.samePromise }
+            return compareFileAsync(entry1, entry2, type, diffSet, options)
         }
         if (type === 'directory') {
-            return { same: compareDirectory() }
+            return compareDirectory()
         }
         if (type === 'broken-link') {
-            return { same: compareBrokenLink() }
+            return compareBrokenLink()
         }
         throw new Error('Unexpected type ' + type)
     }
@@ -35,26 +34,26 @@ function compareFileSync(entry1, entry2, options) {
     var p1 = entry1 ? entry1.absolutePath : undefined
     var p2 = entry2 ? entry2.absolutePath : undefined
     if (options.compareSize && entry1.stat.size !== entry2.stat.size) {
-        return false
+        return { same: false, distinctReason: 'size' }
     }
     if (options.compareDate && !sameDate(entry1.stat.mtime, entry2.stat.mtime, options.dateTolerance)) {
-        return false
+        return { same: false, distinctReason: 'date' }
     }
     if (options.compareContent && !options.compareFileSync(p1, entry1.stat, p2, entry2.stat, options)) {
-        return false
+        return { same: false, distinctReason: 'content' }
     }
-    return true
+    return { same: true }
 }
 
 function compareFileAsync(entry1, entry2, type, diffSet, options) {
     var p1 = entry1 ? entry1.absolutePath : undefined
     var p2 = entry2 ? entry2.absolutePath : undefined
     if (options.compareSize && entry1.stat.size !== entry2.stat.size) {
-        return { same: false, samePromise: undefined }
+        return { same: false, samePromise: undefined, distinctReason: 'size' }
     }
 
     if (options.compareDate && !sameDate(entry1.stat.mtime, entry2.stat.mtime, options.dateTolerance)) {
-        return { same: false, samePromise: undefined }
+        return { same: false, samePromise: undefined, distinctReason: 'date' }
     }
 
     if (options.compareContent) {
@@ -76,7 +75,8 @@ function compareFileAsync(entry1, entry2, type, diffSet, options) {
                 return {
                     entry1: entry1, entry2: entry2, same: same,
                     error: error, type1: type, type2: type,
-                    diffSet: subDiffSet
+                    diffSet: subDiffSet,
+                    distinctReason: same ? undefined : 'content'
                 }
             })
 
@@ -87,11 +87,11 @@ function compareFileAsync(entry1, entry2, type, diffSet, options) {
 }
 
 function compareDirectory() {
-    return true
+    return {same: true}
 }
 
 function compareBrokenLink() {
-    return false // broken links are never consider equal
+    return {same: false, distinctReason: 'broken-link'} // broken links are not consider equal
 }
 
 /**

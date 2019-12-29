@@ -65,9 +65,12 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         // process entry
         if (cmp === 0) {
             // Both left/right exist and have the same name and type
-            var same = compareRules.compareEntrySync(entry1, entry2, type1, options)
-            options.resultBuilder(entry1, entry2, same ? 'equal' : 'distinct', level, relativePath, options, statistics, diffSet)
-            stats.updateStatisticsBoth(same, type1, statistics)
+            var compareEntryRes = compareRules.compareEntrySync(entry1, entry2, type1, options)
+            options.resultBuilder(entry1, entry2, 
+                compareEntryRes.same ? 'equal' : 'distinct',
+                level, relativePath, options, statistics, diffSet, 
+                compareEntryRes.distinctReason)
+            stats.updateStatisticsBoth(compareEntryRes.same, type1, statistics)
             i1++
             i2++
             if (!options.skipSubdirs && type1 === 'directory') {

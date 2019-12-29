@@ -1,0 +1,9 @@
+[/] a5<>a5(broken-link) <broken-link>
+[/] A1==A1(directory)
+[/A1] a3.txt<>a3.txt(file) <date>
+[/] a1.txt<>a1.txt(file) <date>
+[/] a2.txt==a2.txt(file)
+[/] a3.txt<>a3.txt(file) <content>
+[/] a4.txt<>a4.txt(file) <size>
+Entries are different
+total: 7, equal: 2, distinct: 5, only left: 0, only right: 0, broken links: 1

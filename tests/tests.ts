@@ -7,7 +7,8 @@ export interface DisplayOptions {
     wholeReport: boolean,
     nocolors: boolean,
     csv: boolean,
-    noDiffIndicator: boolean
+    noDiffIndicator: boolean,
+    reason: boolean
 }
 
 export interface Test {
@@ -116,6 +117,22 @@ export function getTests(testDirPath) {
                     .then(function (cmpres) { return 'res: ' + JSON.stringify(cmpres) })
                     .catch(function (error) { return 'error occurred' })
             }
+        },
+        {
+            name: 'test001_11', path1: 'd37', path2: 'd38',
+            description: 'provides reason when entries are distinct',
+            options: { compareSize: true, compareContent: true, compareDate: true },
+            displayOptions: { showAll: true, nocolors: true, reason: true, wholeReport: true },
+            commandLineOptions: '-awcD --reason',
+            exitCode: 1,
+        },
+        {
+            name: 'test001_12', path1: 'd37', path2: 'd38',
+            description: 'provides reason when entries are distinct (csv)',
+            options: { compareSize: true, compareContent: true, compareDate: true },
+            displayOptions: { showAll: true, nocolors: true, reason: true, wholeReport: true, csv: true },
+            commandLineOptions: '-awcD --csv',
+            exitCode: 1,
         },
 
 

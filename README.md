@@ -81,58 +81,61 @@ compare(path1, path2, options)
 
 Options:
 
-* compareSize: true/false - Compares files by size. Defaults to 'false'.
-* compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
-* dateTolerance: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
-* compareContent: true/false - Compares files by content. Defaults to 'false'.
-* skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
-* skipSymlinks: true/false - Ignore symbolic links. Defaults to 'false'.
-* ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
-* noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
-* includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns. See [Glob patterns](#glob-patterns) below.
-* excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.  See [Glob patterns](#glob-patterns) below.
-* resultBuilder: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js).
-* compareFileSync, compareFileAsync: Callbacks for file comparison. See [Compare files by content](#compare-files-by-content).
+* **compareSize**: true/false - Compares files by size. Defaults to 'false'.
+* **compareDate**: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
+* **dateTolerance**: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
+* **compareContent**: true/false - Compares files by content. Defaults to 'false'.
+* **skipSubdirs**: true/false - Skips sub directories. Defaults to 'false'.
+* **skipSymlinks**: true/false - Ignore symbolic links. Defaults to 'false'.
+* **ignoreCase**: true/false - Ignores case when comparing names. Defaults to 'false'.
+* **noDiffSet**: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
+* **includeFilter**: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns. See [Glob patterns](#glob-patterns) below.
+* **excludeFilter**: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.  See [Glob patterns](#glob-patterns) below.
+* **resultBuilder**: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js).
+* **compareFileSync**, **compareFileAsync**: Callbacks for file comparison. See [Compare files by content](#compare-files-by-content).
 
 Result:
 
-* distinct: number of distinct entries
-* equal: number of equal entries
-* left: number of entries only in path1
-* right: number of entries only in path2
-* differences: total number of differences (distinct+left+right)
-* total: total number of entries (differences+equal)
-* distinctFiles: number of distinct files
-* equalFiles: number of equal files
-* leftFiles: number of files only in path1
-* rightFiles: number of files only in path2
-* differencesFiles: total number of different files (distinctFiles+leftFiles+rightFiles)
-* totalFiles: total number of files (differencesFiles+equalFiles)
-* distinctDirs: number of distinct directories
-* equalDirs: number of equal directories
-* leftDirs: number of directories only in path1
-* rightDirs: number of directories only in path2
-* differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
-* totalDirs: total number of directories (differencesDirs+equalDirs)
-* leftBrokenLinks: number of broken links only in path1
-* rightBrokenLinks: number of broken links only in path2
-* distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
-* totalBrokenLinks: total number of broken links
-* same: true if directories are identical
-* diffSet - List of changes (present if Options.noDiffSet is false)
-    * path1: path not including file/directory name; can be relative or absolute depending on call to compare(),
-    * path2: path not including file/directory name; can be relative or absolute depending on call to compare(),
-    * relativePath: path relative to root,
-    * name1: file/directory name
-    * name2: file/directory name
-    * state: one of equal, left, right, distinct,
-    * type1: one of missing, file, directory, broken-link
-    * type2: one of missing, file, directory, broken-link
-    * size1: file size
-    * size2: file size
-    * date1: modification date (stat.mtime)
-    * date2: modification date (stat.mtime)
-    * level: depth
+* **distinct**: number of distinct entries
+* **equal**: number of equal entries
+* **left**: number of entries only in path1
+* **right**: number of entries only in path2
+* **differences**: total number of differences (distinct+left+right)
+* **total**: total number of entries (differences+equal)
+* **distinctFiles**: number of distinct files
+* **equalFiles**: number of equal files
+* **leftFiles**: number of files only in path1
+* **rightFiles**: number of files only in path2
+* **differencesFiles**: total number of different files (distinctFiles+leftFiles+rightFiles)
+* **totalFiles**: total number of files (differencesFiles+equalFiles)
+* **distinctDirs**: number of distinct directories
+* **equalDirs**: number of equal directories
+* **leftDirs**: number of directories only in path1
+* **rightDirs**: number of directories only in path2
+* **differencesDirs**: total number of different directories (distinctDirs+leftDirs+rightDirs)
+* **totalDirs**: total number of directories (differencesDirs+equalDirs)
+* **leftBrokenLinks**: number of broken links only in path1
+* **rightBrokenLinks**: number of broken links only in path2
+* **distinctBrokenLinks**: number of broken links with same name appearing in both path1 and path2
+* **totalBrokenLinks**: total number of broken links
+* **same**: true if directories are identical
+* **diffSet** - List of changes (present if Options.noDiffSet is false)
+    * **path1**: path not including file/directory name; can be relative or absolute depending on call to compare(),
+    * **path2**: path not including file/directory name; can be relative or absolute depending on call to compare(),
+    * **relativePath**: path relative to root,
+    * **name1**: file/directory name
+    * **name2**: file/directory name
+    * **state**: one of equal, left, right, distinct,
+    * **type1**: one of missing, file, directory, broken-link
+    * **type2**: one of missing, file, directory, broken-link
+    * **size1**: file size
+    * **size2**: file size
+    * **date1**: modification date (stat.mtime)
+    * **date2**: modification date (stat.mtime)
+    * **level**: depth
+    * **distinctReason**: Provides reason when two identically named entries are distinct.  
+      Not available if entries are equal.  
+      One of "size", "date", "content", "broken-link".
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -199,12 +202,13 @@ dircompare.compare(path1, path2, options)
     -S, --skip-subdirs       do not recurse into subdirectories
     -L, --skip-symlinks      ignore symlinks
     -i, --ignore-case        ignores case when comparing file names
-    -l, --show-left          report - show entries occurring in leftdir
-    -r, --show-right         report - show entries occurring in rightdir
-    -e, --show-equal         report - show identic entries occuring in both dirs
-    -d, --show-distinct      report - show distinct entries occuring in both dirs
+    -l, --show-left          report - show entries occurring in left dir
+    -r, --show-right         report - show entries occurring in right dir
+    -e, --show-equal         report - show identic entries occurring in both dirs
+    -d, --show-distinct      report - show distinct entries occurring in both dirs
     -a, --show-all           report - show all entries
     -w, --whole-report       report - include directories in detailed report
+    --reason                 report - show reason when entries are distinct
     --csv                    report - print details as csv
     --nocolors               don't use console colors
     --async                  Make use of multiple cores
