@@ -1,7 +1,7 @@
-import { compareSync, compare, Options, fileCompareHandlers } from "../..";
+import { compareSync, compare, Options, fileCompareHandlers } from "../.."
 
-const path1 = '/tmp/linux-4.3';
-const path2 = '/tmp/linux-4.4';
+const path1 = '/tmp/linux-4.3'
+const path2 = '/tmp/linux-4.4'
 
 interface Test {
     testId: string,
@@ -70,13 +70,13 @@ async function runSingleTest(test: Test, compareFn: (...args: any[]) => any) {
     const ok = compareResultStr === test.expected
     const testResult = ok ? `ok ${duration} s` : 'fail - ' + compareResultStr
     console.log(`${test.description}: ${testResult}`)
-    if(!ok) {
+    if (!ok) {
         process.exit(1)
     }
 }
 
 async function main() {
-    console.log("Start compare test");
+    console.log("Start compare test")
     console.log('Sync')
     for (const test of tests) {
         await runSingleTest(test, compareSync)
@@ -86,11 +86,11 @@ async function main() {
     for (const test of tests) {
         await runSingleTest(test, compare)
     }
-    console.log("Done");
+    console.log("Done")
 }
 
 main()
-.catch(error => {
-    console.error(error)
-    process.exit(1)
-})
+    .catch(error => {
+        console.error(error)
+        process.exit(1)
+    })

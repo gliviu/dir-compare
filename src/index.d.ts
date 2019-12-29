@@ -1,9 +1,9 @@
 /// <reference types="node" />
 
-import * as fs from "fs";
+import * as fs from "fs"
 
-export function compareSync(path1: string, path2: string, options?: Options): Statistics;
-export function compare(path1: string, path2: string, options?: Options): Promise<Statistics>;
+export function compareSync(path1: string, path2: string, options?: Options): Statistics
+export function compare(path1: string, path2: string, options?: Options): Promise<Statistics>
 
 export interface Options {
     /**
@@ -14,52 +14,52 @@ export interface Options {
     /**
      * Compares files by size. Defaults to 'false'.
      */
-    compareSize?: boolean;
+    compareSize?: boolean
 
     /**
      *  Compares files by date of modification (stat.mtime). Defaults to 'false'.
      */
-    compareDate?: boolean;
+    compareDate?: boolean
 
     /**
      * Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
      */
-    dateTolerance?: number;
+    dateTolerance?: number
 
     /**
      *  Compares files by content. Defaults to 'false'.
      */
-    compareContent?: boolean;
+    compareContent?: boolean
 
     /**
      * Skips sub directories. Defaults to 'false'.
      */
-    skipSubdirs?: boolean;
+    skipSubdirs?: boolean
 
     /**
      * Ignore symbolic links. Defaults to 'false'.
      */
-    skipSymlinks?: boolean;
+    skipSymlinks?: boolean
 
     /**
      * Ignores case when comparing names. Defaults to 'false'.
      */
-    ignoreCase?: boolean;
+    ignoreCase?: boolean
 
     /**
      * Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
      */
-    noDiffSet?: boolean;
+    noDiffSet?: boolean
 
     /**
      * File name filter. Comma separated minimatch patterns.
      */
-    includeFilter?: string;
+    includeFilter?: string
 
     /**
      * File/directory name exclude filter. Comma separated minimatch patterns.
      */
-    excludeFilter?: string;
+    excludeFilter?: string
 
     /**
      * Callback for constructing result - function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
@@ -73,26 +73,26 @@ export interface Options {
         options: Options,
         statistics: Statistics,
         diffset: Array<Difference> | undefined
-    ) => void;
+    ) => void
 
     /**
      * File comparison handler.
      */
-    compareFileSync?: CompareFileSync;
+    compareFileSync?: CompareFileSync
 
     /**
      * File comparison handler.
      */
-    compareFileAsync?: CompareFileAsync;
+    compareFileAsync?: CompareFileAsync
 }
 
 export interface Entry {
-    name: string;
-    absolutePath: string;
-    path: string;
-    stat: fs.Stats;
-    lstat: fs.Stats;
-    symlink: boolean;
+    name: string
+    absolutePath: string
+    path: string
+    stat: fs.Stats
+    lstat: fs.Stats
+    symlink: boolean
 }
 
 export interface Statistics {
@@ -104,57 +104,57 @@ export interface Statistics {
     /**
      * number of distinct entries.
      */
-    distinct: number;
+    distinct: number
 
     /**
      * number of equal entries.
      */
-    equal: number;
+    equal: number
 
     /**
      * number of entries only in path1.
      */
-    left: number;
+    left: number
 
     /**
      * number of entries only in path2.
      */
-    right: number;
+    right: number
 
     /**
      * total number of differences (distinct+left+right).
      */
-    differences: number;
+    differences: number
 
     /**
      * total number of entries (differences+equal).
      */
-    total: number;
+    total: number
 
     /**
      * number of distinct files.
      */
-    distinctFiles: number;
+    distinctFiles: number
 
     /**
      * number of equal files.
      */
-    equalFiles: number;
+    equalFiles: number
 
     /**
      * number of files only in path1.
      */
-    leftFiles: number;
+    leftFiles: number
 
     /**
      * number of files only in path2
      */
-    rightFiles: number;
+    rightFiles: number
 
     /**
      * total number of different files (distinctFiles+leftFiles+rightFiles).
      */
-    differencesFiles: number;
+    differencesFiles: number
 
     /**
      * total number of files (differencesFiles+equalFiles).
@@ -164,131 +164,131 @@ export interface Statistics {
     /**
      * number of distinct directories.
      */
-    distinctDirs: number;
+    distinctDirs: number
 
     /**
      * number of equal directories.
      */
-    equalDirs: number;
+    equalDirs: number
 
     /**
      * number of directories only in path1.
      */
-    leftDirs: number;
+    leftDirs: number
 
     /**
      * number of directories only in path2.
      */
-    rightDirs: number;
+    rightDirs: number
 
     /**
      * total number of different directories (distinctDirs+leftDirs+rightDirs).
      */
-    differencesDirs: number;
+    differencesDirs: number
 
     /**
      * total number of directories (differencesDirs+equalDirs).
      */
-    totalDirs: number;
+    totalDirs: number
 
     /**
      * number of broken links only in path1
      */
-    leftBrokenLinks: number;
+    leftBrokenLinks: number
 
     /**
      * number of broken links only in path2
      */
-    rightBrokenLinks: number;
+    rightBrokenLinks: number
 
     /**
      * number of broken links with same name appearing in both path1 and path2
      */
-    distinctBrokenLinks: number;
+    distinctBrokenLinks: number
 
     /**
      * total number of broken links
      */
-    totalBrokenLinks: number;
+    totalBrokenLinks: number
 
     /**
      * true if directories are identical.
      */
-    same: boolean;
+    same: boolean
 
     /**
      * List of changes (present if Options.noDiffSet is false).
      */
-    diffSet?: Array<Difference>;
+    diffSet?: Array<Difference>
 }
 
-export type DifferenceState = "equal" | "left" | "right" | "distinct";
-export type DifferenceType = "missing" | "file" | "directory" | "broken-link";
+export type DifferenceState = "equal" | "left" | "right" | "distinct"
+export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
 export interface Difference {
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
      */
-    path1?: string;
+    path1?: string
 
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
      */
-    path2?: string;
+    path2?: string
 
     /**
      * path relative to root.
      */
-    relativePath: string;
+    relativePath: string
 
     /**
      * file/directory name.
      */
-    name1?: string;
+    name1?: string
 
     /**
      * file/directory name.
      */
-    name2?: string;
+    name2?: string
 
     /**
      * one of equal, left, right, distinct.
      */
-    state: DifferenceState;
+    state: DifferenceState
 
     /**
      * one of missing, file, directory.
      */
-    type1: DifferenceType;
+    type1: DifferenceType
 
     /**
      * one of missing, file, directory.
      */
-    type2: DifferenceType;
+    type2: DifferenceType
 
     /**
      * file size.
      */
-    size1?: number;
+    size1?: number
 
     /**
      * file size.
      */
-    size2?: number;
+    size2?: number
 
     /**
      * modification date (stat.mtime).
      */
-    date1?: number;
+    date1?: number
 
     /**
      * modification date (stat.mtime).
      */
-    date2?: number;
+    date2?: number
 
     /**
      * depth.
      */
-    level: number;
+    level: number
 }
 
 export type CompareFileSync = (
@@ -297,7 +297,7 @@ export type CompareFileSync = (
     path2: string,
     stat2: fs.Stats,
     options: Options
-) => boolean;
+) => boolean
 
 export type CompareFileAsync = (
     path1: string,
@@ -305,7 +305,7 @@ export type CompareFileAsync = (
     path2: string,
     stat2: fs.Stats,
     options: Options
-) => Promise<boolean>;
+) => Promise<boolean>
 
 export const fileCompareHandlers: {
     defaultFileCompare: {
@@ -316,4 +316,4 @@ export const fileCompareHandlers: {
         compareSync: CompareFileSync,
         compareAsync: CompareFileAsync
     }
-};
+}

@@ -1,4 +1,4 @@
-var alloc = require('./common').alloc;
+var alloc = require('./common').alloc
 
 /**
  * Collection of buffers to be shared between async processes.
@@ -9,20 +9,21 @@ var alloc = require('./common').alloc;
  */
 function BuferPool(bufSize, bufNo) {
     var bufferPool = []
-    var createAsyncBuffers = function() {
-        for(var i=0;i<bufNo;i++){
+    var createAsyncBuffers = function () {
+        for (var i = 0; i < bufNo; i++) {
             bufferPool.push({
                 buf1: alloc(bufSize),
                 buf2: alloc(bufSize),
-                busy: false})
+                busy: false
+            })
         }
     }
     createAsyncBuffers()
 
-    var allocateBuffers = function() {
-        for(var i=0;i<bufNo;i++){
+    var allocateBuffers = function () {
+        for (var i = 0; i < bufNo; i++) {
             var bufferPair = bufferPool[i]
-            if(!bufferPair.busy) {
+            if (!bufferPair.busy) {
                 bufferPair.busy = true
                 return bufferPair
             }
@@ -30,15 +31,15 @@ function BuferPool(bufSize, bufNo) {
         throw new Error('Async buffer limit reached')
     }
 
-    var freeBuffers = function(bufferPair) {
+    var freeBuffers = function (bufferPair) {
         bufferPair.busy = false
     }
 
     return {
-        allocateBuffers : allocateBuffers,
-        freeBuffers : freeBuffers
-    };
+        allocateBuffers: allocateBuffers,
+        freeBuffers: freeBuffers
+    }
 
 }
 
-module.exports = BuferPool;
+module.exports = BuferPool
