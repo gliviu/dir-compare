@@ -6,7 +6,7 @@ var PATH_SEP = pathUtils.sep
 
 module.exports = {
 	detectLoop: function (entry, symlinkCache) {
-		if (entry && entry.symlink) {
+		if (entry && entry.isSymlink) {
 			var realPath = fs.realpathSync(entry.absolutePath)
 			if (symlinkCache[realPath]) {
 				return true
@@ -33,7 +33,7 @@ module.exports = {
 			var entryPath = rootEntry.path + PATH_SEP + entryName
 
 			var entry = this.buildEntry(entryAbsolutePath, entryPath, entryName)
-			if (options.skipSymlinks && entry.symlink) {
+			if (options.skipSymlinks && entry.isSymlink) {
 				entry.stat = undefined
 			}
 
@@ -53,7 +53,7 @@ module.exports = {
 			path: path,
 			stat: stats.stat,
 			lstat: stats.lstat,
-			symlink: stats.lstat.isSymbolicLink(),
+			isSymlink: stats.lstat.isSymbolicLink(),
 			isBrokenLink: stats.isBrokenLink,
 			isDirectory: stats.stat.isDirectory()
 		}
@@ -144,7 +144,7 @@ function getStatIgnoreBrokenLink(absolutePath) {
  * Filter entries by file name. Returns true if the file is to be processed.
  */
 function filterEntry(entry, relativePath, options) {
-	if (entry.symlink && options.skipSymlinks) {
+	if (entry.isSymlink && options.skipSymlinks) {
 		return false
 	}
 	var path = pathUtils.join(relativePath, entry.name)

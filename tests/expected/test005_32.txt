@@ -1,0 +1,12 @@
+[/] 3_brokenlink-file -> missing (broken-link)
+[/] 4_brokenlink-dir -> missing (broken-link)
+[/] 5_brokenlink-link -> missing (broken-link)
+[/] 6_brokenlink-brokenlink <> 6_brokenlink-brokenlink (broken-link) <broken-link>
+[/] 7_brokenlinkl-missing -> missing (broken-link)
+[/] missing <- 4_brokenlink-dir (directory)
+[/] 1 <> 1 (file) <different-size>
+[/] missing <- 2 (file)
+[/] missing <- 3_brokenlink-file (file)
+[/] missing <- 5_brokenlink-link (file)
+Entries are different
+total: 10, equal: 0, distinct: 2, only left: 4, only right: 4, broken links: 5

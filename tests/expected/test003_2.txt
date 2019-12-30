@@ -1,0 +1,5 @@
+[/] a1 == a1 (file)
+[/] a2 <> a2 (file) <different-content>
+[/] a3 <> a3 (file) <different-content>
+Entries are different
+total: 3, equal: 1, distinct: 2, only left: 0, only right: 0

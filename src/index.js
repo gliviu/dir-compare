@@ -143,19 +143,20 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
 
 /**
  * Options:
- *  compareSize: true/false - Compares files by size. Defaults to 'false'.
- *  compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
- *  dateTolerance: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
- *  compareContent: true/false - Compares files by content. Defaults to 'false'.
- *  skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
- *  skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
- *  ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
- *  noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
- *  includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
- *  excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
- *  resultBuilder: Callback for constructing result.
- *  	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
- *  compareFileSync, compareFileAsync: Callbacks for file comparison. 
+ * compareSize: true/false - Compares files by size. Defaults to 'false'.
+ * compareDate: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
+ * dateTolerance: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
+ * compareContent: true/false - Compares files by content. Defaults to 'false'.
+ * compareSymlink: true/false - Compares entries by symlink. Defaults to 'false'.
+ * skipSubdirs: true/false - Skips sub directories. Defaults to 'false'.
+ * skipSymlinks: true/false - Skips symbolic links. Defaults to 'false'.
+ * ignoreCase: true/false - Ignores case when comparing names. Defaults to 'false'.
+ * noDiffSet: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
+ * includeFilter: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ * excludeFilter: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.
+ * resultBuilder: Callback for constructing result.
+ * 	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
+ * compareFileSync, compareFileAsync: Callbacks for file comparison. 
  *
  * Output format:
  * distinct: number of distinct entries

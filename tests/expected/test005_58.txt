@@ -1,0 +1,5 @@
+[/] 1 == 1 (directory)
+[/] 2 == 2 (directory)
+[/] 3 <> 3 (directory) <different-symlink>
+Entries are different
+total: 3, equal: 2, distinct: 1, only left: 0, only right: 0

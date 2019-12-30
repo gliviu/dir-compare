@@ -43,10 +43,14 @@ export interface Test {
     // only apply for synchronous compare
     onlyAsync: boolean,
     // limit test to specific node versions; ie. '>=2.5.0'
-    nodeVersionSupport: boolean,
+    nodeVersionSupport: string,
+    // exclude platform from run test; by default all platforms are allowed
+    excludePlatform: Platform[]
     // Execute hand-written async test
     runAsync: () => Promise<string>
 }
+
+type Platform = 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin' | 'netbsd'
 
 export function getTests(testDirPath) {
     const res: Array<Partial<Test>> = [
@@ -263,7 +267,6 @@ export function getTests(testDirPath) {
         ////////////////////////////////////////////////////
         // Compare by content                             //
         ////////////////////////////////////////////////////
-        // TODO: add test with compareSize: false, compareContent: true
         {
             name: 'test003_0', path1: 'd11', path2: 'd12',
             options: { compareSize: true, compareContent: true },
@@ -276,6 +279,21 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareContent: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true },
             commandLineOptions: '-awc',
+            exitCode: 1,
+        },
+        {
+            name: 'test003_2', path1: 'd39/a', path2: 'd39/b',
+            description: 'compare only by content',
+            options: { compareSize: false, compareContent: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test003_3', path1: 'd39/a', path2: 'd39/b',
+            description: 'compare only by size',
+            options: { compareSize: true, compareContent: false },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
             exitCode: 1,
         },
         ////////////////////////////////////////////////////
@@ -467,7 +485,7 @@ export function getTests(testDirPath) {
         },
         {
             name: 'test005_15', path1: 'd25', path2: 'd25',
-            description: 'do not fail when missing symlinks are encountered and skipSymlinks option is used',
+            description: 'do not fail when broken symlinks are encountered and skipSymlinks option is used',
             options: { compareSize: true, ignoreCase: true, skipSymlinks: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true },
             commandLineOptions: '-aw --skip-symlinks',
@@ -509,19 +527,183 @@ export function getTests(testDirPath) {
         // Broken symlinks                                //
         ////////////////////////////////////////////////////
         {
-            name: 'test005_30', path1: '#16/a', path2: '#16/b',
-            description: "handle broken links (left)",
+            name: 'test005_30', path1: '#16/02/b', path2: '#16/02/a',
+            description: "evaluate single broken link on both sides as different",
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true, nocolors: true },
-            commandLineOptions: '-aw',
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
             exitCode: 1,
         },
         {
-            name: 'test005_31', path1: '#16/b', path2: '#16/a',
+            name: 'test005_31', path1: '#16/03/b', path2: '#16/03/a',
+            description: "report broken links before files or directories",
+            options: { compareSize: true, ignoreCase: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            exitCode: 1,
+        },
+        {
+            name: 'test005_32', path1: '#16/01/a', path2: '#16/01/b',
+            description: "handle broken links (left)",
+            options: { compareSize: true, ignoreCase: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            exitCode: 1,
+        },
+        {
+            name: 'test005_33', path1: '#16/01/b', path2: '#16/01/a',
             description: "handle broken links (right)",
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true, nocolors: true },
-            commandLineOptions: '-aw',
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            exitCode: 1,
+        },
+
+        ////////////////////////////////////////////////////
+        // Compare symlinks                               //
+        ////////////////////////////////////////////////////
+        {
+            name: 'test005_50', path1: '#19/01/a', path2: '#19/01/b',
+            description: "evaluate identical file symlinks pointing to identical files as equal when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_51', path1: '#19/01/a', path2: '#19/01/b',
+            description: "evaluate identical file symlinks pointing to identical files as equal when compare-symlink is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_52', path1: '#19/06/a', path2: '#19/06/b',
+            description: "evaluate identical file symlinks pointing to different files as different when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_53', path1: '#19/06/a', path2: '#19/06/b',
+            description: "evaluate identical file symlinks pointing to different files as different when compare-symlink is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_54', path1: '#19/05/a', path2: '#19/05/b',
+            description: "evaluate identical directory symlinks as equal when compare-symlink option is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_55', path1: '#19/05/a', path2: '#19/05/b',
+            description: "evaluate identical directory symlinks as equal when compare-symlink option is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_56', path1: '#19/02/a', path2: '#19/02/b',
+            description: "evaluate different file symlinks pointing to identical files as distinct when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_57', path1: '#19/02/a', path2: '#19/02/b',
+            description: "evaluate different file symlinks pointing to identical files as equal if compare-symlink option is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_58', path1: '#19/07/a', path2: '#19/07/b',
+            description: "evaluate different directory symlinks as distinct when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_59', path1: '#19/07/a', path2: '#19/07/b',
+            description: "evaluate different directory symlinks as equal if compare-symlink option is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_60', path1: '#19/03/a', path2: '#19/03/b',
+            description: "evaluate mixed file/symlink as distinct when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_61', path1: '#19/03/a', path2: '#19/03/b',
+            description: "evaluate mixed file/symlink as equal when compare-symlink is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_62', path1: '#19/08/a', path2: '#19/08/b',
+            description: "evaluate mixed directory/symlink as distinct when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_63', path1: '#19/08/a', path2: '#19/08/b',
+            description: "evaluate mixed directory/symlink as equal when compare-symlink is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
+            exitCode: 0,
+        },
+        {
+            name: 'test005_64', path1: '#19/04/a', path2: '#19/04/b',
+            description: "evaluate mixed file symlink and directory symlink as different when compare-symlink is used",
+            options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink',
+            excludePlatform: ['win32'],
+            exitCode: 1,
+        },
+        {
+            name: 'test005_65', path1: '#19/04/a', path2: '#19/04/b',
+            description: "evaluate mixed file symlink and directory symlink as different when compare-symlink is not used",
+            options: { compareSize: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason',
+            excludePlatform: ['win32'],
             exitCode: 1,
         },
 

@@ -2,7 +2,6 @@
 
 var program = require('commander')
 var dircompare = require('./index')
-var pth = require('path')
 var fs = require('fs')
 var util = require('util')
 var Promise = require('bluebird')
@@ -16,6 +15,7 @@ program
     .option('-c, --compare-content', 'compare files by content')
     .option('-D, --compare-date', 'compare files by date')
     .option('--date-tolerance [type]', 'tolerance to be used in date comparison (milliseconds)')
+    .option('--compare-symlink', 'compare files and directories by symlink')
     .option('-f, --filter [type]', 'file name filter', undefined)
     .option('-x, --exclude [type]', 'file/directory name exclude filter', undefined)
     .option('-S, --skip-subdirs', 'do not recurse into subdirectories')
@@ -78,6 +78,7 @@ var run = function () {
 
             options.compareContent = program.compareContent
             options.compareDate = program.compareDate
+            options.compareSymlink = program.compareSymlink
             options.compareSize = true
             options.skipSubdirs = program.skipSubdirs
             options.skipSymlinks = program.skipSymlinks

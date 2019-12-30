@@ -1,3 +1,4 @@
+var fs = require('fs')
 /**
  * Compares two entries with identical name and type.
  */
@@ -7,7 +8,7 @@ module.exports = {
             return compareFileSync(entry1, entry2, options)
         }
         if (type === 'directory') {
-            return compareDirectory()
+            return compareDirectory(entry1, entry2, options)
         }
         if (type === 'broken-link') {
             return compareBrokenLink()
@@ -20,7 +21,7 @@ module.exports = {
             return compareFileAsync(entry1, entry2, type, diffSet, options)
         }
         if (type === 'directory') {
-            return compareDirectory()
+            return compareDirectory(entry1, entry2, options)
         }
         if (type === 'broken-link') {
             return compareBrokenLink()
@@ -33,6 +34,9 @@ module.exports = {
 function compareFileSync(entry1, entry2, options) {
     var p1 = entry1 ? entry1.absolutePath : undefined
     var p2 = entry2 ? entry2.absolutePath : undefined
+    if (options.compareSymlink && !compareSymlink(entry1, entry2)) {
+        return { same: false, reason: 'different-symlink' }
+    }
     if (options.compareSize && entry1.stat.size !== entry2.stat.size) {
         return { same: false, reason: 'different-size' }
     }
@@ -48,6 +52,9 @@ function compareFileSync(entry1, entry2, options) {
 function compareFileAsync(entry1, entry2, type, diffSet, options) {
     var p1 = entry1 ? entry1.absolutePath : undefined
     var p2 = entry2 ? entry2.absolutePath : undefined
+    if (options.compareSymlink && !compareSymlink(entry1, entry2)) {
+        return { same: false, reason: 'different-symlink' }
+    }
     if (options.compareSize && entry1.stat.size !== entry2.stat.size) {
         return { same: false, samePromise: undefined, reason: 'different-size' }
     }
@@ -86,12 +93,15 @@ function compareFileAsync(entry1, entry2, type, diffSet, options) {
     return { same: true, samePromise: undefined }
 }
 
-function compareDirectory() {
-    return {same: true}
+function compareDirectory(entry1, entry2, options) {
+    if (options.compareSymlink && !compareSymlink(entry1, entry2)) {
+        return { same: false, reason: 'different-symlink' }
+    }
+    return { same: true }
 }
 
 function compareBrokenLink() {
-    return {same: false, reason: 'broken-link'} // broken links are not consider equal
+    return { same: false, reason: 'broken-link' } // broken links are never considered equal
 }
 
 /**
@@ -102,3 +112,19 @@ function sameDate(date1, date2, tolerance) {
     return Math.abs(date1.getTime() - date2.getTime()) <= tolerance ? true : false
 }
 
+/**
+ * Compares two entries for symlink equality.
+ */
+function compareSymlink(entry1, entry2) {
+    if (!entry1.isSymlink && !entry2.isSymlink) {
+        return true
+    }
+    if (entry1.isSymlink && entry2.isSymlink && isIdenticalLink(entry1.absolutePath, entry2.absolutePath)) {
+        return true
+    }
+    return false
+}
+
+function isIdenticalLink(path1, path2) {
+    return fs.readlinkSync(path1) === fs.readlinkSync(path2)
+}

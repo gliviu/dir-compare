@@ -1,0 +1,5 @@
+[/] 1 == 1 (file)
+[/] 2 == 2 (file)
+[/] 3 == 3 (file)
+Entries are identical
+total: 3, equal: 3, distinct: 0, only left: 0, only right: 0

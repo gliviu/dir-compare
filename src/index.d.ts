@@ -27,9 +27,14 @@ export interface Options {
     dateTolerance?: number
 
     /**
-     *  Compares files by content. Defaults to 'false'.
+     * Compares files by content. Defaults to 'false'.
      */
     compareContent?: boolean
+
+    /**
+     * Compares entries by symlink. Defaults to 'false'.
+     */
+    compareSymlink?: boolean
 
     /**
      * Skips sub directories. Defaults to 'false'.

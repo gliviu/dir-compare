@@ -85,6 +85,7 @@ Options:
 * **compareDate**: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
 * **dateTolerance**: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
 * **compareContent**: true/false - Compares files by content. Defaults to 'false'.
+* **compareSymlink**: true/false - Compares entries by symlink. Defaults to 'false'.
 * **skipSubdirs**: true/false - Skips sub directories. Defaults to 'false'.
 * **skipSymlinks**: true/false - Ignore symbolic links. Defaults to 'false'.
 * **ignoreCase**: true/false - Ignores case when comparing names. Defaults to 'false'.
@@ -197,6 +198,7 @@ dircompare.compare(path1, path2, options)
     -c, --compare-content    compare files by content
     -D, --compare-date       compare files by date
     --date-tolerance [type]  tolerance to be used in date comparison (milliseconds)
+    --compare-symlink        compare files and directories by symlink
     -f, --filter [type]      file name filter
     -x, --exclude [type]     file/directory name exclude filter
     -S, --skip-subdirs       do not recurse into subdirectories

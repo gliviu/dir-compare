@@ -31,11 +31,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
 
     var symlinkCachePath1, symlinkCachePath2
     if (rootEntry1 && !loopDetected1) {
-        symlinkCachePath1 = rootEntry1.symlink ? fs.realpathSync(rootEntry1.absolutePath) : rootEntry1.absolutePath
+        symlinkCachePath1 = rootEntry1.isSymlink ? fs.realpathSync(rootEntry1.absolutePath) : rootEntry1.absolutePath
         symlinkCache.dir1[symlinkCachePath1] = true
     }
     if (rootEntry2 && !loopDetected2) {
-        symlinkCachePath2 = rootEntry2.symlink ? fs.realpathSync(rootEntry2.absolutePath) : rootEntry2.absolutePath
+        symlinkCachePath2 = rootEntry2.isSymlink ? fs.realpathSync(rootEntry2.absolutePath) : rootEntry2.absolutePath
         symlinkCache.dir2[symlinkCachePath2] = true
     }
     var entries1 = getEntries(rootEntry1, relativePath, loopDetected1, options)

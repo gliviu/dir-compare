@@ -1,4 +1,4 @@
-import { getTests } from "./tests"
+import { getTests, Test } from "./tests"
 import pjson = require('../package.json')
 
 import colors = require('colors/safe')
@@ -6,6 +6,7 @@ import pathUtils = require('path')
 import shelljs = require('shelljs')
 import util = require('util')
 import fs = require('fs')
+import os = require('os')
 import temp = require('temp')
 import defaultPrint = require('../src/print')
 import Promise = require('bluebird')
@@ -317,6 +318,14 @@ const printResult = function (output, expected) {
     console.log('Result: ' + (output === expected))
 }
 
+function validatePlatform(test: Partial<Test>) {
+    if(!test.excludePlatform || test.excludePlatform.length==0) {
+        return true
+    }
+
+    return !test.excludePlatform.includes(os.platform())
+}
+
 // testDirPath: path to test data
 // singleTestName: if defined, represents the test name to be executed in format
 //                 otherwise all tests are executed
@@ -331,6 +340,7 @@ function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
             .filter(function (test) { return !test.onlyAsync })
             .filter(function (test) { return runOptions.singleTestName ? test.name === runOptions.singleTestName : true; })
             .filter(function (test) { return test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
+            .filter(test => validatePlatform(test))
             .forEach(function (test) {
                 syncTestsPromises.push(testSync(test, testDirPath, saveReport, runOptions))
             })
@@ -345,6 +355,7 @@ function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
         getTests(testDirPath).filter(function (test) { return !test.onlyCommandLine; })
             .filter(function (test) { return !test.onlySync })
             .filter(function (test) { return test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
+            .filter(test => validatePlatform(test))
             .filter(function (test) { return runOptions.singleTestName ? test.name === runOptions.singleTestName : true; })
             .forEach(function (test) {
                 asyncTestsPromises.push(testAsync(test, testDirPath, saveReport, runOptions))
@@ -359,6 +370,7 @@ function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
         const commandLinePromises: Array<Promise<any>> = []
         getTests(testDirPath).filter(function (test) { return !test.onlyLibrary; })
             .filter(function (test) { return test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
+            .filter(test => validatePlatform(test))
             .filter(function (test) { return runOptions.singleTestName ? test.name === runOptions.singleTestName : true; })
             .forEach(function (test) {
                 commandLinePromises.push(testCommandLine(test, testDirPath, saveReport, runOptions))
