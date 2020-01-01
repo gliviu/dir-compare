@@ -62,19 +62,11 @@ export interface Options {
     excludeFilter?: string
 
     /**
-     * Callback for constructing result - function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
+     * Callback for constructing result.
+     * Called for each compared entry pair.
+     * Updates 'statistics' and 'diffSet'.
      */
-    resultBuilder?: (
-        entry1: Entry | undefined,
-        entry2: Entry | undefined,
-        state: DifferenceState,
-        level: number,
-        relativePath: string,
-        options: Options,
-        statistics: Statistics,
-        diffSet: Array<Difference> | undefined,
-        distinctReason: DistinctReason | undefined
-    ) => void
+    resultBuilder?: ResultBuilder
 
     /**
      * File comparison handler.
@@ -86,6 +78,23 @@ export interface Options {
      */
     compareFileAsync?: CompareFileAsync
 }
+
+/**
+ * Callback for constructing result.
+ * Called for each compared entry pair.
+ * Updates 'statistics' and 'diffSet'.
+ */
+export type ResultBuilder = (
+    entry1: Entry | undefined,
+    entry2: Entry | undefined,
+    state: DifferenceState,
+    level: number,
+    relativePath: string,
+    options: Options,
+    statistics: Statistics,
+    diffSet: Array<Difference> | undefined,
+    reason: Reason | undefined
+) => void
 
 export interface Entry {
     name: string
@@ -225,8 +234,13 @@ export interface Statistics {
 
 export type DifferenceState = "equal" | "left" | "right" | "distinct"
 export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
-export type DistinctReason = "size" | "date" | "content" | "broken-link"
+export type Reason = "different-size" | "different-date" | "different-content" | "broken-link"
 export interface Difference {
+    /**
+     * Any property is allowed if default result builder is not used.
+     */
+    [key: string]: any
+
     /**
      * path not including file/directory name; can be relative or absolute depending on call to compare().
      */
@@ -295,9 +309,9 @@ export interface Difference {
     /**
      * Provides reason when two identically named entries are distinct.
      * Not available if entries are equal.
-     * One of "size", "date", "content", "broken-link".
+     * One of "different-size", "different-date", "different-content", "broken-link".
      */
-    distinctReason?: DistinctReason
+    reason?: Reason
 }
 
 export type CompareFileSync = (

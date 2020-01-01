@@ -144,8 +144,8 @@ var printPretty = function (writer, program, detail, color, dirColor, missingCol
     }
     var cmpEntry = getCompareFile(detail, color(state), missingColor)
     var reason = ''
-    if (program.reason && detail.distinctReason) {
-        reason = util.format(' <%s>', detail.distinctReason)
+    if (program.reason && detail.reason) {
+        reason = util.format(' <%s>', detail.reason)
     }
     if (program.wholeReport || type === 'broken-link') {
         writer.write(util.format('[%s] %s (%s)%s\n', path, cmpEntry, type, reason))
@@ -183,7 +183,7 @@ var printCsv = function (writer, detail, color) {
 
     var path = detail.relativePath ? detail.relativePath : PATH_SEP
     var name = (detail.name1 ? detail.name1 : detail.name2)
-    var reason = detail.distinctReason || ''
+    var reason = detail.reason || ''
 
     writer.write(util.format('%s,%s,%s,%s,%s,%s,%s,%s,%s\n', path, name, color(detail.state), type, size1, size2, date1, date2, reason))
 }

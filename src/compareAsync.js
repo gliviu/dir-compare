@@ -83,7 +83,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         options.resultBuilder(entry1, entry2, 
                             same ? 'equal' : 'distinct', 
                             level, relativePath, options, statistics, diffSet,
-                            compareAsyncRes.distinctReason)
+                            compareAsyncRes.reason)
                         stats.updateStatisticsBoth(same, type1, statistics)
                     } else {
                         compareFilePromises.push(samePromise)
@@ -140,7 +140,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                             options.resultBuilder(sameResult.entry1, sameResult.entry2, 
                                 sameResult.same ? 'equal' : 'distinct', 
                                 level, relativePath, options, statistics, sameResult.diffSet,
-                                sameResult.distinctReason)
+                                sameResult.reason)
                             stats.updateStatisticsBoth(sameResult.same, sameResult.type1, statistics)
                         }
                     }

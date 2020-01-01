@@ -34,13 +34,13 @@ function compareFileSync(entry1, entry2, options) {
     var p1 = entry1 ? entry1.absolutePath : undefined
     var p2 = entry2 ? entry2.absolutePath : undefined
     if (options.compareSize && entry1.stat.size !== entry2.stat.size) {
-        return { same: false, distinctReason: 'size' }
+        return { same: false, reason: 'different-size' }
     }
     if (options.compareDate && !sameDate(entry1.stat.mtime, entry2.stat.mtime, options.dateTolerance)) {
-        return { same: false, distinctReason: 'date' }
+        return { same: false, reason: 'different-date' }
     }
     if (options.compareContent && !options.compareFileSync(p1, entry1.stat, p2, entry2.stat, options)) {
-        return { same: false, distinctReason: 'content' }
+        return { same: false, reason: 'different-content' }
     }
     return { same: true }
 }
@@ -49,11 +49,11 @@ function compareFileAsync(entry1, entry2, type, diffSet, options) {
     var p1 = entry1 ? entry1.absolutePath : undefined
     var p2 = entry2 ? entry2.absolutePath : undefined
     if (options.compareSize && entry1.stat.size !== entry2.stat.size) {
-        return { same: false, samePromise: undefined, distinctReason: 'size' }
+        return { same: false, samePromise: undefined, reason: 'different-size' }
     }
 
     if (options.compareDate && !sameDate(entry1.stat.mtime, entry2.stat.mtime, options.dateTolerance)) {
-        return { same: false, samePromise: undefined, distinctReason: 'date' }
+        return { same: false, samePromise: undefined, reason: 'different-date' }
     }
 
     if (options.compareContent) {
@@ -76,7 +76,7 @@ function compareFileAsync(entry1, entry2, type, diffSet, options) {
                     entry1: entry1, entry2: entry2, same: same,
                     error: error, type1: type, type2: type,
                     diffSet: subDiffSet,
-                    distinctReason: same ? undefined : 'content'
+                    reason: same ? undefined : 'different-content'
                 }
             })
 
@@ -91,7 +91,7 @@ function compareDirectory() {
 }
 
 function compareBrokenLink() {
-    return {same: false, distinctReason: 'broken-link'} // broken links are not consider equal
+    return {same: false, reason: 'broken-link'} // broken links are not consider equal
 }
 
 /**

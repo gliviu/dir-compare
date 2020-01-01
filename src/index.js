@@ -195,9 +195,9 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  *     date1: modification date (stat.mtime)
  *     date2: modification date (stat.mtime)
  *     level: depth
- *     distinctReason: Provides reason when two identically named entries are distinct
- *                     Not available if entries are equal
- *                     One of "size", "date", "content", "broken-link"
+ *     reason: Provides reason when two identically named entries are distinct
+ *             Not available if entries are equal
+ *             One of "different-size", "different-date", "different-content", "broken-link"
  */
 module.exports = {
     compareSync: compareSync,

@@ -3,7 +3,7 @@
 var pathUtils = require('path')
 var common = require('./common')
 
-module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, distinctReason) {
+module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason) {
     if (options.noDiffSet) {
         return
     }
@@ -21,6 +21,6 @@ module.exports = function (entry1, entry2, state, level, relativePath, options, 
         size2: entry2 ? entry2.stat.size : undefined,
         date1: entry1 ? entry1.stat.mtime : undefined,
         date2: entry2 ? entry2.stat.mtime : undefined,
-        distinctReason: distinctReason
+        reason: reason
     })
 }

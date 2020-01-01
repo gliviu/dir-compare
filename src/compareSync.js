@@ -69,7 +69,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             options.resultBuilder(entry1, entry2, 
                 compareEntryRes.same ? 'equal' : 'distinct',
                 level, relativePath, options, statistics, diffSet, 
-                compareEntryRes.distinctReason)
+                compareEntryRes.reason)
             stats.updateStatisticsBoth(compareEntryRes.same, type1, statistics)
             i1++
             i2++
