@@ -2,9 +2,25 @@
 
 import * as fs from "fs"
 
-export function compareSync(path1: string, path2: string, options?: Options): Statistics
-export function compare(path1: string, path2: string, options?: Options): Promise<Statistics>
+/**
+ * Synchronously compares given paths.
+ * @param path1 Left file or directory to be compared.
+ * @param path2 Right file or directory to be compared.
+ * @param options Comparison options.
+ */
+export function compareSync(path1: string, path2: string, options?: Options): Result
 
+/**
+ * Asynchronously compares given paths.
+ * @param path1 Left file or directory to be compared.
+ * @param path2 Right file or directory to be compared.
+ * @param options Comparison options.
+ */
+export function compare(path1: string, path2: string, options?: Options): Promise<Result>
+
+/**
+ * Comparison options.
+ */
 export interface Options {
     /**
      * Properties to be used in various extension points ie. result builder.
@@ -57,49 +73,63 @@ export interface Options {
     noDiffSet?: boolean
 
     /**
-     * File name filter. Comma separated minimatch patterns.
+     * File name filter. Comma separated minimatch patterns. See [Glob patterns](https://github.com/gliviu/dir-compare#glob-patterns).
      */
     includeFilter?: string
 
     /**
-     * File/directory name exclude filter. Comma separated minimatch patterns.
+     * File/directory name exclude filter. Comma separated minimatch patterns. See [Glob patterns](https://github.com/gliviu/dir-compare#glob-patterns)
      */
     excludeFilter?: string
 
     /**
-     * Callback for constructing result.
-     * Called for each compared entry pair.
+     * Callback for constructing result. Called for each compared entry pair.
+     * 
      * Updates 'statistics' and 'diffSet'.
+     * 
+     * See [Custom result builder](https://github.com/gliviu/dir-compare#custom-result-builder).
      */
     resultBuilder?: ResultBuilder
 
     /**
-     * File comparison handler.
+     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-comparators).
      */
     compareFileSync?: CompareFileSync
 
     /**
-     * File comparison handler.
+     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-comparators).
      */
     compareFileAsync?: CompareFileAsync
 }
 
 /**
- * Callback for constructing result.
- * Called for each compared entry pair.
+ * Callback for constructing result. Called for each compared entry pair.
+ * 
  * Updates 'statistics' and 'diffSet'.
  */
-export type ResultBuilder = (
-    entry1: Entry | undefined,
-    entry2: Entry | undefined,
-    state: DifferenceState,
-    level: number,
-    relativePath: string,
-    options: Options,
-    statistics: Statistics,
-    diffSet: Array<Difference> | undefined,
-    reason: Reason | undefined
-) => void
+export type ResultBuilder =
+    /**
+     * @param entry1 Left entry.
+     * @param entry2 Right entry.
+     * @param state See [[DifferenceState]].
+     * @param level Depth level relative to root dir.
+     * @param relativePath Path relative to root dir.
+     * @param statistics Statistics to be updated.
+     * @param diffSet Status per each entry to be appended.
+     * Do not append if [[Options.noDiffSet]] is false.
+     * @param reason See [[Reason]]. Not available if entries are equal.
+     */
+    (
+        entry1: Entry | undefined,
+        entry2: Entry | undefined,
+        state: DifferenceState,
+        level: number,
+        relativePath: string,
+        options: Options,
+        statistics: Statistics,
+        diffSet: Array<Difference> | undefined,
+        reason: Reason | undefined
+    ) => void
 
 export interface Entry {
     name: string
@@ -110,6 +140,16 @@ export interface Entry {
     symlink: boolean
 }
 
+/**
+ * Comparison result.
+ */
+export interface Result extends Statistics {
+    /**
+     * List of changes (present if [[Options.noDiffSet]] is false).
+     */
+    diffSet?: Array<Difference>
+}
+
 export interface Statistics {
     /**
      * Any property is allowed if default result builder is not used.
@@ -117,167 +157,174 @@ export interface Statistics {
     [key: string]: any
 
     /**
-     * number of distinct entries.
+     * Number of distinct entries.
      */
     distinct: number
 
     /**
-     * number of equal entries.
+     * Number of equal entries.
      */
     equal: number
 
     /**
-     * number of entries only in path1.
+     * Number of entries only in path1.
      */
     left: number
 
     /**
-     * number of entries only in path2.
+     * Number of entries only in path2.
      */
     right: number
 
     /**
-     * total number of differences (distinct+left+right).
+     * Total number of differences (distinct+left+right).
      */
     differences: number
 
     /**
-     * total number of entries (differences+equal).
+     * Total number of entries (differences+equal).
      */
     total: number
 
     /**
-     * number of distinct files.
+     * Number of distinct files.
      */
     distinctFiles: number
 
     /**
-     * number of equal files.
+     * Number of equal files.
      */
     equalFiles: number
 
     /**
-     * number of files only in path1.
+     * Number of files only in path1.
      */
     leftFiles: number
 
     /**
-     * number of files only in path2
+     * Number of files only in path2
      */
     rightFiles: number
 
     /**
-     * total number of different files (distinctFiles+leftFiles+rightFiles).
+     * Total number of different files (distinctFiles+leftFiles+rightFiles).
      */
     differencesFiles: number
 
     /**
-     * total number of files (differencesFiles+equalFiles).
+     * Total number of files (differencesFiles+equalFiles).
      */
     totalFiles: number
 
     /**
-     * number of distinct directories.
+     * Number of distinct directories.
      */
     distinctDirs: number
 
     /**
-     * number of equal directories.
+     * Number of equal directories.
      */
     equalDirs: number
 
     /**
-     * number of directories only in path1.
+     * Number of directories only in path1.
      */
     leftDirs: number
 
     /**
-     * number of directories only in path2.
+     * Number of directories only in path2.
      */
     rightDirs: number
 
     /**
-     * total number of different directories (distinctDirs+leftDirs+rightDirs).
+     * Total number of different directories (distinctDirs+leftDirs+rightDirs).
      */
     differencesDirs: number
 
     /**
-     * total number of directories (differencesDirs+equalDirs).
+     * Total number of directories (differencesDirs+equalDirs).
      */
     totalDirs: number
 
     /**
-     * number of broken links only in path1
+     * Number of broken links only in path1
      */
     leftBrokenLinks: number
 
     /**
-     * number of broken links only in path2
+     * Number of broken links only in path2
      */
     rightBrokenLinks: number
 
     /**
-     * number of broken links with same name appearing in both path1 and path2
+     * Number of broken links with same name appearing in both path1 and path2
      */
     distinctBrokenLinks: number
 
     /**
-     * total number of broken links
+     * Total number of broken links
      */
     totalBrokenLinks: number
 
     /**
-     * statistics available if 'compareSymlink' options is used.
+     * Statistics available if 'compareSymlink' options is used.
      */
     symlinks?: SymlinkStatistics
 
     /**
-     * true if directories are identical.
+     * True if directories are identical.
      */
     same: boolean
-
-    /**
-     * List of changes (present if Options.noDiffSet is false).
-     */
-    diffSet?: Array<Difference>
 }
 
 export interface SymlinkStatistics {
     /**
-     * number of distinct links.
+     * Number of distinct links.
      */
     distinctSymlinks: number
 
     /**
-     * number of equal links.
+     * Number of equal links.
      */
     equalSymlinks: number
 
     /**
-     * number of links only in path1.
+     * Number of links only in path1.
      */
     leftSymlinks: number
 
     /**
-     * number of links only in path2
+     * Number of links only in path2
      */
     rightSymlinks: number
 
     /**
-     * total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks).
+     * Total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks).
      */
     differencesSymlinks: number
 
     /**
-     * total number of links (differencesSymlinks+equalSymlinks).
+     * Total number of links (differencesSymlinks+equalSymlinks).
      */
     totalSymlinks: number
 
 }
 
+/**
+ * State of left/right entries relative to each other.
+ */
 export type DifferenceState = "equal" | "left" | "right" | "distinct"
+
+/**
+ * Type of entry.
+ */
 export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
+
+/**
+ * Provides reason when two identically named entries are distinct.
+ */
 export type Reason = "different-size" | "different-date" | "different-content" | "broken-link" | 'different-symlink'
+
 export interface Difference {
     /**
      * Any property is allowed if default result builder is not used.
@@ -285,78 +332,80 @@ export interface Difference {
     [key: string]: any
 
     /**
-     * path not including file/directory name; can be relative or absolute depending on call to compare().
+     * Path not including file/directory name; can be relative or absolute depending on call to compare().
      */
     path1?: string
 
     /**
-     * path not including file/directory name; can be relative or absolute depending on call to compare().
+     * Path not including file/directory name; can be relative or absolute depending on call to compare().
      */
     path2?: string
 
     /**
-     * path relative to root.
+     * Path relative to root dir.
      */
     relativePath: string
 
     /**
-     * file/directory name.
+     * Left file/directory name.
      */
     name1?: string
 
     /**
-     * file/directory name.
+     * Right file/directory name.
      */
     name2?: string
 
     /**
-     * one of equal, left, right, distinct.
+     * See [[DifferenceState]]
      */
     state: DifferenceState
 
     /**
-     * one of missing, file, directory.
+     * Type of left entry.
      */
     type1: DifferenceType
 
     /**
-     * one of missing, file, directory.
+     * Type of right entry.
      */
     type2: DifferenceType
 
     /**
-     * file size.
+     * Left file size.
      */
     size1?: number
 
     /**
-     * file size.
+     * Right file size.
      */
     size2?: number
 
     /**
-     * modification date (stat.mtime).
+     * Left entry modification date (stat.mtime).
      */
     date1?: number
 
     /**
-     * modification date (stat.mtime).
+     * Reft entry modification date (stat.mtime).
      */
     date2?: number
 
     /**
-     * depth.
+     * Depth level relative to root dir.
      */
     level: number
 
     /**
-     * Provides reason when two identically named entries are distinct.
+     * See [[Reason]].
      * Not available if entries are equal.
-     * One of "different-size", "different-date", "different-content", "broken-link", "different-symlink".
      */
     reason?: Reason
 }
 
+/**
+ * Synchronous file content comparison handler.
+ */
 export type CompareFileSync = (
     path1: string,
     stat1: fs.Stats,
@@ -365,6 +414,9 @@ export type CompareFileSync = (
     options: Options
 ) => boolean
 
+/**
+ * Asynchronous file content comparison handler.
+ */
 export type CompareFileAsync = (
     path1: string,
     stat1: fs.Stats,
@@ -373,13 +425,28 @@ export type CompareFileAsync = (
     options: Options
 ) => Promise<boolean>
 
+export interface CompareFileHandler {
+    compareSync: CompareFileSync,
+    compareAsync: CompareFileAsync
+}
+
+/**
+ * Available file content comparison handlers.
+ * These handlers are used when [[Options.compareContent]] is set.
+ */
 export const fileCompareHandlers: {
-    defaultFileCompare: {
-        compareSync: CompareFileSync,
-        compareAsync: CompareFileAsync
-    },
-    lineBasedFileCompare: {
-        compareSync: CompareFileSync,
-        compareAsync: CompareFileAsync
-    }
+    /**
+     * Default file content comparison handlers, used if [[Options.compareFileAsync]] or [[Options.compareFileSync]] are not specified.
+     * 
+     * Performs binary comparison.
+     */
+    defaultFileCompare: CompareFileHandler,
+    /**
+     * Compares files line by line.
+     * 
+     * Options:
+     * * ignoreLineEnding - tru/false (default: false)
+     * * ignoreWhiteSpaces - tru/false (default: false)
+     */
+    lineBasedFileCompare: CompareFileHandler
 }
