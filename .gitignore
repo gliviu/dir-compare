@@ -1,9 +1,10 @@
 /node_modules/
-.project
-.vscode
+/.project
+/.vscode
 /tests/report.txt
 /tests/testdir
 /coverage/
 /test*.*
 /build
-.nyc_output
+/.nyc_output
+/docs

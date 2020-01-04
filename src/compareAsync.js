@@ -80,11 +80,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     var samePromise = compareAsyncRes.samePromise
                     var same = compareAsyncRes.same
                     if (same !== undefined) {
-                        options.resultBuilder(entry1, entry2, 
-                            same ? 'equal' : 'distinct', 
+                        options.resultBuilder(entry1, entry2,
+                            same ? 'equal' : 'distinct',
                             level, relativePath, options, statistics, diffSet,
                             compareAsyncRes.reason)
-                        stats.updateStatisticsBoth(same, type1, statistics)
+                        stats.updateStatisticsBoth(entry1, entry2, compareAsyncRes.same, compareAsyncRes.reason, type1, statistics, options)
                     } else {
                         compareFilePromises.push(samePromise)
                     }
@@ -103,7 +103,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                 } else if (cmp < 0) {
                     // Right missing
                     options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
-                    stats.updateStatisticsLeft(type1, statistics)
+                    stats.updateStatisticsLeft(entry1, type1, statistics, options)
                     i1++
                     if (type1 === 'directory' && !options.skipSubdirs) {
                         if (!options.noDiffSet) {
@@ -117,7 +117,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                 } else {
                     // Left missing
                     options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet)
-                    stats.updateStatisticsRight(type2, statistics)
+                    stats.updateStatisticsRight(entry2, type2, statistics, options)
                     i2++
                     if (type2 === 'directory' && !options.skipSubdirs) {
                         if (!options.noDiffSet) {
@@ -137,11 +137,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                         if (sameResult.error) {
                             return Promise.reject(sameResult.error)
                         } else {
-                            options.resultBuilder(sameResult.entry1, sameResult.entry2, 
-                                sameResult.same ? 'equal' : 'distinct', 
+                            options.resultBuilder(sameResult.entry1, sameResult.entry2,
+                                sameResult.same ? 'equal' : 'distinct',
                                 level, relativePath, options, statistics, sameResult.diffSet,
                                 sameResult.reason)
-                            stats.updateStatisticsBoth(sameResult.same, sameResult.type1, statistics)
+                            stats.updateStatisticsBoth(sameResult.entries1, sameResult.entries2, sameResult.same, sameResult.reason, sameResult.type1, statistics, options)
                         }
                     }
                 })

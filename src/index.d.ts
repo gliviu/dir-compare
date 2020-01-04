@@ -227,6 +227,11 @@ export interface Statistics {
     totalBrokenLinks: number
 
     /**
+     * statistics available if 'compareSymlink' options is used.
+     */
+    symlinks?: SymlinkStatistics
+
+    /**
      * true if directories are identical.
      */
     same: boolean
@@ -237,9 +242,42 @@ export interface Statistics {
     diffSet?: Array<Difference>
 }
 
+export interface SymlinkStatistics {
+    /**
+     * number of distinct links.
+     */
+    distinctSymlinks: number
+
+    /**
+     * number of equal links.
+     */
+    equalSymlinks: number
+
+    /**
+     * number of links only in path1.
+     */
+    leftSymlinks: number
+
+    /**
+     * number of links only in path2
+     */
+    rightSymlinks: number
+
+    /**
+     * total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks).
+     */
+    differencesSymlinks: number
+
+    /**
+     * total number of links (differencesSymlinks+equalSymlinks).
+     */
+    totalSymlinks: number
+
+}
+
 export type DifferenceState = "equal" | "left" | "right" | "distinct"
 export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
-export type Reason = "different-size" | "different-date" | "different-content" | "broken-link"
+export type Reason = "different-size" | "different-date" | "different-content" | "broken-link" | 'different-symlink'
 export interface Difference {
     /**
      * Any property is allowed if default result builder is not used.
@@ -314,7 +352,7 @@ export interface Difference {
     /**
      * Provides reason when two identically named entries are distinct.
      * Not available if entries are equal.
-     * One of "different-size", "different-date", "different-content", "broken-link".
+     * One of "different-size", "different-date", "different-content", "broken-link", "different-symlink".
      */
     reason?: Reason
 }

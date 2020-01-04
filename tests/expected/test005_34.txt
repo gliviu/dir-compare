@@ -1,0 +1,4 @@
+[/] 2 == 2 (directory)
+[/] 1 == 1 (file)
+Entries are identical
+total: 2, equal: 2, distinct: 0, only left: 0, only right: 0

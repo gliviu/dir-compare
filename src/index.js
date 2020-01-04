@@ -16,17 +16,17 @@ var compareSync = function (path1, path2, options) {
     // realpathSync() is necessary for loop detection to work properly
     var absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
     var absolutePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
-    var statistics = initStats()
     var diffSet
     options = prepareOptions(options)
     if (!options.noDiffSet) {
         diffSet = []
     }
+    var statistics = initStats(options)
     compareSyncInternal(
         common.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
         common.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
         0, ROOT_PATH, options, statistics, diffSet)
-    completeStatistics(statistics)
+    completeStatistics(statistics, options)
     statistics.diffSet = diffSet
 
     return statistics
@@ -51,18 +51,18 @@ var compareAsync = function (path1, path2, options) {
             absolutePath2 = pathUtils.normalize(pathUtils.resolve(realPath2))
         })
         .then(function () {
-            var statistics = initStats()
             options = prepareOptions(options)
             var asyncDiffSet
             if (!options.noDiffSet) {
                 asyncDiffSet = []
             }
+            var statistics = initStats(options)
             return compareAsyncInternal(
                 common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
                 common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
                 0, ROOT_PATH, options, statistics, asyncDiffSet).then(
                     function () {
-                        completeStatistics(statistics)
+                        completeStatistics(statistics, options)
                         if (!options.noDiffSet) {
                             var diffSet = []
                             rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)
@@ -96,7 +96,18 @@ var prepareOptions = function (options) {
     return clone
 }
 
-var initStats = function () {
+var initStats = function (options) {
+    var symlinkStatistics = undefined
+    if (options.compareSymlink) {
+        symlinkStatistics = {
+            distinctSymlinks: 0,
+            equalSymlinks: 0,
+            leftSymlinks: 0,
+            rightSymlinks: 0,
+            differencesSymlinks: 0,
+            totalSymlinks: 0,
+        }
+    }
     return {
         distinct: 0,
         equal: 0,
@@ -113,11 +124,12 @@ var initStats = function () {
         leftBrokenLinks: 0,
         rightBrokenLinks: 0,
         distinctBrokenLinks: 0,
+        symlinks: symlinkStatistics,
         same: undefined
     }
 }
 
-var completeStatistics = function (statistics) {
+var completeStatistics = function (statistics, options) {
     statistics.differences = statistics.distinct + statistics.left + statistics.right
     statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles
     statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs
@@ -126,6 +138,12 @@ var completeStatistics = function (statistics) {
     statistics.totalDirs = statistics.equalDirs + statistics.differencesDirs
     statistics.totalBrokenLinks = statistics.leftBrokenLinks + statistics.rightBrokenLinks + statistics.distinctBrokenLinks
     statistics.same = statistics.differences ? false : true
+
+    if (options.compareSymlink) {
+        statistics.symlinks.differencesSymlinks = statistics.symlinks.distinctSymlinks +
+            statistics.symlinks.leftSymlinks + statistics.symlinks.rightSymlinks
+        statistics.symlinks.totalSymlinks = statistics.symlinks.differencesSymlinks + statistics.symlinks.equalSymlinks
+    }
 }
 
 // Async diffsets are kept into recursive structures.
@@ -181,6 +199,13 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  * rightBrokenLinks: number of broken links only in path2
  * distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
  * totalBrokenLinks: total number of broken links
+ * symlinks: Statistics available if 'compareSymlink' options is used
+ *     distinctSymlinks: number of distinct links
+ *     equalSymlinks: number of equal links
+ *     leftSymlinks: number of links only in path1
+ *     rightSymlinks: number of links only in path2
+ *     differencesSymlinks: total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks)
+ *     totalSymlinks: total number of links (differencesSymlinks+equalSymlinks)
  * same: true if directories are identical
  * diffSet - List of changes (present if Options.noDiffSet is false)
  *     path1: absolute path not including file/directory name,
@@ -198,7 +223,7 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  *     level: depth
  *     reason: Provides reason when two identically named entries are distinct
  *             Not available if entries are equal
- *             One of "different-size", "different-date", "different-content", "broken-link"
+ *             One of "different-size", "different-date", "different-content", "broken-link", "different-symlink"
  */
 module.exports = {
     compareSync: compareSync,

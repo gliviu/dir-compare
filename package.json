@@ -40,7 +40,7 @@
         "dircompare": "src/dircompare.js"
     },
     "scripts": {
-        "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
+        "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage && rm -rf docs",
         "copydeps": "copyfiles \"tests/expected/**\" tests/testdir.tar package.json build",
         "build": "tsc && npm run copydeps",
         "lint": "tslint -p tsconfig.json",
@@ -48,7 +48,8 @@
         "test": "node build/tests/runTests.js",
         "coverage": "npm install -g nyc && nyc --exclude \"build/tests/**\" --reporter=lcov npm test && nyc report",
         "extest": "npm run pretest && ./tests/extended/init.sh && tests/extended/runall.sh",
-        "toc": "npx markdown-toc README.md"
+        "toc": "npx markdown-toc README.md",
+        "docs": "typedoc --includeDeclarations --excludeExternals --theme minimal --mode file --out docs ./src/index.d.ts"
     },
     "author": "Liviu Grigorescu",
     "license": "MIT",

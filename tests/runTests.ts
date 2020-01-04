@@ -11,7 +11,7 @@ import temp = require('temp')
 import defaultPrint = require('../src/print')
 import Promise = require('bluebird')
 import Streams = require('memory-streams')
-import { compare as compareAsync, compareSync as compareSync } from "../src"
+import { compare as compareAsync, compareSync as compareSync, Statistics } from "../src"
 import untar = require('./untar')
 import semver = require('semver')
 
@@ -172,7 +172,8 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
                 printResult(output, expected)
             }
             const statisticsCheck = checkStatistics(result, test)
-            const res = expected === output && statisticsCheck
+            const validated = runCustomValidator(test, result)
+            const res = expected === output && statisticsCheck && validated
             report(test.name, 'sync', output, null, res, saveReport)
             console.log(test.name + ' sync: ' + passed(res, 'sync'))
         }, function (error) {
@@ -181,7 +182,7 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
         })
 }
 
-const testAsync = function (test, testDirPath, saveReport, runOptions: Partial<RunOptions>) {
+const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>) {
     process.chdir(testDirPath)
     let path1, path2
     if (test.withRelativePath) {
@@ -195,7 +196,7 @@ const testAsync = function (test, testDirPath, saveReport, runOptions: Partial<R
     if (test.runAsync) {
         promise = test.runAsync()
             .then(function (result) {
-                return { output: result, statisticsCheck: true }
+                return { output: result, statisticsCheck: true, validated: true }
             })
     } else {
         promise = compareAsync(path1, path2, test.options)
@@ -205,20 +206,20 @@ const testAsync = function (test, testDirPath, saveReport, runOptions: Partial<R
                 print(result, writer, test.displayOptions)
                 const statisticsCheck = checkStatistics(result, test)
                 const output = normalize(writer.toString()).trim()
-                return { output, statisticsCheck }
+                const validated = runCustomValidator(test, result)
+                return { output, statisticsCheck, validated }
             })
     }
     return promise.then(
         function (result) {
             const output = result.output
-            const statisticsCheck = result.statisticsCheck
 
             const expected = getExpected(test)
 
             if (runOptions.showResult) {
                 printResult(output, expected)
             }
-            const res = expected === output && statisticsCheck
+            const res = expected === output && result.statisticsCheck && result.validated
             report(test.name, 'async', output, null, res, saveReport)
             console.log(test.name + ' async: ' + passed(res, 'async'))
         }, function (error) {
@@ -287,7 +288,6 @@ function initReport(saveReport) {
         if (fs.existsSync(REPORT_FILE)) {
             fs.unlinkSync(REPORT_FILE)
         }
-        const os = require('os')
         fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s, dir-compare version: %s\n',
             new Date(), process.version, os.platform(), os.release(), pjson.version))
     }
@@ -319,13 +319,18 @@ const printResult = function (output, expected) {
 }
 
 function validatePlatform(test: Partial<Test>) {
-    if(!test.excludePlatform || test.excludePlatform.length==0) {
+    if(!test.excludePlatform || test.excludePlatform.length===0) {
         return true
     }
 
     return !test.excludePlatform.includes(os.platform())
 }
-
+function runCustomValidator(test: Partial<Test>, statistics: Statistics) {
+    if(!test.customValidator) {
+        return true
+    }
+    return test.customValidator(statistics)
+}
 // testDirPath: path to test data
 // singleTestName: if defined, represents the test name to be executed in format
 //                 otherwise all tests are executed

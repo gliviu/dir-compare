@@ -1,6 +1,7 @@
-import { Options } from ".."
+import { Options, Statistics, SymlinkStatistics } from ".."
 import { compare as compareAsync, fileCompareHandlers } from ".."
 import util = require('util')
+import { getHeapSpaceStatistics } from "v8"
 
 export interface DisplayOptions {
     showAll: boolean,
@@ -48,6 +49,8 @@ export interface Test {
     excludePlatform: Platform[]
     // Execute hand-written async test
     runAsync: () => Promise<string>
+    // Custom validation function
+    customValidator: (result: Statistics) => boolean
 }
 
 type Platform = 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin' | 'netbsd'
@@ -558,6 +561,14 @@ export function getTests(testDirPath) {
             commandLineOptions: '-aw --reason',
             exitCode: 1,
         },
+        {
+            name: 'test005_34', path1: '#16/03/b', path2: '#16/03/a',
+            description: "ignores broken links if skipSymlinks is used",
+            options: { compareSize: true, ignoreCase: true, skipSymlinks: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --skip-symlinks',
+            exitCode: 0,
+        },
 
         ////////////////////////////////////////////////////
         // Compare symlinks                               //
@@ -568,6 +579,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 0, equalSymlinks: 1, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 0, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -577,6 +589,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -586,6 +599,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 0, equalSymlinks: 1, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 0, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -595,6 +609,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -604,6 +619,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 0, equalSymlinks: 1, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 0, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -613,6 +629,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -622,6 +639,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -631,6 +649,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -640,6 +659,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -649,6 +669,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -658,6 +679,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -667,6 +689,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -676,6 +699,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -685,6 +709,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 0,
         },
@@ -694,6 +719,7 @@ export function getTests(testDirPath) {
             options: { compareSize: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason --compare-symlink',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 0, equalSymlinks: 0, leftSymlinks: 1, rightSymlinks: 1, differencesSymlinks: 2, totalSymlinks: 2 }),
             excludePlatform: ['win32'],
             exitCode: 1,
         },
@@ -703,8 +729,19 @@ export function getTests(testDirPath) {
             options: { compareSize: true },
             displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
             commandLineOptions: '-aw --reason',
+            customValidator: stats => !stats.symlinks,
             excludePlatform: ['win32'],
             exitCode: 1,
+        },
+        {
+            name: 'test005_66', path1: '#19/07/a', path2: '#19/07/b',
+            description: "no symlink is compared if skipSymlink is used",
+            options: { compareSize: true, compareSymlink: true, skipSymlinks: true },
+            displayOptions: { showAll: true, wholeReport: true, nocolors: true, reason: true },
+            commandLineOptions: '-aw --reason --compare-symlink --skip-symlinks',
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 0, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 0, totalSymlinks: 0 }),
+            excludePlatform: ['win32'],
+            exitCode: 0,
         },
 
         ////////////////////////////////////////////////////
@@ -987,4 +1024,9 @@ function printRelativePathResult(res, testDirPath, writer) {
     result = result.replace(/\\\\/g, "/")
     result = result.replace(new RegExp(testDirPath.replace(/\\/g, "/"), 'g'), 'absolute_path')
     writer.write(result)
+}
+
+
+function validateSymlinks(expected: SymlinkStatistics | undefined, actual: SymlinkStatistics) {
+    return JSON.stringify(expected) === JSON.stringify(actual)
 }

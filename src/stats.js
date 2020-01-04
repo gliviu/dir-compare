@@ -2,7 +2,7 @@
  * Calculates comparison statistics.
  */
 module.exports = {
-    updateStatisticsBoth: function (same, type, statistics) {
+    updateStatisticsBoth: function (entry1, entry2, same, reason, type, statistics, options) {
         same ? statistics.equal++ : statistics.distinct++
         if (type === 'file') {
             same ? statistics.equalFiles++ : statistics.distinctFiles++
@@ -14,8 +14,20 @@ module.exports = {
             throw new Error('Unexpected type ' + type)
         }
 
+        var isSymlink1=entry1?entry1.isSymlink:false
+        var isSymlink2=entry2?entry2.isSymlink:false
+        var isSymlink =  isSymlink1 || isSymlink2
+        if (options.compareSymlink && isSymlink) {
+            var symlinks = statistics.symlinks
+            if (reason === 'different-symlink') {
+                symlinks.distinctSymlinks++
+            } else {
+                symlinks.equalSymlinks++
+            }
+        }
+
     },
-    updateStatisticsLeft: function (type, statistics) {
+    updateStatisticsLeft: function (entry1, type, statistics, options) {
         statistics.left++
         if (type === 'file') {
             statistics.leftFiles++
@@ -26,8 +38,12 @@ module.exports = {
         } else {
             throw new Error('Unexpected type ' + type)
         }
+
+        if (options.compareSymlink && entry1.isSymlink) {
+            statistics.symlinks.leftSymlinks++
+        }
     },
-    updateStatisticsRight: function (type, statistics) {
+    updateStatisticsRight: function (entry2, type, statistics, options) {
         statistics.right++
         if (type === 'file') {
             statistics.rightFiles++
@@ -38,6 +54,9 @@ module.exports = {
         } else {
             throw new Error('Unexpected type ' + type)
         }
-    }
 
+        if (options.compareSymlink && entry2.isSymlink) {
+            statistics.symlinks.rightSymlinks++
+        }
+    }
 }

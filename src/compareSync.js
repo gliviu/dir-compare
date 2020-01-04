@@ -66,11 +66,11 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         if (cmp === 0) {
             // Both left/right exist and have the same name and type
             var compareEntryRes = compareRules.compareEntrySync(entry1, entry2, type1, options)
-            options.resultBuilder(entry1, entry2, 
+            options.resultBuilder(entry1, entry2,
                 compareEntryRes.same ? 'equal' : 'distinct',
-                level, relativePath, options, statistics, diffSet, 
+                level, relativePath, options, statistics, diffSet,
                 compareEntryRes.reason)
-            stats.updateStatisticsBoth(compareEntryRes.same, type1, statistics)
+            stats.updateStatisticsBoth(entry1, entry2, compareEntryRes.same, compareEntryRes.reason, type1, statistics, options)
             i1++
             i2++
             if (!options.skipSubdirs && type1 === 'directory') {
@@ -79,7 +79,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         } else if (cmp < 0) {
             // Right missing
             options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
-            stats.updateStatisticsLeft(type1, statistics)
+            stats.updateStatisticsLeft(entry1, type1, statistics, options)
             i1++
             if (type1 === 'directory' && !options.skipSubdirs) {
                 compare(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))
@@ -87,7 +87,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         } else {
             // Left missing
             options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet)
-            stats.updateStatisticsRight(type2, statistics)
+            stats.updateStatisticsRight(entry2, type2, statistics, options)
             i2++
             if (type2 === 'directory' && !options.skipSubdirs) {
                 compare(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))
