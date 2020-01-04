@@ -118,23 +118,24 @@ const checkStatistics = function (statistics, test) {
     if (statistics.totalDirs !== statistics.equalDirs + statistics.differencesDirs) {
         return false
     }
-    if (statistics.totalBrokenLinks !== statistics.leftBrokenLinks + statistics.rightBrokenLinks + statistics.distinctBrokenLinks) {
+    const brokenLinksStats = statistics.brokenLinks
+    if (brokenLinksStats.totalBrokenLinks !== brokenLinksStats.leftBrokenLinks + brokenLinksStats.rightBrokenLinks + brokenLinksStats.distinctBrokenLinks) {
         return false
     }
 
-    if (statistics.total !== statistics.totalDirs + statistics.totalFiles + statistics.totalBrokenLinks) {
+    if (statistics.total !== statistics.totalDirs + statistics.totalFiles + brokenLinksStats.totalBrokenLinks) {
         return false
     }
     if (statistics.equal !== statistics.equalDirs + statistics.equalFiles) {
         return false
     }
-    if (statistics.left !== statistics.leftDirs + statistics.leftFiles + statistics.leftBrokenLinks) {
+    if (statistics.left !== statistics.leftDirs + statistics.leftFiles + brokenLinksStats.leftBrokenLinks) {
         return false
     }
-    if (statistics.right !== statistics.rightDirs + statistics.rightFiles + statistics.rightBrokenLinks) {
+    if (statistics.right !== statistics.rightDirs + statistics.rightFiles + brokenLinksStats.rightBrokenLinks) {
         return false
     }
-    if (statistics.distinct !== statistics.distinctDirs + statistics.distinctFiles + statistics.distinctBrokenLinks) {
+    if (statistics.distinct !== statistics.distinctDirs + statistics.distinctFiles + brokenLinksStats.distinctBrokenLinks) {
         return false
     }
     return true

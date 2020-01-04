@@ -107,8 +107,8 @@ var print = function (res, writer, program) {
         colorLeft(statLeft),
         colorRight(statRight)
     )
-    if (res.totalBrokenLinks > 0) {
-        stats += util.format(', broken links: %s', colorBrokenLinks(res.totalBrokenLinks))
+    if (res.brokenLinks.totalBrokenLinks > 0) {
+        stats += util.format(', broken links: %s', colorBrokenLinks(res.brokenLinks.totalBrokenLinks))
     }
     stats += '\n'
     writer.write(stats)

@@ -247,6 +247,23 @@ export interface Statistics {
     totalDirs: number
 
     /**
+     * Stats about broken links.
+     */
+    brokenLinks: BrokenLinksStatistics
+
+    /**
+     * Statistics available if 'compareSymlink' options is used.
+     */
+    symlinks?: SymlinkStatistics
+
+    /**
+     * True if directories are identical.
+     */
+    same: boolean
+}
+
+export interface BrokenLinksStatistics {
+    /**
      * Number of broken links only in path1
      */
     leftBrokenLinks: number
@@ -266,15 +283,6 @@ export interface Statistics {
      */
     totalBrokenLinks: number
 
-    /**
-     * Statistics available if 'compareSymlink' options is used.
-     */
-    symlinks?: SymlinkStatistics
-
-    /**
-     * True if directories are identical.
-     */
-    same: boolean
 }
 
 export interface SymlinkStatistics {

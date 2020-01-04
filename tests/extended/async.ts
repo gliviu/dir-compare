@@ -14,13 +14,13 @@ const options = {
 const path1 = `/${os.tmpdir()}/linux-4.3`
 const path2 = `/${os.tmpdir()}/linux-4.4`
 
-const expected = '{"distinct":8543,"equal":46693,"left":792,"right":1755,"distinctFiles":8543,"equalFiles":43167,"leftFiles":750,"rightFiles":1639,"distinctDirs":0,"equalDirs":3526,"leftDirs":42,"rightDirs":116,"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"same":false,"differences":11090,"differencesFiles":10932,"differencesDirs":158,"total":57783,"totalFiles":54099,"totalDirs":3684,"totalBrokenLinks":0}'
+const expected = '{"distinct":8543,"equal":46693,"left":792,"right":1755,"distinctFiles":8543,"equalFiles":43167,"leftFiles":750,"rightFiles":1639,"distinctDirs":0,"equalDirs":3526,"leftDirs":42,"rightDirs":116,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"same":false,"differences":11090,"differencesFiles":10932,"differencesDirs":158,"total":57783,"totalFiles":54099,"totalDirs":3684}'
 
 const noTests = 5
 
 let referenceTime = Date.now()
 let successfulTimerHitCount = 0
-let failedlTimerHitCount = 0
+let failedTimerHitCount = 0
 const EXPECTED_DIFF_MS = 500
 const ERR_THRESHOLD_MS = 70
 async function main() {
@@ -31,16 +31,17 @@ async function main() {
 
     clearInterval(timer)
 
-    const ok = JSON.stringify(result) === expected
-    const okSuccessfullTimerHitCount = successfulTimerHitCount > 4
-    const okFailedTimerHitCount = failedlTimerHitCount < 4
+    const actual = JSON.stringify(result)
+    const ok = actual === expected
+    const okSuccessfulTimerHitCount = successfulTimerHitCount > 4
+    const okFailedTimerHitCount = failedTimerHitCount < 4
 
-    console.log(`Async test - successfullTimerHit: %s, failedTimerHit: %s, result: %s`,
-        (okSuccessfullTimerHitCount ? 'OK' : 'FAIL'),
+    console.log(`Async test - successfulTimerHit: %s, failedTimerHit: %s, result: %s`,
+        (okSuccessfulTimerHitCount ? 'OK' : 'FAIL'),
         (okFailedTimerHitCount ? 'OK' : 'FAIL'),
-        (ok ? 'OK' : 'FAIL'))
+        (ok ? 'OK' : `FAIL - ${actual}`))
 
-    if (!ok || !okSuccessfullTimerHitCount || !okFailedTimerHitCount) {
+    if (!ok || !okSuccessfulTimerHitCount || !okFailedTimerHitCount) {
         process.exit(1)
     }
 
@@ -55,7 +56,7 @@ function printTimeDiff() {
     if (ok) {
         successfulTimerHitCount++
     } else {
-        failedlTimerHitCount++
+        failedTimerHitCount++
     }
 }
 

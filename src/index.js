@@ -147,10 +147,11 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  * rightDirs: number of directories only in path2
  * differencesDirs: total number of different directories (distinctDirs+leftDirs+rightDirs)
  * totalDirs: total number of directories (differencesDirs+equalDirs)
- * leftBrokenLinks: number of broken links only in path1
- * rightBrokenLinks: number of broken links only in path2
- * distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
- * totalBrokenLinks: total number of broken links
+ * brokenLinks:
+ *     leftBrokenLinks: number of broken links only in path1
+ *     rightBrokenLinks: number of broken links only in path2
+ *     distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
+ *     totalBrokenLinks: total number of broken links
  * symlinks: Statistics available if 'compareSymlink' options is used
  *     distinctSymlinks: number of distinct links
  *     equalSymlinks: number of equal links

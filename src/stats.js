@@ -14,6 +14,11 @@ module.exports = {
                 totalSymlinks: 0,
             }
         }
+        var brokenLinksStatistics = {
+            leftBrokenLinks: 0,
+            rightBrokenLinks: 0,
+            distinctBrokenLinks: 0,
+        }
         return {
             distinct: 0,
             equal: 0,
@@ -27,9 +32,7 @@ module.exports = {
             equalDirs: 0,
             leftDirs: 0,
             rightDirs: 0,
-            leftBrokenLinks: 0,
-            rightBrokenLinks: 0,
-            distinctBrokenLinks: 0,
+            brokenLinks: brokenLinksStatistics,
             symlinks: symlinkStatistics,
             same: undefined
         }
@@ -41,7 +44,7 @@ module.exports = {
         } else if (type === 'directory') {
             same ? statistics.equalDirs++ : statistics.distinctDirs++
         } else if (type === 'broken-link') {
-            statistics.distinctBrokenLinks++
+            statistics.brokenLinks.distinctBrokenLinks++
         } else {
             throw new Error('Unexpected type ' + type)
         }
@@ -66,7 +69,7 @@ module.exports = {
         } else if (type === 'directory') {
             statistics.leftDirs++
         } else if (type === 'broken-link') {
-            statistics.leftBrokenLinks++
+            statistics.brokenLinks.leftBrokenLinks++
         } else {
             throw new Error('Unexpected type ' + type)
         }
@@ -82,7 +85,7 @@ module.exports = {
         } else if (type === 'directory') {
             statistics.rightDirs++
         } else if (type === 'broken-link') {
-            statistics.rightBrokenLinks++
+            statistics.brokenLinks.rightBrokenLinks++
         } else {
             throw new Error('Unexpected type ' + type)
         }
@@ -98,7 +101,8 @@ module.exports = {
         statistics.total = statistics.equal + statistics.differences
         statistics.totalFiles = statistics.equalFiles + statistics.differencesFiles
         statistics.totalDirs = statistics.equalDirs + statistics.differencesDirs
-        statistics.totalBrokenLinks = statistics.leftBrokenLinks + statistics.rightBrokenLinks + statistics.distinctBrokenLinks
+        var brokenLInksStats = statistics.brokenLinks
+        brokenLInksStats.totalBrokenLinks = brokenLInksStats.leftBrokenLinks + brokenLInksStats.rightBrokenLinks + brokenLInksStats.distinctBrokenLinks
         statistics.same = statistics.differences ? false : true
 
         if (options.compareSymlink) {
