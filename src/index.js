@@ -8,6 +8,7 @@ var defaultResultBuilderCallback = require('./defaultResultBuilderCallback')
 var defaultFileCompare = require('./file_compare_handlers/defaultFileCompare')
 var lineBasedFileCompare = require('./file_compare_handlers/lineBasedFileCompare')
 var common = require('./common')
+var stats = require('./stats')
 
 var ROOT_PATH = pathUtils.sep
 
@@ -21,12 +22,12 @@ var compareSync = function (path1, path2, options) {
     if (!options.noDiffSet) {
         diffSet = []
     }
-    var statistics = initStats(options)
+    var statistics = stats.initStats(options)
     compareSyncInternal(
         common.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
         common.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
         0, ROOT_PATH, options, statistics, diffSet)
-    completeStatistics(statistics, options)
+    stats.completeStatistics(statistics, options)
     statistics.diffSet = diffSet
 
     return statistics
@@ -56,13 +57,13 @@ var compareAsync = function (path1, path2, options) {
             if (!options.noDiffSet) {
                 asyncDiffSet = []
             }
-            var statistics = initStats(options)
+            var statistics = stats.initStats(options)
             return compareAsyncInternal(
                 common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
                 common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
                 0, ROOT_PATH, options, statistics, asyncDiffSet).then(
                     function () {
-                        completeStatistics(statistics, options)
+                        stats.completeStatistics(statistics, options)
                         if (!options.noDiffSet) {
                             var diffSet = []
                             rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)
@@ -96,55 +97,6 @@ var prepareOptions = function (options) {
     return clone
 }
 
-var initStats = function (options) {
-    var symlinkStatistics = undefined
-    if (options.compareSymlink) {
-        symlinkStatistics = {
-            distinctSymlinks: 0,
-            equalSymlinks: 0,
-            leftSymlinks: 0,
-            rightSymlinks: 0,
-            differencesSymlinks: 0,
-            totalSymlinks: 0,
-        }
-    }
-    return {
-        distinct: 0,
-        equal: 0,
-        left: 0,
-        right: 0,
-        distinctFiles: 0,
-        equalFiles: 0,
-        leftFiles: 0,
-        rightFiles: 0,
-        distinctDirs: 0,
-        equalDirs: 0,
-        leftDirs: 0,
-        rightDirs: 0,
-        leftBrokenLinks: 0,
-        rightBrokenLinks: 0,
-        distinctBrokenLinks: 0,
-        symlinks: symlinkStatistics,
-        same: undefined
-    }
-}
-
-var completeStatistics = function (statistics, options) {
-    statistics.differences = statistics.distinct + statistics.left + statistics.right
-    statistics.differencesFiles = statistics.distinctFiles + statistics.leftFiles + statistics.rightFiles
-    statistics.differencesDirs = statistics.distinctDirs + statistics.leftDirs + statistics.rightDirs
-    statistics.total = statistics.equal + statistics.differences
-    statistics.totalFiles = statistics.equalFiles + statistics.differencesFiles
-    statistics.totalDirs = statistics.equalDirs + statistics.differencesDirs
-    statistics.totalBrokenLinks = statistics.leftBrokenLinks + statistics.rightBrokenLinks + statistics.distinctBrokenLinks
-    statistics.same = statistics.differences ? false : true
-
-    if (options.compareSymlink) {
-        statistics.symlinks.differencesSymlinks = statistics.symlinks.distinctSymlinks +
-            statistics.symlinks.leftSymlinks + statistics.symlinks.rightSymlinks
-        statistics.symlinks.totalSymlinks = statistics.symlinks.differencesSymlinks + statistics.symlinks.equalSymlinks
-    }
-}
 
 // Async diffsets are kept into recursive structures.
 // This method transforms them into one dimensional arrays.
