@@ -26,6 +26,9 @@ var compareBuffers = function (buf1, buf2, contentSize) {
  */
 var compareSync = function (path1, stat1, path2, stat2, options) {
     var fd1, fd2
+    if (stat1.size !== stat2.size) {
+        return false
+    }
     var bufferPair = bufferPool.allocateBuffers()
     try {
         fd1 = fs.openSync(path1, 'r')
@@ -58,6 +61,9 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
 var compareAsync = function (path1, stat1, path2, stat2, options) {
     var fd1, fd2
     var bufferPair
+    if (stat1.size !== stat2.size) {
+        return Promise.resolve(false)
+    }
     return Promise.all([wrapper.open(path1, 'r'), wrapper.open(path2, 'r')])
         .then(function (fds) {
             bufferPair = bufferPool.allocateBuffers()
