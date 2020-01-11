@@ -157,6 +157,11 @@ export interface Statistics {
     [key: string]: any
 
     /**
+     * True if directories are identical.
+     */
+    same: boolean
+
+    /**
      * Number of distinct entries.
      */
     distinct: number
@@ -255,11 +260,6 @@ export interface Statistics {
      * Statistics available if 'compareSymlink' options is used.
      */
     symlinks?: SymlinkStatistics
-
-    /**
-     * True if directories are identical.
-     */
-    same: boolean
 }
 
 export interface BrokenLinksStatistics {
@@ -274,7 +274,7 @@ export interface BrokenLinksStatistics {
     rightBrokenLinks: number
 
     /**
-     * Number of broken links with same name appearing in both path1 and path2
+     * Number of broken links with same name appearing in both path1 and path2  (leftBrokenLinks+rightBrokenLinks+distinctBrokenLinks)
      */
     distinctBrokenLinks: number
 

@@ -9,8 +9,12 @@ Node JS directory compare
 - [Installation](#installation)
 - [Library](#library)
   * [Use](#use)
+  * [Api](#api)
   * [Glob patterns](#glob-patterns)
-  * [Compare files by content](#compare-files-by-content)
+  * [Custom file comparators](#custom-file-comparators)
+  * [Ignore line endings and white spaces](#ignore-line-endings-and-white-spaces)
+  * [Custom result builder](#custom-result-builder)
+  * [Symbolic links](#symbolic-links)
 - [Command line](#command-line)
 - [Changelog](#changelog)
 
@@ -20,7 +24,7 @@ $ npm install dir-compare
 ```
 or
 ```shell
-$ npm install dir-compare -g
+$ npm install -g dir-compare
 ```
 for command line utility.
 
@@ -28,50 +32,43 @@ for command line utility.
 
 ## Use
 ```javascript
-var dircompare = require('dir-compare');
-var format = require('util').format;
+const dircompare = require('dir-compare');
 
-var options = {compareSize: true};
-var path1 = '...';
-var path2 = '...';
-
-var states = {'equal' : '==', 'left' : '->', 'right' : '<-', 'distinct' : '<>'};
+const options = { compareSize: true };
+// Multiple compare strategy can be used simultaneously - compareSize, compareContent, compareDate, compareSymlink.
+// If one comparison fails for a pair of files, they are considered distinct.
+const path1 = '...';
+const path2 = '...';
 
 // Synchronous
-var res = dircompare.compareSync(path1, path2, options);
-console.log(format('equal: %s, distinct: %s, left: %s, right: %s, differences: %s, same: %s',
-            res.equal, res.distinct, res.left, res.right, res.differences, res.same));
-res.diffSet.forEach(function (entry) {
-    var state = states[entry.state];
-    var name1 = entry.name1 ? entry.name1 : '';
-    var name2 = entry.name2 ? entry.name2 : '';
-    console.log(format('%s(%s)%s%s(%s)', name1, entry.type1, state, name2, entry.type2));
-});
+const res = dircompare.compareSync(path1, path2, options)
+print(res)
 
 // Asynchronous
 dircompare.compare(path1, path2, options)
-  .then(res => {
-      console.log(format('equal: %s, distinct: %s, left: %s, right: %s, differences: %s, same: %s',
-                  res.equal, res.distinct, res.left, res.right, res.differences, res.same));
-      res.diffSet.forEach(entry => {
-          var state = states[entry.state];
-          var name1 = entry.name1 ? entry.name1 : '';
-          var name2 = entry.name2 ? entry.name2 : '';
-
-          console.log(format('%s(%s)%s%s(%s)', name1, entry.type1, state, name2, entry.type2));
-      });
-  })
+  .then(res => print(res))
   .catch(error => console.error(error));
+
+
+function print(result) {
+  console.log('Directories are %s', result.same ? 'identical' : 'different')
+
+  console.log('Statistics - equal entries: %s, distinct entries: %s, left only entries: %s, right only entries: %s, differences: %s',
+    result.equal, result.distinct, result.left, result.right, result.differences)
+
+  result.diffSet.forEach(dif => console.log('Difference - name1: %s, type1: %s, name2: %s, type2: %s, state: %s',
+    dif.name1, dif.type1, dif.name2, dif.type2, dif.state))
+}
 ```
 
 Typescript
 ```typescript
-import { compare, compareSync, Options } from "dir-compare";
-var path1 = '...';
-var path2 = '...';
-var options: Partial<Options> = {compareSize: true};
+import { compare, compareSync, Options, Result } from "dir-compare";
+const path1 = '...';
+const path2 = '...';
+const options: Options = { compareSize: true };
 
-var res = compareSync(path1, path2, options);
+const res: Result = compareSync(path1, path2, options);
 console.log(res)
 
 compare(path1, path2, options)
@@ -82,21 +79,27 @@ compare(path1, path2, options)
 Options:
 
 * **compareSize**: true/false - Compares files by size. Defaults to 'false'.
+* **compareContent**: true/false - Compares files by content. Defaults to 'false'.
+* **compareFileSync**, **compareFileAsync**: Callbacks for file comparison. See [Custom file comparators](#custom-file-comparators).
 * **compareDate**: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
 * **dateTolerance**: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
-* **compareContent**: true/false - Compares files by content. Defaults to 'false'.
 * **compareSymlink**: true/false - Compares entries by symlink. Defaults to 'false'.
-* **skipSubdirs**: true/false - Skips sub directories. Defaults to 'false'.
 * **skipSymlinks**: true/false - Ignore symbolic links. Defaults to 'false'.
+* **skipSubdirs**: true/false - Skips sub directories. Defaults to 'false'.
 * **ignoreCase**: true/false - Ignores case when comparing names. Defaults to 'false'.
 * **noDiffSet**: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
 * **includeFilter**: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns. See [Glob patterns](#glob-patterns) below.
 * **excludeFilter**: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.  See [Glob patterns](#glob-patterns) below.
-* **resultBuilder**: Callback for constructing result -  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'. Example [here](https://raw.githubusercontent.com/gliviu/dir-compare/master/defaultResultBuilderCallback.js).
-* **compareFileSync**, **compareFileAsync**: Callbacks for file comparison. See [Compare files by content](#compare-files-by-content).
+* **resultBuilder**: Callback for constructing result
+  ```javascript
+  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason)
+  ```
+  Called for each compared entry pair. Updates `statistics` and `diffSet`.  
+  More details in [Custom result builder](#custom-result-builder).
 
 Result:
 
+* **same**: true if directories are identical
 * **distinct**: number of distinct entries
 * **equal**: number of equal entries
 * **left**: number of entries only in path1
@@ -115,12 +118,19 @@ Result:
 * **rightDirs**: number of directories only in path2
 * **differencesDirs**: total number of different directories (distinctDirs+leftDirs+rightDirs)
 * **totalDirs**: total number of directories (differencesDirs+equalDirs)
-* **leftBrokenLinks**: number of broken links only in path1
-* **rightBrokenLinks**: number of broken links only in path2
-* **distinctBrokenLinks**: number of broken links with same name appearing in both path1 and path2
-* **totalBrokenLinks**: total number of broken links
-* **same**: true if directories are identical
-* **diffSet** - List of changes (present if Options.noDiffSet is false)
+* **brokenLinks**:
+    * **leftBrokenLinks**: number of broken links only in path1
+    * **rightBrokenLinks**: number of broken links only in path2
+    * **distinctBrokenLinks**: number of broken links with same name appearing in both path1 and path2
+    * **totalBrokenLinks**: total number of broken links (leftBrokenLinks+rightBrokenLinks+distinctBrokenLinks)
+* **symlinks**: Statistics available if `compareSymlink` options is used
+    * **distinctSymlinks**: number of distinct links
+    * **equalSymlinks**: number of equal links
+    * **leftSymlinks**: number of links only in path1
+    * **rightSymlinks**: number of links only in path2
+    * **differencesSymlinks**: total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks)
+    * **totalSymlinks**: total number of links (differencesSymlinks+equalSymlinks)
+* **diffSet** - List of changes (present if `options.noDiffSet` is false)
     * **path1**: path not including file/directory name; can be relative or absolute depending on call to compare(),
     * **path2**: path not including file/directory name; can be relative or absolute depending on call to compare(),
     * **relativePath**: path relative to root,
@@ -134,9 +144,12 @@ Result:
     * **date1**: modification date (stat.mtime)
     * **date2**: modification date (stat.mtime)
     * **level**: depth
-    * **distinctReason**: Provides reason when two identically named entries are distinct.  
+    * **reason**: Provides reason when two identically named entries are distinct.  
       Not available if entries are equal.  
-      One of "size", "date", "content", "broken-link".
+      One of "different-size", "different-date", "different-content", "broken-link", "different-symlink".
+
+## Api
+<a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/gliviu/dir-compare/master/docs/index.html" target="_blank">Api Docs</a>
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -157,16 +170,21 @@ dircompare -f "/tests/**/*.js" dir1 dir2')       include all js files in '/tests
 dircompare -f "**/tests/**/*.ts" dir1 dir2')     include all js files in '/tests' directory and subdirectories
 ```
 
+## Custom file comparators
+By default file content is binary compared. As of version 1.5.0 custom file comparison handlers may be specified.
 
-## Compare files by content
-As of version 1.5.0, custom file comparison handlers may be specified.
-Included handlers are:
-* `dircompare.fileCompareHandlers.defaultFileCompare.compareSync`
-* `dircompare.fileCompareHandlers.defaultFileCompare.compareAsync`
-* `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
-* `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
+Custom handlers are specified by `compareFileSync` and `compareFileAsync` options which correspond to `dircompare.compareSync()` or `dircompare.compare()` methods.
 
-The line based comparator can be used to ignore line ending and white space differences. This comparator is not available in [CLI](#command-line) version.
+A couple of handlers are included in the library:
+* binary sync compare - `dircompare.fileCompareHandlers.defaultFileCompare.compareSync`
+* binary async compare - `dircompare.fileCompareHandlers.defaultFileCompare.compareAsync`
+* text sync compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
+* text async compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
+
+Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/file_compare_handlers/defaultFileCompare.js) as an example to create your own.
+
+## Ignore line endings and white spaces
+Line based comparator can be used to ignore line ending and white space differences. This comparator is not available in [CLI](#command-line) mode.
 ```javascript
 var dircompare = require('dir-compare');
 
@@ -186,6 +204,44 @@ console.log(res)
 dircompare.compare(path1, path2, options)
 .then(res => console.log(res))
 ```
+## Custom result builder
+Result builder is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
+
+If needed it can be replaced with custom implementation.
+
+```javascript
+var dircompare = require("dircompare")
+
+var customResultBuilder = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason) {
+    ...
+}
+
+var options = {
+    compareSize: true,
+    resultBuilder: customResultBuilder
+}
+var res = dircompare.compareSync('...', '...', options)
+
+```
+
+The [default](https://github.com/gliviu/dir-compare/blob/master/src/defaultResultBuilderCallback.js) builder can be used as an example.
+
+## Symbolic links
+Unless `compareSymlink` option is used, symbolic links are resolved and any comparison is applied to the file/directory they point to.
+
+Circular loops are handled by breaking the loop as soon as it is detected.
+
+Version `1.x` treats broken links as `ENOENT: no such file or directory`.  
+Since `2.0` they are treated as a special type of entry - `broken-link` - and are available as stats (`totalBrokenLinks`, `distinctBrokenLinks`, ...).
+
+Using `compareSymlink` option causes `dircompare` to check symlink values for equality.
+In this mode two entries with identical name are considered different if
+* one is symlink, the other is not
+* both are symlinks but point to different locations
+
+These rules are applied in addition to the other comparison modes; ie. by content, by size...
+
+If entries are different because of symlinks, `reason` will be `different-symlink`. Also statistics summarizes differences caused by symbolik links.
 
 # Command line
 ```
@@ -240,6 +296,17 @@ dircompare.compare(path1, path2, options)
 ```
 
 # Changelog
+* v2.0.0
+  * New option to compare symlinks.
+  * New field indicating reason for two entries being distinct.
+  * Improved command line output format.
+  * Tests are no longer part of published package.
+  * Generated [Api](#api) documentation.
+  
+  Breaking changes:
+  * Broken links are no longer treated as errors. As a result there are new statistics (leftBrokenLinks, rightBrokenLinks, distinctBrokenLinks, totalBrokenLinks) and new entry type - broken-link.
+    Details in [Symbolic links](#symbolic-links).
+  * Typescript correction: new interface `Result` replaced `Statistics`.
 * v1.8.0 
     * globstar patterns
     * typescript corrections

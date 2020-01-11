@@ -46,10 +46,10 @@
         "lint": "tslint -p tsconfig.json",
         "pretest": "npm install && npm run build",
         "test": "node build/tests/runTests.js",
-        "coverage": "npm install -g nyc && nyc --exclude \"build/tests/**\" --reporter=lcov npm test && nyc report",
         "extest": "npm run pretest && ./tests/extended/init.sh && tests/extended/runall.sh",
-        "toc": "npx markdown-toc README.md",
-        "docs": "typedoc --includeDeclarations --excludeExternals --theme minimal --mode file --out docs ./src/index.d.ts"
+        "coverage": "npx nyc --exclude \"build/tests/**\" --reporter=lcov npm test && npx nyc report",
+        "toc": "npx markdown-toc README.md; echo \n",
+        "docs": "npx typedoc --includeDeclarations --excludeExternals --theme minimal --mode file --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
     },
     "author": "Liviu Grigorescu",
     "license": "MIT",

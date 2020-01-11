@@ -128,7 +128,8 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  * 	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
  * compareFileSync, compareFileAsync: Callbacks for file comparison. 
  *
- * Output format:
+ * Result:
+ * same: true if directories are identical
  * distinct: number of distinct entries
  * equal: number of equal entries
  * left: number of entries only in path1
@@ -151,7 +152,7 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  *     leftBrokenLinks: number of broken links only in path1
  *     rightBrokenLinks: number of broken links only in path2
  *     distinctBrokenLinks: number of broken links with same name appearing in both path1 and path2
- *     totalBrokenLinks: total number of broken links
+ *     totalBrokenLinks: total number of broken links (leftBrokenLinks+rightBrokenLinks+distinctBrokenLinks)
  * symlinks: Statistics available if 'compareSymlink' options is used
  *     distinctSymlinks: number of distinct links
  *     equalSymlinks: number of equal links
@@ -159,7 +160,6 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  *     rightSymlinks: number of links only in path2
  *     differencesSymlinks: total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks)
  *     totalSymlinks: total number of links (differencesSymlinks+equalSymlinks)
- * same: true if directories are identical
  * diffSet - List of changes (present if Options.noDiffSet is false)
  *     path1: absolute path not including file/directory name,
  *     path2: absolute path not including file/directory name,
