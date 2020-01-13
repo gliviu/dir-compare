@@ -97,17 +97,17 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
         .then(
             // 'finally' polyfill for node 8 and below
             function (res) {
-                return Promise.resolve(finalize(fd1, fd2, fdQueue, bufferPair)).then(() => res)
+                return Promise.resolve(finalizeAsync(fd1, fd2, fdQueue, bufferPair)).then(() => res)
             },
             function (err) {
-                return Promise.resolve(finalize(fd1, fd2, fdQueue, bufferPair)).then(() => { throw err; })
+                return Promise.resolve(finalizeAsync(fd1, fd2, fdQueue, bufferPair)).then(() => { throw err; })
             }
         )
 }
 
-function finalize(fd1, fd2, fdQueue, bufferPair) {
-    closeFilesAsync(fd1, fd2, fdQueue)
+function finalizeAsync(fd1, fd2, fdQueue, bufferPair) {
     bufferPool.freeBuffers(bufferPair)
+    return closeFilesAsync(fd1, fd2, fdQueue)
 }
 
 var removeLineEnding = function (s) {

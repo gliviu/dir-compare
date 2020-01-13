@@ -86,6 +86,11 @@ function compareFileAsync(entry1, entry2, type, diffSet, options) {
                     reason: same ? undefined : 'different-content'
                 }
             })
+            .catch(function (error) {
+                return {
+                    error: error
+                }
+            })
 
         return { same: undefined, samePromise: samePromise }
     }
