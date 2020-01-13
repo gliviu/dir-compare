@@ -1,5 +1,4 @@
 var fs = require('fs')
-var Promise = require('bluebird')
 
 module.exports = {
     readdir: function (path) {

@@ -1,6 +1,5 @@
 var fs = require('fs')
 var bufferEqual = require('buffer-equal')
-var Promise = require('bluebird')
 var FileDescriptorQueue = require('./fileDescriptorQueue')
 var alloc = require('./common').alloc
 var closeFilesSync = require('./common').closeFilesSync
@@ -93,10 +92,20 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
             }
             return compareAsyncInternal()
         })
-        .finally(function () {
-            closeFilesAsync(fd1, fd2, fdQueue)
-            bufferPool.freeBuffers(bufferPair)
-        })
+        .then(
+            // 'finally' polyfill for node 8 and below
+            function (res) {
+                return Promise.resolve(finalize(fd1, fd2, fdQueue, bufferPair)).then(() => res)
+            },
+            function (err) {
+                return Promise.resolve(finalize(fd1, fd2, fdQueue, bufferPair)).then(() => { throw err; })
+            }
+        )
+}
+
+function finalize(fd1, fd2, fdQueue, bufferPair) {
+    closeFilesAsync(fd1, fd2, fdQueue)
+    bufferPool.freeBuffers(bufferPair)
 }
 
 module.exports = {

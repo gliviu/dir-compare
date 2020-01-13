@@ -1,5 +1,4 @@
 var fs = require('fs')
-var Promise = require('bluebird')
 
 var alloc = function (bufSize) {
     if (Buffer.alloc) {
@@ -10,8 +9,28 @@ var alloc = function (bufSize) {
 
 var wrapper = function (fdQueue) {
     return {
-        open: Promise.promisify(fdQueue.open),
-        read: Promise.promisify(fs.read),
+        open: function(path, flags) {
+            return new Promise(function (resolve, reject) {
+                fdQueue.open(path, flags, function(err, fd) {
+                    if(err){
+                        reject(err)
+                    } else {
+                        resolve(fd)
+                    }
+                })
+            })
+        },
+        read: function (fd, buffer, offset, length, position) {
+            return new Promise(function (resolve, reject) {
+                fs.read(fd, buffer, offset, length, position, function(err, bytesRead) {
+                    if(err){
+                        reject(err)
+                    } else {
+                        resolve(bytesRead)
+                    }
+                })
+            })
+        },
     }
 }
 

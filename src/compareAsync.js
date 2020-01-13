@@ -3,7 +3,6 @@ var common = require('./common')
 var compareRules = require('./compareEntry')
 var stats = require('./stats')
 var pathUtils = require('path')
-var Promise = require('bluebird')
 var fsPromise = require('./fsPromise')
 
 /**

@@ -17,7 +17,6 @@
         "src"
     ],
     "dependencies": {
-        "bluebird": "3.4.1",
         "buffer-equal": "1.0.0",
         "colors": "1.0.3",
         "commander": "2.9.0",

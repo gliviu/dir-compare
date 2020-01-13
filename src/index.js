@@ -1,7 +1,6 @@
 var util = require('util')
 var pathUtils = require('path')
 var fs = require('fs')
-var Promise = require('bluebird')
 var compareSyncInternal = require('./compareSync')
 var compareAsyncInternal = require('./compareAsync')
 var defaultResultBuilderCallback = require('./defaultResultBuilderCallback')
@@ -34,7 +33,17 @@ var compareSync = function (path1, path2, options) {
 }
 
 var wrapper = {
-    realPath: Promise.promisify(fs.realpath),
+    realPath: function(path, options) {
+        return new Promise(function (resolve, reject) {
+            fs.realpath(path, options, function(err, resolvedPath) {
+                if(err){
+                    reject(err)
+                } else {
+                    resolve(resolvedPath)
+                }
+            })
+        })
+    }
 }
 
 var compareAsync = function (path1, path2, options) {

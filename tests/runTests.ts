@@ -9,9 +9,8 @@ import fs = require('fs')
 import os = require('os')
 import temp = require('temp')
 import defaultPrint = require('../src/print')
-import Promise = require('bluebird')
 import Streams = require('memory-streams')
-import { compare as compareAsync, compareSync as compareSync, Statistics } from "../src"
+import { compare as compareAsync, compareSync as compareSync, Statistics, Result } from "../src"
 import untar = require('./untar')
 import semver = require('semver')
 
@@ -162,7 +161,7 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
     return new Promise(function (resolve, reject) {
         resolve(compareSync(path1, path2, test.options))
     }).then(
-        function (result) {
+        function (result: Result) {
             // PRINT DETAILS
             const writer = new Streams.WritableStream()
             const print = test.print ? test.print : defaultPrint
@@ -324,8 +323,13 @@ function validatePlatform(test: Partial<Test>) {
         return true
     }
 
-    return !test.excludePlatform.includes(os.platform())
+    return !includes(test.excludePlatform, os.platform())
 }
+
+function includes<T>(arr: T[], item: T): boolean {
+    return arr.filter(v => v === item).length === 1
+}
+
 function runCustomValidator(test: Partial<Test>, statistics: Statistics) {
     if(!test.customValidator) {
         return true
@@ -391,6 +395,9 @@ function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
         endReport(saveReport)
         process.exitCode = failed > 0 ? 1 : 0
         process.chdir(__dirname);  // allow temp dir to be removed
+    }).catch(error => {
+        console.error(error);
+        process.exit(1)
     })
 }
 
