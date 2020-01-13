@@ -9,16 +9,13 @@ var alloc = require('./common').alloc
  */
 function BuferPool(bufSize, bufNo) {
     var bufferPool = []
-    var createAsyncBuffers = function () {
-        for (var i = 0; i < bufNo; i++) {
-            bufferPool.push({
-                buf1: alloc(bufSize),
-                buf2: alloc(bufSize),
-                busy: false
-            })
-        }
+    for (var i = 0; i < bufNo; i++) {
+        bufferPool.push({
+            buf1: alloc(bufSize),
+            buf2: alloc(bufSize),
+            busy: false
+        })
     }
-    createAsyncBuffers()
 
     var allocateBuffers = function () {
         for (var i = 0; i < bufNo; i++) {
@@ -31,15 +28,15 @@ function BuferPool(bufSize, bufNo) {
         throw new Error('Async buffer limit reached')
     }
 
-    var freeBuffers = function (bufferPair) {
-        bufferPair.busy = false
-    }
-
     return {
         allocateBuffers: allocateBuffers,
         freeBuffers: freeBuffers
     }
 
+}
+
+function freeBuffers(bufferPair) {
+    bufferPair.busy = false
 }
 
 module.exports = BuferPool
