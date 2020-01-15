@@ -5,7 +5,6 @@ var dircompare = require('../index')
 var fs = require('fs')
 var util = require('util')
 var print = require('./print')
-var common = require('../common/common')
 var pjson = require('../../package.json')
 
 program
@@ -30,7 +29,7 @@ program
     .option('--csv', 'report - print details as csv')
     .option('--nocolors', 'don\'t use console colors')
     .option('--async', 'Make use of multiple cores')
-    
+
 
 program.on('--help', function () {
     console.log('  By default files are compared by size.')
@@ -92,7 +91,7 @@ var run = function () {
             var path1 = program.args[0]
             var path2 = program.args[1]
             var abort = false
-            if (!common.isNumeric(options.dateTolerance)) {
+            if (!isNumeric(options.dateTolerance)) {
                 console.error("Numeric value expected for --date-tolerance")
                 abort = true
             }
@@ -139,6 +138,9 @@ var run = function () {
     }
 }
 
+function isNumeric(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n)
+}
 
 
 

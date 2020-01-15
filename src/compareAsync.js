@@ -1,10 +1,12 @@
 var fs = require('fs')
-var common = require('./common/common')
-var compareRules = require('./common/compareEntry')
-var stats = require('./statistics/statistics')
+var entryBuilder = require('./entry/entryBuilder')
+var entryEquality = require('./entry/entryEquality')
+var stats = require('./statistics/statisticsUpdate')
 var pathUtils = require('path')
 var fsPromise = require('./fsPromise')
 var loopDetector = require('./symlink/loopDetector')
+var entryComparator = require('./entry/entryComparator')
+var entryType = require('./entry/entryType')
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -16,7 +18,7 @@ var getEntries = function (rootEntry, relativePath, loopDetected, options) {
     if (rootEntry.isDirectory) {
         return fsPromise.readdir(rootEntry.absolutePath)
             .then(function (entries) {
-                return common.buildDirEntries(rootEntry, entries, relativePath, options)
+                return entryBuilder.buildDirEntries(rootEntry, entries, relativePath, options)
             })
     }
     return Promise.resolve([rootEntry])
@@ -47,23 +49,23 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                 // compare entry name (-1, 0, 1)
                 var cmp
                 if (i1 < entries1.length && i2 < entries2.length) {
-                    cmp = options.ignoreCase ? common.compareEntryIgnoreCase(entry1, entry2) : common.compareEntryCaseSensitive(entry1, entry2)
-                    type1 = common.getType(entry1)
-                    type2 = common.getType(entry2)
+                    cmp = options.ignoreCase ? entryComparator.compareEntryIgnoreCase(entry1, entry2) : entryComparator.compareEntryCaseSensitive(entry1, entry2)
+                    type1 = entryType.getType(entry1)
+                    type2 = entryType.getType(entry2)
                 } else if (i1 < entries1.length) {
-                    type1 = common.getType(entry1)
-                    type2 = common.getType(undefined)
+                    type1 = entryType.getType(entry1)
+                    type2 = entryType.getType(undefined)
                     cmp = -1
                 } else {
-                    type1 = common.getType(undefined)
-                    type2 = common.getType(entry2)
+                    type1 = entryType.getType(undefined)
+                    type2 = entryType.getType(entry2)
                     cmp = 1
                 }
 
                 // process entry
                 if (cmp === 0) {
                     // Both left/right exist and have the same name and type
-                    var compareAsyncRes = compareRules.compareEntryAsync(entry1, entry2, type1, diffSet, options)
+                    var compareAsyncRes = entryEquality.isEntryEqualAsync(entry1, entry2, type1, diffSet, options)
                     var samePromise = compareAsyncRes.samePromise
                     var same = compareAsyncRes.same
                     if (same !== undefined) {

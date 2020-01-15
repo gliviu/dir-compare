@@ -1,6 +1,7 @@
 var fs = require('fs')
 var minimatch = require('minimatch')
 var pathUtils = require('path')
+var entryComparator = require('./entryComparator')
 
 var PATH_SEP = pathUtils.sep
 
@@ -8,10 +9,10 @@ module.exports = {
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
-	buildDirEntries: function (rootEntry, entries, relativePath, options) {
+	buildDirEntries: function (rootEntry, dirEntries, relativePath, options) {
 		var res = []
-		for (var i = 0; i < entries.length; i++) {
-			var entryName = entries[i]
+		for (var i = 0; i < dirEntries.length; i++) {
+			var entryName = dirEntries[i]
 			var entryAbsolutePath = rootEntry.absolutePath + PATH_SEP + entryName
 			var entryPath = rootEntry.path + PATH_SEP + entryName
 
@@ -24,7 +25,7 @@ module.exports = {
 				res.push(entry)
 			}
 		}
-		return options.ignoreCase ? res.sort(this.compareEntryIgnoreCase) : res.sort(this.compareEntryCaseSensitive)
+		return options.ignoreCase ? res.sort(entryComparator.compareEntryIgnoreCase) : res.sort(entryComparator.compareEntryCaseSensitive)
 	},
 
 	buildEntry: function (absolutePath, path, name) {
@@ -40,64 +41,6 @@ module.exports = {
 			isBrokenLink: stats.isBrokenLink,
 			isDirectory: stats.stat.isDirectory()
 		}
-	},
-
-	/**
-	 * One of 'missing','file','directory'
-	 */
-	getType: function (entry) {
-		if (!entry) {
-			return 'missing'
-		}
-		if (entry.isBrokenLink) {
-			return 'broken-link'
-		}
-		if (entry.isDirectory) {
-			return 'directory'
-		}
-		return 'file'
-	},
-
-	/**
-	 * Comparator for directory entries sorting.
-	 */
-	compareEntryCaseSensitive: function (a, b) {
-		if (a.isBrokenLink && b.isBrokenLink) {
-			return strcmp(a.name, b.name)
-		} else if (a.isBrokenLink) {
-			return -1
-		} else if (b.isBrokenLink) {
-			return 1
-		} else if (a.stat.isDirectory() && b.stat.isFile()) {
-			return -1
-		} else if (a.stat.isFile() && b.stat.isDirectory()) {
-			return 1
-		} else {
-			return strcmp(a.name, b.name)
-		}
-	},
-
-	/**
-	 * Comparator for directory entries sorting.
-	 */
-	compareEntryIgnoreCase: function (a, b) {
-		if (a.isBrokenLink && b.isBrokenLink) {
-			return strcmp(a.name, b.name)
-		} else if (a.isBrokenLink) {
-			return -1
-		} else if (b.isBrokenLink) {
-			return 1
-		} else if (a.stat.isDirectory() && b.stat.isFile()) {
-			return -1
-		} else if (a.stat.isFile() && b.stat.isDirectory()) {
-			return 1
-		} else {
-			return strcmp(a.name.toLowerCase(), b.name.toLowerCase())
-		}
-	},
-
-	isNumeric: function (n) {
-		return !isNaN(parseFloat(n)) && isFinite(n)
 	},
 
 }
@@ -157,6 +100,3 @@ function match(path, pattern) {
 	return false
 }
 
-function strcmp(str1, str2) {
-	return ((str1 === str2) ? 0 : ((str1 > str2) ? 1 : -1))
-}
