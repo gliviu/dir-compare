@@ -8,6 +8,7 @@ var defaultFileCompare = require('./fileCompareHandler/defaultFileCompare')
 var lineBasedFileCompare = require('./fileCompareHandler/lineBasedFileCompare')
 var common = require('./common/common')
 var statsLifecycle = require('./statistics/statisticsLifecycle')
+var loopDetector = require('./symlink/loopDetector')
 
 var ROOT_PATH = pathUtils.sep
 
@@ -25,7 +26,7 @@ var compareSync = function (path1, path2, options) {
     compareSyncInternal(
         common.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
         common.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
-        0, ROOT_PATH, options, statistics, diffSet)
+        0, ROOT_PATH, options, statistics, diffSet, loopDetector.initSymlinkCache())
     statsLifecycle.completeStatistics(statistics, options)
     statistics.diffSet = diffSet
 
@@ -70,7 +71,7 @@ var compareAsync = function (path1, path2, options) {
             return compareAsyncInternal(
                 common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
                 common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
-                0, ROOT_PATH, options, statistics, asyncDiffSet).then(
+                0, ROOT_PATH, options, statistics, asyncDiffSet, loopDetector.initSymlinkCache()).then(
                     function () {
                         statsLifecycle.completeStatistics(statistics, options)
                         if (!options.noDiffSet) {

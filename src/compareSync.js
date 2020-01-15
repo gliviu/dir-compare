@@ -3,6 +3,7 @@ var pathUtils = require('path')
 var common = require('./common/common')
 var compareRules = require('./common/compareEntry')
 var stats = require('./statistics/statistics')
+var loopDetector = require('./symlink/loopDetector')
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -22,22 +23,10 @@ var getEntries = function (rootEntry, relativePath, loopDetected, options) {
  * Compares two directories synchronously.
  */
 var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
-    symlinkCache = symlinkCache || {
-        dir1: {},
-        dir2: {}
-    }
-    var loopDetected1 = common.detectLoop(rootEntry1, symlinkCache.dir1)
-    var loopDetected2 = common.detectLoop(rootEntry2, symlinkCache.dir2)
+    var loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
+    var loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
+    loopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
 
-    var symlinkCachePath1, symlinkCachePath2
-    if (rootEntry1 && !loopDetected1) {
-        symlinkCachePath1 = rootEntry1.isSymlink ? fs.realpathSync(rootEntry1.absolutePath) : rootEntry1.absolutePath
-        symlinkCache.dir1[symlinkCachePath1] = true
-    }
-    if (rootEntry2 && !loopDetected2) {
-        symlinkCachePath2 = rootEntry2.isSymlink ? fs.realpathSync(rootEntry2.absolutePath) : rootEntry2.absolutePath
-        symlinkCache.dir2[symlinkCachePath2] = true
-    }
     var entries1 = getEntries(rootEntry1, relativePath, loopDetected1, options)
     var entries2 = getEntries(rootEntry2, relativePath, loopDetected2, options)
     var i1 = 0, i2 = 0
@@ -74,7 +63,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             i1++
             i2++
             if (!options.skipSubdirs && type1 === 'directory') {
-                compare(entry1, entry2, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))
+                compare(entry1, entry2, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, loopDetector.cloneSymlinkCache(symlinkCache))
             }
         } else if (cmp < 0) {
             // Right missing
@@ -82,7 +71,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             stats.updateStatisticsLeft(entry1, type1, statistics, options)
             i1++
             if (type1 === 'directory' && !options.skipSubdirs) {
-                compare(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))
+                compare(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, loopDetector.cloneSymlinkCache(symlinkCache))
             }
         } else {
             // Left missing
@@ -90,7 +79,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
             stats.updateStatisticsRight(entry2, type2, statistics, options)
             i2++
             if (type2 === 'directory' && !options.skipSubdirs) {
-                compare(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, common.cloneSymlinkCache(symlinkCache))
+                compare(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, loopDetector.cloneSymlinkCache(symlinkCache))
             }
         }
     }

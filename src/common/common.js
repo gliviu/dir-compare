@@ -5,23 +5,6 @@ var pathUtils = require('path')
 var PATH_SEP = pathUtils.sep
 
 module.exports = {
-	detectLoop: function (entry, symlinkCache) {
-		if (entry && entry.isSymlink) {
-			var realPath = fs.realpathSync(entry.absolutePath)
-			if (symlinkCache[realPath]) {
-				return true
-			}
-		}
-		return false
-	},
-
-	cloneSymlinkCache: function (symlinkCache) {
-		return {
-			dir1: shallowClone(symlinkCache.dir1),
-			dir2: shallowClone(symlinkCache.dir2)
-		}
-	},
-
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
@@ -172,14 +155,6 @@ function match(path, pattern) {
 		}
 	}
 	return false
-}
-
-function shallowClone(obj) {
-	var cloned = {}
-	Object.keys(obj).forEach(function (key) {
-		cloned[key] = obj[key]
-	})
-	return cloned
 }
 
 function strcmp(str1, str2) {
