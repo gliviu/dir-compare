@@ -8,7 +8,7 @@ import util = require('util')
 import fs = require('fs')
 import os = require('os')
 import temp = require('temp')
-import defaultPrint = require('../src/print')
+import defaultPrint = require('../src/cli/print')
 import Streams = require('memory-streams')
 import { compare as compareAsync, compareSync as compareSync, Statistics, Result } from "../src"
 import untar = require('./untar')
@@ -233,7 +233,7 @@ function testCommandLineInternal(test, testDirPath, async, saveReport, runOption
         return Promise.resolve()
     }
     return new Promise(function (resolve, reject) {
-        const dircompareJs = pathUtils.normalize(__dirname + '/../src/dircompare.js')
+        const dircompareJs = pathUtils.normalize(__dirname + '/../src/cli/dircompare.js')
         process.chdir(testDirPath)
         let path1, path2
         if (test.withRelativePath) {

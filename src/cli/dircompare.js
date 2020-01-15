@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 var program = require('commander')
-var dircompare = require('./index')
+var dircompare = require('../index')
 var fs = require('fs')
 var util = require('util')
 var print = require('./print')
-var common = require('./common')
-var pjson = require('../package.json')
+var common = require('../common/common')
+var pjson = require('../../package.json')
 
 program
     .version(pjson.version)

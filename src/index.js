@@ -3,11 +3,11 @@ var pathUtils = require('path')
 var fs = require('fs')
 var compareSyncInternal = require('./compareSync')
 var compareAsyncInternal = require('./compareAsync')
-var defaultResultBuilderCallback = require('./defaultResultBuilderCallback')
-var defaultFileCompare = require('./file_compare_handlers/defaultFileCompare')
-var lineBasedFileCompare = require('./file_compare_handlers/lineBasedFileCompare')
-var common = require('./common')
-var stats = require('./stats')
+var defaultResultBuilderCallback = require('./resultBuilder/defaultResultBuilderCallback')
+var defaultFileCompare = require('./fileCompareHandler/defaultFileCompare')
+var lineBasedFileCompare = require('./fileCompareHandler/lineBasedFileCompare')
+var common = require('./common/common')
+var stats = require('./common/statistics')
 
 var ROOT_PATH = pathUtils.sep
 

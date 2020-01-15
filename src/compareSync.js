@@ -1,8 +1,8 @@
 var fs = require('fs')
 var pathUtils = require('path')
-var common = require('./common')
-var compareRules = require('./compareEntry')
-var stats = require('./stats')
+var common = require('./common/common')
+var compareRules = require('./common/compareEntry')
+var stats = require('./common/statistics')
 
 /**
  * Returns the sorted list of entries in a directory.
