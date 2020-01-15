@@ -7,7 +7,7 @@ var defaultResultBuilderCallback = require('./resultBuilder/defaultResultBuilder
 var defaultFileCompare = require('./fileCompareHandler/defaultFileCompare')
 var lineBasedFileCompare = require('./fileCompareHandler/lineBasedFileCompare')
 var common = require('./common/common')
-var stats = require('./common/statistics')
+var statsLifecycle = require('./statistics/statisticsLifecycle')
 
 var ROOT_PATH = pathUtils.sep
 
@@ -21,12 +21,12 @@ var compareSync = function (path1, path2, options) {
     if (!options.noDiffSet) {
         diffSet = []
     }
-    var statistics = stats.initStats(options)
+    var statistics = statsLifecycle.initStats(options)
     compareSyncInternal(
         common.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
         common.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
         0, ROOT_PATH, options, statistics, diffSet)
-    stats.completeStatistics(statistics, options)
+    statsLifecycle.completeStatistics(statistics, options)
     statistics.diffSet = diffSet
 
     return statistics
@@ -66,13 +66,13 @@ var compareAsync = function (path1, path2, options) {
             if (!options.noDiffSet) {
                 asyncDiffSet = []
             }
-            var statistics = stats.initStats(options)
+            var statistics = statsLifecycle.initStats(options)
             return compareAsyncInternal(
                 common.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
                 common.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
                 0, ROOT_PATH, options, statistics, asyncDiffSet).then(
                     function () {
-                        stats.completeStatistics(statistics, options)
+                        statsLifecycle.completeStatistics(statistics, options)
                         if (!options.noDiffSet) {
                             var diffSet = []
                             rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)

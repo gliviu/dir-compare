@@ -1,7 +1,7 @@
 var fs = require('fs')
 var common = require('./common/common')
 var compareRules = require('./common/compareEntry')
-var stats = require('./common/statistics')
+var stats = require('./statistics/statistics')
 var pathUtils = require('path')
 var fsPromise = require('./fsPromise')
 
