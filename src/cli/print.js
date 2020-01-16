@@ -91,11 +91,12 @@ var print = function (res, writer, program) {
         statRight = res.right
         statDistinct = res.distinct
     } else {
-        statTotal = res.totalFiles
+        var brokenLInksStats = res.brokenLinks
+        statTotal = res.totalFiles + brokenLInksStats.totalBrokenLinks
         statEqual = res.equalFiles
-        statLeft = res.leftFiles
-        statRight = res.rightFiles
-        statDistinct = res.distinctFiles
+        statLeft = res.leftFiles + brokenLInksStats.leftBrokenLinks
+        statRight = res.rightFiles + brokenLInksStats.rightBrokenLinks
+        statDistinct = res.distinctFiles + brokenLInksStats.distinctBrokenLinks
     }
     if (!program.noDiffIndicator) {
         writer.write(res.same ? colorEqual('Entries are identical\n') : colorDistinct('Entries are different\n'))

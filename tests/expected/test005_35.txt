@@ -1,0 +1,2 @@
+Entries are different
+total: 9, equal: 0, distinct: 2, only left: 4, only right: 3, broken links: 5

@@ -569,6 +569,14 @@ export function getTests(testDirPath) {
             commandLineOptions: '-aw --reason --skip-symlinks',
             exitCode: 0,
         },
+        {
+            name: 'test005_35', path1: '#16/01/a', path2: '#16/01/b',
+            description: "count broken links when no option is used in cli",
+            options: { compareSize: true },
+            commandLineOptions: '',
+            onlyCommandLine: true,
+            exitCode: 1,
+        },
 
         ////////////////////////////////////////////////////
         // Compare symlinks                               //
