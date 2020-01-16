@@ -1,8 +1,8 @@
 /node_modules/
 /.project
 /.vscode
-/tests/report.txt
-/tests/testdir
+/test/report.txt
+/test/testdir
 /coverage/
 /test*.*
 /build

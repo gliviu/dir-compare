@@ -1,14 +1,15 @@
-import { compare } from "../.."
+import { compareSync } from "../../src"
 import os = require('os')
+
 const path1 = `/${os.tmpdir()}/linux-4.3`
 const path2 = `/${os.tmpdir()}/linux-4.4`
 const noTests = 100
 
-async function main() {
-    console.log("Start async heap test")
+function main() {
+    console.log("Start sync heap test")
     for (let i = 0; i < noTests; i++) {
         const t1 = Date.now()
-        const result = await compare(path1, path2, { compareContent: true })
+        const result = compareSync(path1, path2, { compareContent: true })
         if (result.diffSet && result.totalFiles !== 54099) {
             console.error(`Different number of files found: ${result.totalFiles}`)
             process.exit(1)
@@ -20,7 +21,3 @@ async function main() {
 }
 
 main()
-    .catch(error => {
-        console.error(error)
-        process.exit(1)
-    })

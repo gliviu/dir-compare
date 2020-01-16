@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOTDIR=$(dirname "$0")/../../build/tests/extended
+ROOTDIR=$(dirname "$0")/../../build/test/extended
 
 for file in compare.js async.js concurrent.js leaks-sync.js leaks-async.js
 do

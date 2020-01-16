@@ -1,4 +1,4 @@
-import { compare, Statistics } from "../.."
+import { compare, Statistics } from "../../src"
 import os = require('os')
 
 interface AsyncRes {

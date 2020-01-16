@@ -4,10 +4,10 @@ l1=linux-4.3
 l2=linux-4.4
 
 ROOTDIR=$(dirname "$0")/../..
-TESTDIR=$ROOTDIR/build/tests/testdir
+TESTDIR=$ROOTDIR/build/test/testdir
 if [ ! -d "$TESTDIR" ]; then
     echo "Testdir does not exist. Extracting into $TESTDIR"
-    node $ROOTDIR/build/tests/extract.js
+    node $ROOTDIR/build/test/extract.js
 fi
 
 mkdir -p /tmp/dircompare

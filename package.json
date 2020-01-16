@@ -40,13 +40,13 @@
     },
     "scripts": {
         "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
-        "copydeps": "copyfiles \"tests/expected/**\" tests/testdir.tar package.json build",
+        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar package.json build",
         "build": "tsc && npm run copydeps",
         "lint": "tslint -p tsconfig.json",
         "pretest": "npm install && npm run build",
-        "test": "node build/tests/runTests.js",
-        "extest": "npm run pretest && ./tests/extended/init.sh && tests/extended/runall.sh",
-        "coverage": "npx nyc --exclude \"build/tests/**\" --reporter=lcov npm test && npx nyc report",
+        "test": "node build/test/runTests.js",
+        "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
+        "coverage": "npx nyc --exclude \"build/test/**\" --reporter=lcov npm test && npx nyc report",
         "toc": "npx markdown-toc README.md; echo \n",
         "docs": "npx typedoc --includeDeclarations --excludeExternals --theme minimal --mode file --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
     },

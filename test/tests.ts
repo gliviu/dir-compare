@@ -1,5 +1,5 @@
-import { Options, Statistics, SymlinkStatistics } from ".."
-import { compare as compareAsync, fileCompareHandlers } from ".."
+import { Options, Statistics, SymlinkStatistics } from "../src"
+import { compare as compareAsync, fileCompareHandlers } from "../src"
 import util = require('util')
 import { getHeapSpaceStatistics } from "v8"
 

@@ -1,4 +1,4 @@
-import { compareSync, compare, Options, fileCompareHandlers } from "../.."
+import { compareSync, compare, Options, fileCompareHandlers } from "../../src"
 
 interface Test {
     testId: string,
