@@ -149,7 +149,7 @@ Result:
       One of "different-size", "different-date", "different-content", "broken-link", "different-symlink".
 
 ## Api
-<a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/gliviu/dir-compare/master/docs/index.html" target="_blank">Api Docs</a>
+<a href="https://gliviu.github.io/dc-api/" target="_blank">Api Docs</a>
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -296,6 +296,7 @@ If entries are different because of symlinks, `reason` will be `different-symlin
 ```
 
 # Changelog
+* v2.1.0 remove [bluebird](https://github.com/petkaantonov/bluebird/#note) dependency
 * v2.0.0
   * New option to compare symlinks.
   * New field indicating reason for two entries being distinct.

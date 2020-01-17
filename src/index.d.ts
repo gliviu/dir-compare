@@ -395,7 +395,7 @@ export interface Difference {
     date1?: number
 
     /**
-     * Reft entry modification date (stat.mtime).
+     * Right entry modification date (stat.mtime).
      */
     date2?: number
 
