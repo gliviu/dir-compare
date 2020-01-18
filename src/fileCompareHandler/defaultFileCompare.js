@@ -1,16 +1,15 @@
 var fs = require('fs')
 var bufferEqual = require('buffer-equal')
-var FileDescriptorQueue = require('./fileDescriptorQueue')
-var alloc = require('./common').alloc
-var closeFilesSync = require('./common').closeFilesSync
-var closeFilesAsync = require('./common').closeFilesAsync
+var FileDescriptorQueue = require('../fs/FileDescriptorQueue')
+var closeFilesSync = require('./closeFile').closeFilesSync
+var closeFilesAsync = require('./closeFile').closeFilesAsync
+var fsPromise = require('../fs/fsPromise')
+var BufferPool = require('../fs/BufferPool')
 
 var MAX_CONCURRENT_FILE_COMPARE = 8
 var BUF_SIZE = 100000
 var fdQueue = new FileDescriptorQueue(MAX_CONCURRENT_FILE_COMPARE * 2)
-var wrapper = require('./common').wrapper(fdQueue)
-var BuferPool = require('./bufferPool')
-var bufferPool = new BuferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
+var bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
 
 
 /**
@@ -63,7 +62,7 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
     if (stat1.size !== stat2.size) {
         return Promise.resolve(false)
     }
-    return Promise.all([wrapper.open(path1, 'r'), wrapper.open(path2, 'r')])
+    return Promise.all([fdQueue.promises.open(path1, 'r'), fdQueue.promises.open(path2, 'r')])
         .then(function (fds) {
             bufferPair = bufferPool.allocateBuffers()
             fd1 = fds[0]
@@ -73,8 +72,8 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
             var progress = 0
             var compareAsyncInternal = function () {
                 return Promise.all([
-                    wrapper.read(fd1, buf1, 0, BUF_SIZE, null),
-                    wrapper.read(fd2, buf2, 0, BUF_SIZE, null)
+                    fsPromise.read(fd1, buf1, 0, BUF_SIZE, null),
+                    fsPromise.read(fd2, buf2, 0, BUF_SIZE, null)
                 ]).then(function (bufferSizes) {
                     var size1 = bufferSizes[0]
                     var size2 = bufferSizes[1]
@@ -95,15 +94,15 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
         .then(
             // 'finally' polyfill for node 8 and below
             function (res) {
-                return Promise.resolve(finalizeAsync(fd1, fd2, fdQueue, bufferPair)).then(() => res)
+                return finalizeAsync(fd1, fd2, bufferPair).then(() => res)
             },
             function (err) {
-                return Promise.resolve(finalizeAsync(fd1, fd2, fdQueue, bufferPair)).then(() => { throw err; })
+                return finalizeAsync(fd1, fd2, bufferPair).then(() => { throw err; })
             }
         )
 }
 
-function finalizeAsync(fd1, fd2, fdQueue, bufferPair) {
+function finalizeAsync(fd1, fd2, bufferPair) {
     bufferPool.freeBuffers(bufferPair)
     return closeFilesAsync(fd1, fd2, fdQueue)
 }

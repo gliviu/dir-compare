@@ -1,7 +1,7 @@
 'use strict'
 
 var fs = require('fs')
-var Queue = require('./queue')
+var Queue = require('./Queue')
 /**
  * Limits the number of concurrent file handlers.
  * Use it as a wrapper over fs.open() and fs.close().
@@ -42,9 +42,36 @@ var FileDescriptorQueue = function (maxFilesNo) {
 		process()
 	}
 
+	var promises = {
+		open: function (path, flags) {
+			return new Promise(function (resolve, reject) {
+				open(path, flags, function (err, fd) {
+					if (err) {
+						reject(err)
+					} else {
+						resolve(fd)
+					}
+				})
+			})
+		},
+		
+		close: function (fd) {
+			return new Promise(function (resolve, reject) {
+				close(fd, function (err) {
+					if (err) {
+						reject(err)
+					} else {
+						resolve()
+					}
+				})
+			})
+		}
+	}
+
 	return {
 		open: open,
-		close: close
+		close: close,
+		promises: promises
 	}
 }
 

@@ -1,5 +1,3 @@
-var alloc = require('./common').alloc
-
 /**
  * Collection of buffers to be shared between async processes.
  * Avoids allocating buffers each time async process starts.
@@ -7,7 +5,7 @@ var alloc = require('./common').alloc
  * bufNo - number of buffers
  * Caller has to make sure no more than bufNo async processes run simultaneously.
  */
-function BuferPool(bufSize, bufNo) {
+function BufferPool(bufSize, bufNo) {
     var bufferPool = []
     for (var i = 0; i < bufNo; i++) {
         bufferPool.push({
@@ -18,8 +16,8 @@ function BuferPool(bufSize, bufNo) {
     }
 
     var allocateBuffers = function () {
-        for (var i = 0; i < bufNo; i++) {
-            var bufferPair = bufferPool[i]
+        for (var j = 0; j < bufNo; j++) {
+            var bufferPair = bufferPool[j]
             if (!bufferPair.busy) {
                 bufferPair.busy = true
                 return bufferPair
@@ -33,10 +31,16 @@ function BuferPool(bufSize, bufNo) {
         freeBuffers: freeBuffers
     }
 
+    function freeBuffers(bufferPair) {
+        bufferPair.busy = false
+    }
 }
 
-function freeBuffers(bufferPair) {
-    bufferPair.busy = false
+function alloc(bufSize) {
+    if (Buffer.alloc) {
+        return Buffer.alloc(bufSize)
+    }
+    return new Buffer(bufSize)
 }
 
-module.exports = BuferPool
+module.exports = BufferPool
