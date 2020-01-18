@@ -48,7 +48,7 @@
         "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
         "coverage": "npx nyc --exclude \"build/test/**\" --reporter=lcov npm test && npx nyc report",
         "toc": "npx markdown-toc README.md; echo \n",
-        "docs": "npx typedoc --includeDeclarations --excludeExternals --theme minimal --mode file --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
+        "docs": "npx typedoc --includeVersion --includeDeclarations --excludeExternals --theme minimal --mode file --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
     },
     "author": "Liviu Grigorescu",
     "license": "MIT",
