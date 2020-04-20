@@ -1,7 +1,6 @@
 import { Options, Statistics, SymlinkStatistics } from "../src"
 import { compare as compareAsync, fileCompareHandlers } from "../src"
 import util = require('util')
-import { getHeapSpaceStatistics } from "v8"
 
 export interface DisplayOptions {
     showAll: boolean,
@@ -14,37 +13,37 @@ export interface DisplayOptions {
 
 export interface Test {
     // Test name. This represents also the name of the file holding expected result unless overriden by 'expected' param.
-    name: string,
-    path1: string,
-    path2: string,
+    name: string
+    path1: string
+    path2: string
     // Short test description.
-    description: string,
+    description: string
     // Expected result.
-    expected: string,
+    expected: string
     // Left/right dirs will be relative to current process.
-    withRelativePath: boolean,
+    withRelativePath: boolean
     // Options sent to library test. Should match 'commandLineOptions.
-    options: Partial<Options>,
+    options: Partial<Options>
     // Options sent to command line test. Should match 'options'.
     commandLineOptions: string
     // Command line expected exit code.
-    exitCode: number,
+    exitCode: number
     // Display parameters for print method.
-    displayOptions: Partial<DisplayOptions>,
+    displayOptions: Partial<DisplayOptions>
     // Prints test result. If missing 'defaultPrint()' is used.
-    print: any,
+    print: any
     // Test is run only on API methods.
-    onlyLibrary: boolean,
+    onlyLibrary: boolean
     // Test is run only on command line.
-    onlyCommandLine: boolean,
+    onlyCommandLine: boolean
     // Do not call checkStatistics() after each library test.
-    skipStatisticsCheck: boolean,
+    skipStatisticsCheck: boolean
     // only apply for synchronous compare
-    onlySync: boolean,
+    onlySync: boolean
     // only apply for synchronous compare
-    onlyAsync: boolean,
+    onlyAsync: boolean
     // limit test to specific node versions; ie. '>=2.5.0'
-    nodeVersionSupport: string,
+    nodeVersionSupport: string
     // exclude platform from run test; by default all platforms are allowed
     excludePlatform: Platform[]
     // Execute hand-written async test
@@ -907,13 +906,26 @@ export function getTests(testDirPath) {
         // Line by line compare                           //
         ////////////////////////////////////////////////////
         {
-            name: 'test011_1', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
+            name: 'test011_1', path1: 'd35/lf-spaces', path2: 'd35/crlf-spaces',
             description: 'should ignore line endings',
             options: {
                 compareContent: true,
                 compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreLineEnding: true,
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_1_1', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
+            description: 'should ignore line endings (small buffer',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                lineBasedHandlerBufferSize: 2,
             },
             displayOptions: { nocolors: true },
             onlyLibrary: true,
@@ -987,6 +999,256 @@ export function getTests(testDirPath) {
                 compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_8', path1: 'd35/lf-spaces', path2: 'd35/lf-spaces-inside',
+            description: 'should not ignore white spaces situated inside line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_20', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf',
+            description: 'should ignore line endings for files with single line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_21', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf',
+            description: 'should ignore line endings for files with single line if buffer size is smaller than line size',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_22', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf',
+            description: 'should not ignore line endings for files with single line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: false,
+                ignoreWhiteSpaces: false
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_23', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-no-line-ending',
+            description: 'should ignore line endings when comparing file with single line (lf) and file with single line (no line ending)',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_24', path1: 'd35/single-line/single-line-crlf', path2: 'd35/single-line/single-line-no-line-ending',
+            description: 'should ignore line endings when comparing file with single line (crlf) and file with single line (no line ending)',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_25', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-no-line-ending',
+            description: 'should ignore line endings when comparing two files with single line and no line endings',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_26', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-no-line-ending',
+            description: 'should ignore line endings when comparing two files with single line and no line endings, buffer size less than line size',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_27', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf-spaces',
+            description: 'should ignore line endings amd spaces for files with single line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_28', path1: 'd35/single-line/single-line-crlf', path2: 'd35/single-line/single-line-crlf-spaces',
+            description: 'should ignore line endings amd spaces for files with single line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_29', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-crlf-spaces',
+            description: 'should ignore line endings amd spaces for files with single line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_30', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-no-line-ending-spaces',
+            description: 'should ignore line endings amd spaces for files with single line',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_50', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-lf',
+            description: 'should ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_51', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-lf',
+            description: 'should not ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: false,
+                ignoreWhiteSpaces: false
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_52', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-spaces-crlf',
+            description: 'should ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+
+        {
+            name: 'test011_53', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-spaces-lf',
+            description: 'should ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_54', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-with-ending-crlf',
+            description: 'should ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_55', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-with-ending-lf',
+            description: 'should ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true
+            },
+            displayOptions: { nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test011_56', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-spaces-crlf',
+            description: 'should ignore line endings amd spaces for files where last line has no ending',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: true,
+                lineBasedHandlerBufferSize: 3
             },
             displayOptions: { nocolors: true },
             onlyLibrary: true,

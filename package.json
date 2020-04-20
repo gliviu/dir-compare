@@ -40,7 +40,7 @@
     },
     "scripts": {
         "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
-        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar package.json build",
+        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" package.json build",
         "build": "tsc && npm run copydeps",
         "lint": "tslint -p tsconfig.json",
         "pretest": "npm install && npm run build",

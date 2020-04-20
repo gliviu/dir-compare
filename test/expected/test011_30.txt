@@ -1,0 +1,2 @@
+Entries are identical
+total: 1, equal: 1, distinct: 0, only left: 0, only right: 0

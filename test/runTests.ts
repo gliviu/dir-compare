@@ -15,7 +15,7 @@ import untar = require('./untar')
 import semver = require('semver')
 
 
-// Usage: node runTests [unpacked] [test001_1] [showresult] [skipcli] [noReport]
+// Usage: node runTests [unpacked] [test001_1] [showresult] [skipcli] [skipasync] [noReport]
 interface RunOptions {
     // Use ./testdir instead of testdir.tar as test data.
     // Run 'node extract.js' to initialize ./testdir.
@@ -30,6 +30,9 @@ interface RunOptions {
 
     // Do not run cli tests
     skipCli: boolean,
+
+    // Do not run async tests
+    skipAsync: boolean,
 
     // Do not create report.txt
     noReport: boolean
@@ -183,6 +186,9 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
 }
 
 const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>) {
+    if (runOptions.skipAsync) {
+        return Promise.resolve()
+    }
     process.chdir(testDirPath)
     let path1, path2
     if (test.withRelativePath) {
@@ -408,6 +414,7 @@ const main = function () {
         unpacked: false,
         showResult: false,
         skipCli: false,
+        skipAsync: false,
         noReport: false,
         singleTestName: undefined
     }
@@ -420,6 +427,9 @@ const main = function () {
         }
         if (arg.match('skipcli')) {
             runOptions.skipCli = true
+        }
+        if (arg.match('skipasync')) {
+            runOptions.skipAsync = true
         }
         if (arg.match('noreport')) {
             runOptions.noReport = true

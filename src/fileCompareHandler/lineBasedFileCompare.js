@@ -9,41 +9,39 @@ var closeFilesAsync = require('./closeFile').closeFilesAsync
 var fsPromise = require('../fs/fsPromise')
 var BufferPool = require('../fs/BufferPool')
 
+const LINE_TOKENIZER_REGEXP = /[^\n]+\n?|\n/g
+const TRIM_LINE_ENDING_REGEXP = /\r\n$/g
+const SPLIT_CONTENT_AND_LINE_ENDING_REGEXP = /([^\r\n]*)([\r\n]*)/
+const TRIM_WHITE_SPACES_REGEXP = /^[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+|[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+$/g
+
 var MAX_CONCURRENT_FILE_COMPARE = 8
 var BUF_SIZE = 100000
 var fdQueue = new FileDescriptorQueue(MAX_CONCURRENT_FILE_COMPARE * 2)
 var bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
 
-var compareSync = function (path1, stat1, path2, stat2, options) {
+function compareSync(path1, stat1, path2, stat2, options) {
     var fd1, fd2
     var bufferPair = bufferPool.allocateBuffers()
+    var bufferSize = options.lineBasedHandlerBufferSize || BUF_SIZE
     try {
         fd1 = fs.openSync(path1, 'r')
         fd2 = fs.openSync(path2, 'r')
         var buf1 = bufferPair.buf1
         var buf2 = bufferPair.buf2
-        var progress = 0
-        var last1 = '', last2 = ''
+        var nextPosition1 = 0, nextPosition2 = 0
         while (true) {
-            var size1 = fs.readSync(fd1, buf1, 0, BUF_SIZE, null)
-            var size2 = fs.readSync(fd2, buf2, 0, BUF_SIZE, null)
-            var chunk1 = buf1.toString('utf8', 0, size1)
-            var chunk2 = buf2.toString('utf8', 0, size2)
-            var lines1 = (last1 + chunk1).split(/\n/)
-            var lines2 = (last2 + chunk2).split(/\n/)
-            if (size1 === 0 && size2 === 0) {
+            var lines1 = readLinesSync(fd1, buf1, bufferSize, nextPosition1)
+            var lines2 = readLinesSync(fd2, buf2, bufferSize, nextPosition2)
+            if (lines1.length === 0 && lines2.length === 0) {
                 // End of file reached
                 return true
             }
-            else if (lines1.length !== lines2.length) {
+            var equalLines = compareLines(lines1, lines2, options)
+            if (equalLines === 0) {
                 return false
-            } else {
-                if (!compareLines(lines1, lines2, options)) {
-                    return false
-                }
-                last1 = lines1[lines1.length - 1]
-                last2 = lines2[lines2.length - 1]
             }
+            nextPosition1 += calculateSize(lines1, equalLines)
+            nextPosition2 += calculateSize(lines2, equalLines)
         }
     } finally {
         closeFilesSync(fd1, fd2)
@@ -51,90 +49,145 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
     }
 }
 
-var compareAsync = function (path1, stat1, path2, stat2, options) {
+async function compareAsync(path1, stat1, path2, stat2, options) {
     var fd1, fd2
+    var bufferSize = options.lineBasedHandlerBufferSize || BUF_SIZE
     var bufferPair
-    return Promise.all([fdQueue.promises.open(path1, 'r'), fdQueue.promises.open(path2, 'r')])
-        .then(function (fds) {
-            bufferPair = bufferPool.allocateBuffers()
-            fd1 = fds[0]
-            fd2 = fds[1]
-            var buf1 = bufferPair.buf1
-            var buf2 = bufferPair.buf2
-            var progress = 0
-            var last1 = '', last2 = ''
-            var compareAsyncInternal = function () {
-                return Promise.all([
-                    fsPromise.read(fd1, buf1, 0, BUF_SIZE, null),
-                    fsPromise.read(fd2, buf2, 0, BUF_SIZE, null)
-                ]).then(function (sizes) {
-                    var size1 = sizes[0]
-                    var size2 = sizes[1]
-                    var chunk1 = buf1.toString('utf8', 0, size1)
-                    var chunk2 = buf2.toString('utf8', 0, size2)
-                    var lines1 = (last1 + chunk1).split(/\n/)
-                    var lines2 = (last2 + chunk2).split(/\n/)
-                    if (size1 === 0 && size2 === 0) {
-                        // End of file reached
-                        return true
-                    }
-                    else if (lines1.length !== lines2.length) {
-                        return false
-                    } else {
-                        if (!compareLines(lines1, lines2, options)) {
-                            return false
-                        }
-                        last1 = lines1[lines1.length - 1]
-                        last2 = lines2[lines2.length - 1]
-                        return compareAsyncInternal()
-                    }
-                })
+    try {
+        var fds = await Promise.all([fdQueue.promises.open(path1, 'r'), fdQueue.promises.open(path2, 'r')])
+        bufferPair = bufferPool.allocateBuffers()
+        fd1 = fds[0]
+        fd2 = fds[1]
+        var buf1 = bufferPair.buf1
+        var buf2 = bufferPair.buf2
+        var nextPosition1 = 0, nextPosition2 = 0
+        while (true) {
+            var lines1 = await readLinesAsync(fd1, buf1, bufferSize, nextPosition1)
+            var lines2 = await readLinesAsync(fd2, buf2, bufferSize, nextPosition2)
+            if (lines1.length === 0 && lines2.length === 0) {
+                // End of file reached
+                return true
             }
-            return compareAsyncInternal()
-        })
-        .then(
-            // 'finally' polyfill for node 8 and below
-            function (res) {
-                return finalizeAsync(fd1, fd2, bufferPair).then(() => res)
-            },
-            function (err) {
-                return finalizeAsync(fd1, fd2, bufferPair).then(() => { throw err; })
+            var equalLines = compareLines(lines1, lines2, options)
+            if (equalLines === 0) {
+                return false
             }
-        )
+            nextPosition1 += calculateSize(lines1, equalLines)
+            nextPosition2 += calculateSize(lines2, equalLines)
+        }
+    } finally {
+        bufferPool.freeBuffers(bufferPair)
+        await closeFilesAsync(fd1, fd2, fdQueue)
+    }
 }
 
-function finalizeAsync(fd1, fd2, bufferPair) {
-    bufferPool.freeBuffers(bufferPair)
-    return closeFilesAsync(fd1, fd2, fdQueue)
+/**
+ * Read lines from file starting with nextPosition.
+ * Returns 0 lines if eof is reached, otherwise returns at least one complete line.
+ */
+function readLinesSync(fd, buf, bufferSize, nextPosition) {
+    var lines = []
+    var chunk = ""
+    while (true) {
+        var size = fs.readSync(fd, buf, 0, bufferSize, nextPosition)
+        if (size === 0) {
+            // end of file
+            normalizeLastFileLine(lines)
+            return lines
+        }
+        chunk += buf.toString('utf8', 0, size)
+        lines = chunk.match(LINE_TOKENIZER_REGEXP)
+        if (lines.length > 1) {
+            return removeLastIncompleteLine(lines)
+        }
+        nextPosition += size
+    }
 }
 
-var removeLineEnding = function (s) {
-    return s.replace(/[\r]+$/g, '')
+/**
+ * Read lines from file starting with nextPosition.
+ * Returns 0 lines if eof is reached, otherwise returns at least one complete line.
+ */
+async function readLinesAsync(fd, buf, bufferSize, nextPosition) {
+    var lines = []
+    var chunk = ""
+    while (true) {
+        var size = await fsPromise.read(fd, buf, 0, bufferSize, nextPosition)
+        if (size === 0) {
+            // end of file
+            normalizeLastFileLine(lines)
+            return lines
+        }
+        chunk += buf.toString('utf8', 0, size)
+        lines = chunk.match(LINE_TOKENIZER_REGEXP)
+        if (lines.length > 1) {
+            return removeLastIncompleteLine(lines)
+        }
+        nextPosition += size
+    }
 }
 
-// remove white spaces except line endings
-var removeWhiteSpaces = function (s) {
-    return s.replace(/^[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+|[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+$/g, '')
+function removeLastIncompleteLine(lines) {
+    const lastLine = lines[lines.length - 1]
+    if (!lastLine.endsWith('\n')) {
+        return lines.slice(0, lines.length - 1)
+    }
+    return lines
 }
 
+function normalizeLastFileLine(lines) {
+    if (lines.length === 0) {
+        return
+    }
+    const lastLine = lines[lines.length - 1]
+    if (!lastLine.endsWith('\n')) {
+        lines[lines.length - 1] = lastLine + '\n'
+    }
+}
+
+function calculateSize(lines, numberOfLines) {
+    var size = 0
+    for (var i = 0; i < numberOfLines; i++) {
+        var line = lines[i]
+        size += line.length
+    }
+    return size
+}
 
 function compareLines(lines1, lines2, options) {
-    for (var i = 0; i < lines1.length - 1; i++) {
+    var equalLines = 0
+    var len = lines1.length < lines2.length ? lines1.length : lines2.length
+    for (var i = 0; i < len; i++) {
         var line1 = lines1[i]
         var line2 = lines2[i]
         if (options.ignoreLineEnding) {
-            line1 = removeLineEnding(line1)
-            line2 = removeLineEnding(line2)
+            line1 = trimLineEnding(line1)
+            line2 = trimLineEnding(line2)
         }
         if (options.ignoreWhiteSpaces) {
-            line1 = removeWhiteSpaces(line1)
-            line2 = removeWhiteSpaces(line2)
+            line1 = trimSpaces(line1)
+            line2 = trimSpaces(line2)
         }
         if (line1 !== line2) {
-            return false
+            return equalLines
         }
+        equalLines++
     }
-    return true
+    return equalLines
+}
+
+// Trims string like '   abc   \n' into 'abc\n'
+function trimSpaces(s) {
+    var matchResult = s.match(SPLIT_CONTENT_AND_LINE_ENDING_REGEXP);
+    var content = matchResult[1]
+    var lineEnding = matchResult[2]
+    var trimmed = content.replace(TRIM_WHITE_SPACES_REGEXP, '')
+    return trimmed + lineEnding
+}
+
+// Trims string like 'abc\r\n' into 'abc\n'
+function trimLineEnding(s) {
+    return s.replace(TRIM_LINE_ENDING_REGEXP, '\n')
 }
 
 module.exports = {
