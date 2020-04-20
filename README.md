@@ -296,6 +296,7 @@ If entries are different because of symlinks, `reason` will be `different-symlin
 ```
 
 # Changelog
+* v2.3.0 fixes
 * v2.1.0 remove [bluebird](https://github.com/petkaantonov/bluebird/#note) dependency
 * v2.0.0
   * New option to compare symlinks.
