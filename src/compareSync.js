@@ -40,7 +40,7 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
         // compare entry name (-1, 0, 1)
         var cmp
         if (i1 < entries1.length && i2 < entries2.length) {
-            cmp = options.ignoreCase ? entryComparator.compareEntryIgnoreCase(entry1, entry2) : entryComparator.compareEntryCaseSensitive(entry1, entry2)
+            cmp = entryComparator.compareEntry(entry1, entry2, options)
             type1 = entryType.getType(entry1)
             type2 = entryType.getType(entry2)
         } else if (i1 < entries1.length) {

@@ -1,6 +1,7 @@
 import { Options, Statistics, SymlinkStatistics } from "../src"
 import { compare as compareAsync, fileCompareHandlers } from "../src"
 import util = require('util')
+import path from 'path'
 
 export interface DisplayOptions {
     showAll: boolean,
@@ -1280,10 +1281,51 @@ export function getTests(testDirPath) {
             withRelativePath: true,
             print(cmpres, writer, program) { printRelativePathResult(cmpres, testDirPath, writer) }
         },
+        ////////////////////////////////////////////////////
+        // Custom name comparator                         //
+        ////////////////////////////////////////////////////
+        {
+            name: 'test013_1', path1: 'd40/a', path2: 'd40/b',
+            description: 'should use custom name comparator (node <11>)',
+            // Older node versions do not have stable sort order.
+            // See https://github.com/nodejs/node/pull/22754#issuecomment-419551068
+            // File order is not considered in this test.
+            nodeVersionSupport: '<11',
+            options: {
+                compareContent: true,
+                compareNameHandler: customNameCompare,
+                ignoreExtension: true
+            },
+            displayOptions: { wholeReport: true, nocolors: true },
+            onlyLibrary: true,
+        },
+        {
+            name: 'test013_2', path1: 'd40/a', path2: 'd40/b',
+            description: 'should use custom name comparator (node >11',
+            nodeVersionSupport: '>=11',
+            options: {
+                compareContent: true,
+                compareNameHandler: customNameCompare,
+                ignoreExtension: true
+            },
+            displayOptions: { showAll: true,  wholeReport: true, nocolors: true },
+            onlyLibrary: true,
+        },
     ]
     return res
 }
 
+function customNameCompare(name1: string, name2: string, options: Options) {
+    if (options.ignoreCase) {
+        name1 = name1.toLowerCase()
+        name2 = name2.toLowerCase()
+    }
+    if (options.ignoreExtension) {
+        name1 = path.basename(name1, path.extname(name1))
+        name2 = path.basename(name2, path.extname(name2))
+    }
+	return ((name1 === name2) ? 0 : ((name1 > name2) ? 1 : -1))
+}
 
 function printRelativePathResult(res, testDirPath, writer) {
     let result = res.diffSet.map(function (diff) {

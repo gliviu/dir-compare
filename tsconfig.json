@@ -9,7 +9,8 @@
       "resolveJsonModule": true,
       "declaration": true,
       "composite": true,
-      "declarationMap": true
+      "declarationMap": true,
+      "esModuleInterop": true,
     },
     "files": [
       "./src/index.d.ts"

@@ -4,6 +4,7 @@ import os = require('os')
 const path1 = `/${os.tmpdir()}/linux-4.3`
 const path2 = `/${os.tmpdir()}/linux-4.4`
 const noTests = 100
+const MB = 1024 * 1024
 
 function main() {
     console.log("Start sync heap test")
@@ -15,7 +16,8 @@ function main() {
             process.exit(1)
         }
         const t2 = new Date().getTime()
-        console.log(`${i} ${(t2 - t1) / 1000}s, heap: ${process.memoryUsage().heapUsed}`)
+        const heapMb = Math.round(process.memoryUsage().heapUsed / MB)
+        console.log(`${i} ${(t2 - t1) / 1000}s, heap: ${heapMb}MB`)
     }
     console.log("Done")
 }

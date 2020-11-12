@@ -92,14 +92,19 @@ export interface Options {
     resultBuilder?: ResultBuilder
 
     /**
-     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-comparators).
+     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
      */
     compareFileSync?: CompareFileSync
 
     /**
-     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-comparators).
+     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
      */
     compareFileAsync?: CompareFileAsync
+
+    /**
+     * Entry name comparison handler. See [Custom name comparators](https://github.com/gliviu/dir-compare#custom-name-comparators).
+     */
+    compareNameHandler?: CompareNameHandler
 }
 
 /**
@@ -458,3 +463,14 @@ export const fileCompareHandlers: {
      */
     lineBasedFileCompare: CompareFileHandler
 }
+
+/**
+ * Compares the names of two entries.
+ * The comparison should be dependent on received options (ie. case sensitive, ...).
+ * Returns 0 if names are identical, -1 if name1<name2, 1 if name1>name2.
+ */
+export type CompareNameHandler = (
+    name1: string,
+    name2: string,
+    options: Options
+) => 0 | 1 | -1

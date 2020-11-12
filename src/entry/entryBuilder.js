@@ -25,7 +25,7 @@ module.exports = {
 				res.push(entry)
 			}
 		}
-		return options.ignoreCase ? res.sort(entryComparator.compareEntryIgnoreCase) : res.sort(entryComparator.compareEntryCaseSensitive)
+		return res.sort((a, b) => entryComparator.compareEntry(a, b, options))
 	},
 
 	buildEntry: function (absolutePath, path, name) {

@@ -320,7 +320,6 @@ const printResult = function (output, expected) {
     console.log(output)
     console.log('Expected:')
     console.log(expected)
-    //                    expected.forEach(function(exp){console.log(exp)})
     console.log('Result: ' + (output === expected))
 }
 

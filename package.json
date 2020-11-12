@@ -16,6 +16,18 @@
     "files": [
         "src"
     ],
+    "scripts": {
+        "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
+        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" package.json build",
+        "build": "tsc && npm run copydeps",
+        "lint": "tslint -p tsconfig.json",
+        "pretest": "npm install && npm run build",
+        "test": "node build/test/runTests.js",
+        "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
+        "coverage": "npx nyc --exclude \"build/test/**\" --reporter=lcov npm test && npx nyc report",
+        "toc": "npx markdown-toc README.md; echo \n",
+        "docs": "npx typedoc --includeVersion --includeDeclarations --excludeExternals --theme minimal --mode file --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
+    },
     "dependencies": {
         "buffer-equal": "1.0.0",
         "colors": "1.0.3",
@@ -37,18 +49,6 @@
     },
     "bin": {
         "dircompare": "src/cli/dircompare.js"
-    },
-    "scripts": {
-        "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
-        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" package.json build",
-        "build": "tsc && npm run copydeps",
-        "lint": "tslint -p tsconfig.json",
-        "pretest": "npm install && npm run build",
-        "test": "node build/test/runTests.js",
-        "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
-        "coverage": "npx nyc --exclude \"build/test/**\" --reporter=lcov npm test && npx nyc report",
-        "toc": "npx markdown-toc README.md; echo \n",
-        "docs": "npx typedoc --includeVersion --includeDeclarations --excludeExternals --theme minimal --mode file --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
     },
     "author": "Liviu Grigorescu",
     "license": "MIT",

@@ -6,6 +6,7 @@ var compareAsyncInternal = require('./compareAsync')
 var defaultResultBuilderCallback = require('./resultBuilder/defaultResultBuilderCallback')
 var defaultFileCompare = require('./fileCompareHandler/defaultFileCompare')
 var lineBasedFileCompare = require('./fileCompareHandler/lineBasedFileCompare')
+var defaultNameCompare = require('./nameCompare/defaultNameCompare')
 var entryBuilder = require('./entry/entryBuilder')
 var statsLifecycle = require('./statistics/statisticsLifecycle')
 var loopDetector = require('./symlink/loopDetector')
@@ -90,6 +91,7 @@ var prepareOptions = function (options) {
     clone.resultBuilder = options.resultBuilder
     clone.compareFileSync = options.compareFileSync
     clone.compareFileAsync = options.compareFileAsync
+    clone.compareNameHandler = options.compareNameHandler
     if (!clone.resultBuilder) {
         clone.resultBuilder = defaultResultBuilderCallback
     }
@@ -98,6 +100,9 @@ var prepareOptions = function (options) {
     }
     if (!clone.compareFileAsync) {
         clone.compareFileAsync = defaultFileCompare.compareAsync
+    }
+    if(!clone.compareNameHandler) {
+        clone.compareNameHandler = defaultNameCompare
     }
     clone.dateTolerance = clone.dateTolerance || 1000
     clone.dateTolerance = Number(clone.dateTolerance)
@@ -137,6 +142,7 @@ var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
  * resultBuilder: Callback for constructing result.
  * 	function (entry1, entry2, state, level, relativePath, options, statistics, diffSet). Called for each compared entry pair. Updates 'statistics' and 'diffSet'.
  * compareFileSync, compareFileAsync: Callbacks for file comparison. 
+ * compareNameHandler: Callback for name comparison
  *
  * Result:
  * same: true if directories are identical

@@ -11,8 +11,9 @@ Node JS directory compare
   * [Use](#use)
   * [Api](#api)
   * [Glob patterns](#glob-patterns)
-  * [Custom file comparators](#custom-file-comparators)
-  * [Ignore line endings and white spaces](#ignore-line-endings-and-white-spaces)
+  * [Custom file content comparators](#custom-file-content-comparators)
+    + [Ignore line endings and white spaces](#ignore-line-endings-and-white-spaces)
+  * [Custom name comparators](#custom-name-comparators)
   * [Custom result builder](#custom-result-builder)
   * [Symbolic links](#symbolic-links)
 - [Command line](#command-line)
@@ -76,12 +77,21 @@ compare(path1, path2, options)
   .catch(error => console.error(error));
 ```
 
-Options:
+## Api
 
+
+Below is a quick recap of the api. For more details check the [reference documentation](https://gliviu.github.io/dc-api/).
+```typescript
+compare(path1: string, path2: string, options?: Options): Promise<Result>
+compareSync(path1: string, path2: string, options?: Options): Result
+```
+
+```Options```
 * **compareSize**: true/false - Compares files by size. Defaults to 'false'.
 * **compareContent**: true/false - Compares files by content. Defaults to 'false'.
-* **compareFileSync**, **compareFileAsync**: Callbacks for file comparison. See [Custom file comparators](#custom-file-comparators).
+* **compareFileSync**, **compareFileAsync**: Callbacks for file comparison. See [Custom file content comparators](#custom-file-content-comparators).
 * **compareDate**: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
+* **compareNameHandler**: Callback for name comparison. See [Custom name comparators](#custom-name-comparators).
 * **dateTolerance**: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
 * **compareSymlink**: true/false - Compares entries by symlink. Defaults to 'false'.
 * **skipSymlinks**: true/false - Ignore symbolic links. Defaults to 'false'.
@@ -90,15 +100,9 @@ Options:
 * **noDiffSet**: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
 * **includeFilter**: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns. See [Glob patterns](#glob-patterns) below.
 * **excludeFilter**: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.  See [Glob patterns](#glob-patterns) below.
-* **resultBuilder**: Callback for constructing result
-  ```javascript
-  function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason)
-  ```
-  Called for each compared entry pair. Updates `statistics` and `diffSet`.  
-  More details in [Custom result builder](#custom-result-builder).
+* **resultBuilder**: Callback for constructing result. Called for each compared entry pair. Updates `statistics` and `diffSet`. More details in [Custom result builder](#custom-result-builder).
 
-Result:
-
+```Result```
 * **same**: true if directories are identical
 * **distinct**: number of distinct entries
 * **equal**: number of equal entries
@@ -148,9 +152,6 @@ Result:
       Not available if entries are equal.  
       One of "different-size", "different-date", "different-content", "broken-link", "different-symlink".
 
-## Api
-<a href="https://gliviu.github.io/dc-api/" target="_blank">Api Docs</a>
-
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
 
@@ -170,7 +171,7 @@ dircompare -f "/tests/**/*.js" dir1 dir2')       include all js files in '/tests
 dircompare -f "**/tests/**/*.ts" dir1 dir2')     include all js files in '/tests' directory and subdirectories
 ```
 
-## Custom file comparators
+## Custom file content comparators
 By default file content is binary compared. As of version 1.5.0 custom file comparison handlers may be specified.
 
 Custom handlers are specified by `compareFileSync` and `compareFileAsync` options which correspond to `dircompare.compareSync()` or `dircompare.compare()` methods.
@@ -181,9 +182,9 @@ A couple of handlers are included in the library:
 * text sync compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
 * text async compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
 
-Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/file_compare_handlers/defaultFileCompare.js) as an example to create your own.
+Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/fileCompareHandler/defaultFileCompare.js) as an example to create your own.
 
-## Ignore line endings and white spaces
+### Ignore line endings and white spaces
 Line based comparator can be used to ignore line ending and white space differences. This comparator is not available in [CLI](#command-line) mode.
 ```javascript
 var dircompare = require('dir-compare');
@@ -204,8 +205,50 @@ console.log(res)
 dircompare.compare(path1, path2, options)
 .then(res => console.log(res))
 ```
+## Custom name comparators
+If [default](https://github.com/gliviu/dir-compare/blob/master/src/nameCompare/defaultNameCompare.js) name comparison is not enough, custom behavior can be specified with [compareNameHandler](https://gliviu.github.io/dc-api/index.html#comparenamehandler) option.
+Following example adds the possibility to ignore file extensions.
+```typescript
+import { Options, compare } from 'dir-compare'
+import path from 'path'
+
+var options: Options = {
+    compareSize: false,                    // compare only name by disabling size and content criteria
+    compareContent: false,
+    compareNameHandler: customNameCompare, // new name comparator used to ignore extensions
+    ignoreExtension: true,                 // supported by the custom name compare below
+};
+
+function customNameCompare(name1: string, name2: string, options: Options) {
+    if (options.ignoreCase) {
+        name1 = name1.toLowerCase()
+        name2 = name2.toLowerCase()
+    }
+    if (options.ignoreExtension) {
+        name1 = path.basename(name1, path.extname(name1))
+        name2 = path.basename(name2, path.extname(name2))
+    }
+    return ((name1 === name2) ? 0 : ((name1 > name2) ? 1 : -1))
+}
+
+var path1 = '/tmp/a';
+var path2 = '/tmp/b';
+
+var res = compare(path1, path2, options).then(res => {
+    console.log(`Same: ${res.same}`)
+    if (!res.diffSet) {
+        return
+    }
+    res.diffSet.forEach(dif => console.log(`${dif.name1} ${dif.name2} ${dif.state}`))
+})
+
+// Outputs
+// icon.svg icon.png equal
+// logo.svg logo.jpg equal
+```
+
 ## Custom result builder
-Result builder is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
+[Result builder](https://gliviu.github.io/dc-api/index.html#resultbuilder) is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
 
 If needed it can be replaced with custom implementation.
 
@@ -224,7 +267,7 @@ var res = dircompare.compareSync('...', '...', options)
 
 ```
 
-The [default](https://github.com/gliviu/dir-compare/blob/master/src/defaultResultBuilderCallback.js) builder can be used as an example.
+The [default](https://github.com/gliviu/dir-compare/blob/master/src/resultBuilder/defaultResultBuilderCallback.js) builder can be used as an example.
 
 ## Symbolic links
 Unless `compareSymlink` option is used, symbolic links are resolved and any comparison is applied to the file/directory they point to.
@@ -296,8 +339,9 @@ If entries are different because of symlinks, `reason` will be `different-symlin
 ```
 
 # Changelog
-* v2.3.0 fixes
-* v2.1.0 remove [bluebird](https://github.com/petkaantonov/bluebird/#note) dependency
+* v2.4.0 New option to customize file/folder name comparison
+* v2.3.0 Fixes
+* v2.1.0 Removed [bluebird](https://github.com/petkaantonov/bluebird/#note) dependency
 * v2.0.0
   * New option to compare symlinks.
   * New field indicating reason for two entries being distinct.
