@@ -19,7 +19,7 @@ const expected = '{"distinct":8543,"equal":46693,"left":792,"right":1755,"distin
 const noTests = 5
 
 async function main() {
-    console.log("Start concurrent test")
+    console.log("Start concurrency test")
     const promises: Array<Promise<AsyncRes>> = []
     for (let testId = 0; testId < noTests; testId++) {
         const promise: Promise<AsyncRes> = compare(path1, path2, options)
