@@ -8,11 +8,11 @@ var PATH_SEP = pathUtils.sep
 // Example: 'dircompare --show-all --exclude *.js dir1 dir2' translates into
 // program: {showAll: true, exclude: '*.js'}
 //
-var print = function (res, writer, displayOptions) {
+function print(res, writer, displayOptions) {
     // calculate relative path length for pretty print
     var relativePathMaxLength = 0, fileNameMaxLength = 0
     if (!displayOptions.csv && res.diffSet) {
-        res.diffSet.forEach(function (diff) {
+        res.diffSet.forEach(diff => {
             if (diff.relativePath.length > relativePathMaxLength) {
                 relativePathMaxLength = diff.relativePath.length
             }
@@ -103,7 +103,7 @@ var print = function (res, writer, displayOptions) {
 /**
  * Print details for default view mode
  */
-var printPretty = function (writer, program, detail) {
+function printPretty(writer, program, detail) {
     var path = detail.relativePath === '' ? PATH_SEP : detail.relativePath
 
     var state
@@ -137,7 +137,7 @@ var printPretty = function (writer, program, detail) {
     }
 }
 
-var getCompareFile = function (detail, state) {
+function getCompareFile(detail, state) {
     var p1 = detail.name1 ? detail.name1 : ''
     var p2 = detail.name2 ? detail.name2 : ''
     var missing1 = detail.type1 === 'missing' ? 'missing' : ''
@@ -148,7 +148,7 @@ var getCompareFile = function (detail, state) {
 /**
  * Print csv details.
  */
-var printCsv = function (writer, detail) {
+function printCsv(writer, detail) {
     var size1 = '', size2 = ''
     if (detail.type1 === 'file') {
         size1 = detail.size1 !== undefined ? detail.size1 : ''

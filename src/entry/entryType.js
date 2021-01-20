@@ -3,7 +3,7 @@ module.exports = {
 	/**
 	 * One of 'missing','file','directory','broken-link'
 	 */
-	getType: function (entry) {
+	getType (entry) {
 		if (!entry) {
 			return 'missing'
 		}

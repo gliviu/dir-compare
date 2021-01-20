@@ -10,7 +10,7 @@ var entryType = require('./entry/entryType')
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (rootEntry, relativePath, loopDetected, options) {
+function getEntries(rootEntry, relativePath, loopDetected, options) {
     if (!rootEntry || loopDetected) {
         return []
     }
@@ -24,7 +24,7 @@ var getEntries = function (rootEntry, relativePath, loopDetected, options) {
 /**
  * Compares two directories synchronously.
  */
-var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
+function compare(rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
     var loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
     var loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     loopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)

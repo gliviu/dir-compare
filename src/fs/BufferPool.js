@@ -9,13 +9,13 @@ function BufferPool(bufSize, bufNo) {
     var bufferPool = []
     for (var i = 0; i < bufNo; i++) {
         bufferPool.push({
-            buf1: alloc(bufSize),
-            buf2: alloc(bufSize),
+            buf1: Buffer.alloc(bufSize),
+            buf2: Buffer.alloc(bufSize),
             busy: false
         })
     }
 
-    var allocateBuffers = function () {
+    var allocateBuffers = () => {
         for (var j = 0; j < bufNo; j++) {
             var bufferPair = bufferPool[j]
             if (!bufferPair.busy) {
@@ -26,21 +26,14 @@ function BufferPool(bufSize, bufNo) {
         throw new Error('Async buffer limit reached')
     }
 
+    var freeBuffers = bufferPair => {
+        bufferPair.busy = false
+    }
+
     return {
         allocateBuffers: allocateBuffers,
         freeBuffers: freeBuffers
     }
-
-    function freeBuffers(bufferPair) {
-        bufferPair.busy = false
-    }
-}
-
-function alloc(bufSize) {
-    if (Buffer.alloc) {
-        return Buffer.alloc(bufSize)
-    }
-    return new Buffer(bufSize)
 }
 
 module.exports = BufferPool

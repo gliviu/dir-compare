@@ -20,6 +20,8 @@ interface RunOptions {
     unpacked: boolean,
 
     // Specify a single test to run ie. 'test000_0'
+    // If defined, represents the test name to be executed in format
+    // 00otherwise all tests are executed
     singleTestName: string,
 
     // Shows actual/expected for each test
@@ -82,7 +84,7 @@ function normalize(str) {
     return str
 }
 
-const checkStatistics = function (statistics, test) {
+function checkStatistics(statistics, test) {
     if (test.skipStatisticsCheck) {
         return true
     }
@@ -127,7 +129,7 @@ const checkStatistics = function (statistics, test) {
     return true
 }
 
-const getExpected = function (test) {
+function getExpected(test) {
     if (test.expected) {
         return test.expected.trim()
     } else {
@@ -135,7 +137,7 @@ const getExpected = function (test) {
     }
 }
 
-const testSync = function (test, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
+function testSync(test, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
     process.chdir(testDirPath)
     let path1, path2
     if (test.withRelativePath) {
@@ -145,10 +147,8 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
         path1 = test.path1 ? testDirPath + '/' + test.path1 : ''
         path2 = test.path2 ? testDirPath + '/' + test.path2 : ''
     }
-    return new Promise<Result>(function (resolve) {
-        resolve(compareSync(path1, path2, test.options))
-    }).then(
-        (result: Result) => {
+    return new Promise<Result>(resolve => resolve(compareSync(path1, path2, test.options)))
+        .then((result: Result) => {
             // PRINT DETAILS
             const writer = new Streams.WritableStream()
             const print = test.print ? test.print : defaultPrint
@@ -163,14 +163,14 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
             const res = expected === output && statisticsCheck && validated
             report(test.name, 'sync', output, null, res, saveReport)
             console.log(test.name + ' sync: ' + passed(res, 'sync'))
-        },
-        (error) => {
+        })
+        .catch(error => {
             report(test.name, 'sync', error instanceof Error ? error.stack : error, null, false, saveReport)
             console.log(test.name + ' sync: ' + passed(false, 'sync') + '. Error: ' + printError(error))
         })
 }
 
-const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
+function testAsync(test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
     if (runOptions.skipAsync) {
         return Promise.resolve()
     }
@@ -186,12 +186,10 @@ const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOpt
     let promise
     if (test.runAsync) {
         promise = test.runAsync()
-            .then(function (result) {
-                return { output: result, statisticsCheck: true, validated: true }
-            })
+            .then(result => ({ output: result, statisticsCheck: true, validated: true }))
     } else {
         promise = compareAsync(path1, path2, test.options)
-            .then(function (result) {
+            .then(result => {
                 const writer = new Streams.WritableStream()
                 const print = test.print ? test.print : defaultPrint
                 print(result, writer, test.displayOptions)
@@ -201,8 +199,8 @@ const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOpt
                 return { output, statisticsCheck, validated }
             })
     }
-    return promise.then(
-        function (result) {
+    return promise
+        .then(result => {
             const output = result.output
 
             const expected = getExpected(test)
@@ -213,7 +211,8 @@ const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOpt
             const res = expected === output && result.statisticsCheck && result.validated
             report(test.name, 'async', output, null, res, saveReport)
             console.log(test.name + ' async: ' + passed(res, 'async'))
-        }, function (error) {
+        })
+        .catch(error => {
             report(test.name, 'async', error instanceof Error ? error.stack : error, null, false, saveReport)
             console.log(test.name + ' async: ' + passed(false, 'async') + '. Error: ' + printError(error))
         })
@@ -250,7 +249,7 @@ function endReport(saveReport) {
     }
 }
 
-const printResult = function (output, expected) {
+function printResult(output, expected) {
     console.log('Actual:')
     console.log(output)
     console.log('Expected:')
@@ -276,59 +275,59 @@ function runCustomValidator(test: Partial<Test>, statistics: Statistics) {
     }
     return test.customValidator(statistics)
 }
-// testDirPath: path to test data
-// singleTestName: if defined, represents the test name to be executed in format
-//                 otherwise all tests are executed
+/**
+ * @param testDirPath path to test data
+ */
 function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
     console.log('Test dir: ' + testDirPath)
     const saveReport = !runOptions.noReport
     initReport(saveReport)
-    Promise.resolve().then(function () {
-        // Run sync tests
-        const syncTestsPromises: Promise<void>[] = []
-        getTests(testDirPath)
-            .filter(function (test) { return !test.onlyAsync })
-            .filter(function (test) { return runOptions.singleTestName ? test.name === runOptions.singleTestName : true; })
-            .filter(function (test) { return test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
-            .filter(test => validatePlatform(test))
-            .forEach(function (test) {
-                syncTestsPromises.push(testSync(test, testDirPath, saveReport, runOptions))
-            })
-        return Promise.all(syncTestsPromises)
-    }).then(function () {
-        console.log()
-        console.log('Sync tests: ' + syncCount + ', failed: ' + colors.yellow(syncFailed.toString()) + ', succeeded: ' + colors.green(syncSuccessful.toString()))
-        console.log()
-    }).then(function () {
-        // Run async tests
-        const asyncTestsPromises: Promise<void>[] = []
-        getTests(testDirPath)
-            .filter(function (test) { return !test.onlySync })
-            .filter(function (test) { return test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
-            .filter(test => validatePlatform(test))
-            .filter(function (test) { return runOptions.singleTestName ? test.name === runOptions.singleTestName : true; })
-            .forEach(function (test) {
-                asyncTestsPromises.push(testAsync(test, testDirPath, saveReport, runOptions))
-            })
-        return Promise.all(asyncTestsPromises)
-    }).then(function () {
-        console.log()
-        console.log('Async tests: ' + asyncCount + ', failed: ' + colors.yellow(asyncFailed.toString()) + ', succeeded: ' + colors.green(asyncSuccessful.toString()))
-        console.log()
-    }).then(function () {
-        console.log()
-        console.log('All tests: ' + count + ', failed: ' + colors.yellow(failed.toString()) + ', succeeded: ' + colors.green(successful.toString()))
-        endReport(saveReport)
-        process.exitCode = failed > 0 ? 1 : 0
-        process.chdir(__dirname);  // allow temp dir to be removed
-    }).catch(error => {
-        console.error(error);
-        process.exit(1)
-    })
+    Promise.resolve()
+        .then(() => {
+            // Run sync tests
+            const syncTestsPromises: Promise<void>[] = []
+            getTests(testDirPath)
+                .filter(test => !test.onlyAsync)
+                .filter(test => runOptions.singleTestName ? test.name === runOptions.singleTestName : true)
+                .filter(test => test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport))
+                .filter(test => validatePlatform(test))
+                .forEach(test => syncTestsPromises.push(testSync(test, testDirPath, saveReport, runOptions)))
+            return Promise.all(syncTestsPromises)
+        })
+        .then(() => {
+            console.log()
+            console.log('Sync tests: ' + syncCount + ', failed: ' + colors.yellow(syncFailed.toString()) + ', succeeded: ' + colors.green(syncSuccessful.toString()))
+            console.log()
+        })
+        .then(() => {
+            // Run async tests
+            const asyncTestsPromises: Promise<void>[] = []
+            getTests(testDirPath)
+                .filter(test => !test.onlySync)
+                .filter(test => test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport))
+                .filter(test => validatePlatform(test))
+                .filter(test => runOptions.singleTestName ? test.name === runOptions.singleTestName : true)
+                .forEach(test => asyncTestsPromises.push(testAsync(test, testDirPath, saveReport, runOptions)))
+            return Promise.all(asyncTestsPromises)
+        })
+        .then(() => {
+            console.log()
+            console.log('Async tests: ' + asyncCount + ', failed: ' + colors.yellow(asyncFailed.toString()) + ', succeeded: ' + colors.green(asyncSuccessful.toString()))
+            console.log()
+        }).then(() => {
+            console.log()
+            console.log('All tests: ' + count + ', failed: ' + colors.yellow(failed.toString()) + ', succeeded: ' + colors.green(successful.toString()))
+            endReport(saveReport)
+            process.exitCode = failed > 0 ? 1 : 0
+            process.chdir(__dirname) // allow temp dir to be removed
+        }).catch(error => {
+            console.error(error);
+            process.exit(1)
+        })
 }
 
 
-const main = function () {
+function main() {
     const args = process.argv
     const runOptions: Partial<RunOptions> = {
         unpacked: false,
@@ -337,7 +336,7 @@ const main = function () {
         noReport: false,
         singleTestName: undefined
     }
-    args.forEach(function (arg) {
+    args.forEach(arg => {
         if (arg.match('unpacked')) {
             runOptions.unpacked = true
         }
@@ -359,15 +358,15 @@ const main = function () {
         executeTests(__dirname + '/testdir', runOptions)
     }
     else {
-        temp.mkdir('dircompare-test', function (err, testDirPath) {
+        temp.mkdir('dircompare-test', (err, testDirPath) => {
             if (err) {
                 throw err
             }
 
-            function onError(error) {
+            const onError = (error) => {
                 console.error('Error occurred:', error)
             }
-            untar(__dirname + "/testdir.tar", testDirPath, function () { executeTests(testDirPath, runOptions) }, onError)
+            untar(__dirname + "/testdir.tar", testDirPath, () => { executeTests(testDirPath, runOptions) }, onError)
         })
     }
 }

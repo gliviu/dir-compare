@@ -12,7 +12,7 @@ var loopDetector = require('./symlink/loopDetector')
 
 var ROOT_PATH = pathUtils.sep
 
-var compareSync = function (path1, path2, options) {
+function compareSync(path1, path2, options) {
     'use strict'
     // realpathSync() is necessary for loop detection to work properly
     var absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
@@ -34,10 +34,10 @@ var compareSync = function (path1, path2, options) {
 }
 
 var wrapper = {
-    realPath: function(path, options) {
-        return new Promise(function (resolve, reject) {
-            fs.realpath(path, options, function(err, resolvedPath) {
-                if(err){
+    realPath(path, options) {
+        return new Promise((resolve, reject) => {
+            fs.realpath(path, options, (err, resolvedPath) => {
+                if (err) {
                     reject(err)
                 } else {
                     resolve(resolvedPath)
@@ -47,21 +47,19 @@ var wrapper = {
     }
 }
 
-var compareAsync = function (path1, path2, options) {
+function compareAsync(path1, path2, options) {
     'use strict'
     var absolutePath1, absolutePath2
     return Promise.resolve()
-        .then(function () {
-            return Promise.all([wrapper.realPath(path1), wrapper.realPath(path2)])
-        })
-        .then(function (realPaths) {
+        .then(() => Promise.all([wrapper.realPath(path1), wrapper.realPath(path2)]))
+        .then(realPaths => {
             var realPath1 = realPaths[0]
             var realPath2 = realPaths[1]
             // realpath() is necessary for loop detection to work properly
             absolutePath1 = pathUtils.normalize(pathUtils.resolve(realPath1))
             absolutePath2 = pathUtils.normalize(pathUtils.resolve(realPath2))
         })
-        .then(function () {
+        .then(() => {
             options = prepareOptions(options)
             var asyncDiffSet
             if (!options.noDiffSet) {
@@ -71,20 +69,20 @@ var compareAsync = function (path1, path2, options) {
             return compareAsyncInternal(
                 entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
                 entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
-                0, ROOT_PATH, options, statistics, asyncDiffSet, loopDetector.initSymlinkCache()).then(
-                    function () {
-                        statsLifecycle.completeStatistics(statistics, options)
-                        if (!options.noDiffSet) {
-                            var diffSet = []
-                            rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)
-                            statistics.diffSet = diffSet
-                        }
-                        return statistics
-                    })
+                0, ROOT_PATH, options, statistics, asyncDiffSet, loopDetector.initSymlinkCache())
+                .then(() => {
+                    statsLifecycle.completeStatistics(statistics, options)
+                    if (!options.noDiffSet) {
+                        var diffSet = []
+                        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)
+                        statistics.diffSet = diffSet
+                    }
+                    return statistics
+                })
         })
 }
 
-var prepareOptions = function (options) {
+function prepareOptions(options) {
     options = options || {}
     var clone = JSON.parse(JSON.stringify(options))
     clone.resultBuilder = options.resultBuilder
@@ -100,7 +98,7 @@ var prepareOptions = function (options) {
     if (!clone.compareFileAsync) {
         clone.compareFileAsync = defaultFileCompare.compareAsync
     }
-    if(!clone.compareNameHandler) {
+    if (!clone.compareNameHandler) {
         clone.compareNameHandler = defaultNameCompare
     }
     clone.dateTolerance = clone.dateTolerance || 1000
@@ -114,8 +112,8 @@ var prepareOptions = function (options) {
 
 // Async diffsets are kept into recursive structures.
 // This method transforms them into one dimensional arrays.
-var rebuildAsyncDiffSet = function (statistics, asyncDiffSet, diffSet) {
-    asyncDiffSet.forEach(function (rawDiff) {
+function rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet) {
+    asyncDiffSet.forEach(rawDiff => {
         if (!Array.isArray(rawDiff)) {
             diffSet.push(rawDiff)
         } else {

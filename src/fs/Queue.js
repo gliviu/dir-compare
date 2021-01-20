@@ -23,22 +23,20 @@ function Queue() {
   var offset = 0
 
   // Returns the length of the queue.
-  this.getLength = function () {
-    return (queue.length - offset)
-  }
+  this.getLength = () => (queue.length - offset)
 
   /* Enqueues the specified item. The parameter is:
    *
    * item - the item to enqueue
    */
-  this.enqueue = function (item) {
+  this.enqueue = item => {
     queue.push(item)
   }
 
   /* Dequeues an item and returns it. If the queue is empty, the value
    * 'undefined' is returned.
    */
-  this.dequeue = function () {
+  this.dequeue = () => {
 
     // if the queue is empty, return immediately
     if (queue.length === 0) {

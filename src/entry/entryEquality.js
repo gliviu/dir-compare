@@ -3,7 +3,7 @@ var fs = require('fs')
  * Compares two entries with identical name and type.
  */
 module.exports = {
-    isEntryEqualSync: function (entry1, entry2, type, options) {
+    isEntryEqualSync(entry1, entry2, type, options) {
         if (type === 'file') {
             return isFileEqualSync(entry1, entry2, options)
         }
@@ -16,7 +16,7 @@ module.exports = {
         throw new Error('Unexpected type ' + type)
     },
 
-    isEntryEqualAsync: function (entry1, entry2, type, diffSet, options) {
+    isEntryEqualAsync(entry1, entry2, type, diffSet, options) {
         if (type === 'file') {
             return isFileEqualAsync(entry1, entry2, type, diffSet, options)
         }
@@ -71,7 +71,7 @@ function isFileEqualAsync(entry1, entry2, type, diffSet, options) {
             diffSet.push(subDiffSet)
         }
         samePromise = options.compareFileAsync(p1, entry1.stat, p2, entry2.stat, options)
-            .then(function (comparisonResult) {
+            .then((comparisonResult) => {
                 var same, error
                 if (typeof (comparisonResult) === "boolean") {
                     same = comparisonResult
@@ -86,11 +86,9 @@ function isFileEqualAsync(entry1, entry2, type, diffSet, options) {
                     reason: same ? undefined : 'different-content'
                 }
             })
-            .catch(function (error) {
-                return {
-                    error: error
-                }
-            })
+            .catch((error) => ({
+                error: error
+            }))
 
         return { same: undefined, samePromise: samePromise }
     }

@@ -2,7 +2,7 @@
  * Calculates comparison statistics.
  */
 module.exports = {
-    updateStatisticsBoth: function (entry1, entry2, same, reason, type, statistics, options) {
+    updateStatisticsBoth(entry1, entry2, same, reason, type, statistics, options) {
         same ? statistics.equal++ : statistics.distinct++
         if (type === 'file') {
             same ? statistics.equalFiles++ : statistics.distinctFiles++
@@ -27,7 +27,7 @@ module.exports = {
         }
 
     },
-    updateStatisticsLeft: function (entry1, type, statistics, options) {
+    updateStatisticsLeft(entry1, type, statistics, options) {
         statistics.left++
         if (type === 'file') {
             statistics.leftFiles++
@@ -43,7 +43,7 @@ module.exports = {
             statistics.symlinks.leftSymlinks++
         }
     },
-    updateStatisticsRight: function (entry2, type, statistics, options) {
+    updateStatisticsRight(entry2, type, statistics, options) {
         statistics.right++
         if (type === 'file') {
             statistics.rightFiles++

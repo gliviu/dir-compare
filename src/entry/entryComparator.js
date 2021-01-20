@@ -2,7 +2,7 @@
  * Determines order criteria for sorting entries in a directory.
  */
 module.exports = {
-	compareEntry: function (a, b, options) {
+	compareEntry (a, b, options) {
 		if (a.isBrokenLink && b.isBrokenLink) {
 			return options.compareNameHandler(a.name, b.name, options)
 		} else if (a.isBrokenLink) {

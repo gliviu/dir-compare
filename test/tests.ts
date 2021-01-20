@@ -610,7 +610,9 @@ export function getTests(testDirPath: string): Partial<Test>[] {
             displayOptions: {},
             skipStatisticsCheck: true,
             print(cmpres, writer) {
-                const comparator = function (a: Difference, b: Difference): number { return (a as unknown as number) - (b as unknown as number) }
+                const comparator = (a: Difference, b: Difference): number => {
+                    return (a as unknown as number) - (b as unknown as number)
+                }
                 writer.write(' diffset: ' + JSON.stringify(cmpres.diffSet?.sort(comparator), null, 0));
             }
         },
@@ -1048,10 +1050,8 @@ function customNameCompare(name1: string, name2: string, options: Options) {
 }
 
 function printRelativePathResult(res, testDirPath, writer) {
-    let result = res.diffSet.map(function (diff) {
-        return util.format('path1: %s, path2: %s',
-            diff.path1, diff.path2)
-    })
+    let result = res.diffSet.map(diff =>
+        util.format('path1: %s, path2: %s', diff.path1, diff.path2))
     result = JSON.stringify(result)
     result = result.replace(/\\\\/g, "/")
     result = result.replace(new RegExp(testDirPath.replace(/\\/g, "/"), 'g'), 'absolute_path')

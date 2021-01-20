@@ -15,14 +15,14 @@ var bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fdQu
 /**
  * Compares two partial buffers.
  */
-var compareBuffers = function (buf1, buf2, contentSize) {
+function compareBuffers(buf1, buf2, contentSize) {
     return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize))
 }
 
 /**
  * Compares two files by content.
  */
-var compareSync = function (path1, stat1, path2, stat2, options) {
+function compareSync(path1, stat1, path2, stat2, options) {
     var fd1, fd2
     if (stat1.size !== stat2.size) {
         return false
@@ -33,7 +33,7 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
         fd2 = fs.openSync(path2, 'r')
         var buf1 = bufferPair.buf1
         var buf2 = bufferPair.buf2
-        for(;;) {
+        for (; ;) {
             var size1 = fs.readSync(fd1, buf1, 0, BUF_SIZE, null)
             var size2 = fs.readSync(fd2, buf2, 0, BUF_SIZE, null)
             if (size1 !== size2) {
@@ -55,24 +55,24 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
 /**
  * Compares two files by content
  */
-var compareAsync = function (path1, stat1, path2, stat2, options) {
+function compareAsync(path1, stat1, path2, stat2, options) {
     var fd1, fd2
     var bufferPair
     if (stat1.size !== stat2.size) {
         return Promise.resolve(false)
     }
     return Promise.all([fdQueue.promises.open(path1, 'r'), fdQueue.promises.open(path2, 'r')])
-        .then(function (fds) {
+        .then(fds => {
             bufferPair = bufferPool.allocateBuffers()
             fd1 = fds[0]
             fd2 = fds[1]
             var buf1 = bufferPair.buf1
             var buf2 = bufferPair.buf2
-            var compareAsyncInternal = function () {
-                return Promise.all([
-                    fsPromise.read(fd1, buf1, 0, BUF_SIZE, null),
-                    fsPromise.read(fd2, buf2, 0, BUF_SIZE, null)
-                ]).then(function (bufferSizes) {
+            var compareAsyncInternal = () => Promise.all([
+                fsPromise.read(fd1, buf1, 0, BUF_SIZE, null),
+                fsPromise.read(fd2, buf2, 0, BUF_SIZE, null)
+            ])
+                .then((bufferSizes) => {
                     var size1 = bufferSizes[0]
                     var size2 = bufferSizes[1]
                     if (size1 !== size2) {
@@ -86,17 +86,12 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
                         return compareAsyncInternal()
                     }
                 })
-            }
             return compareAsyncInternal()
         })
         .then(
             // 'finally' polyfill for node 8 and below
-            function (res) {
-                return finalizeAsync(fd1, fd2, bufferPair).then(() => res)
-            },
-            function (err) {
-                return finalizeAsync(fd1, fd2, bufferPair).then(() => { throw err; })
-            }
+            res => finalizeAsync(fd1, fd2, bufferPair).then(() => res),
+            err => finalizeAsync(fd1, fd2, bufferPair).then(() => { throw err })
         )
 }
 

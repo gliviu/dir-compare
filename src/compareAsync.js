@@ -10,15 +10,13 @@ var entryType = require('./entry/entryType')
 /**
  * Returns the sorted list of entries in a directory.
  */
-var getEntries = function (rootEntry, relativePath, loopDetected, options) {
+function getEntries(rootEntry, relativePath, loopDetected, options) {
     if (!rootEntry || loopDetected) {
         return Promise.resolve([])
     }
     if (rootEntry.isDirectory) {
         return fsPromise.readdir(rootEntry.absolutePath)
-            .then(function (entries) {
-                return entryBuilder.buildDirEntries(rootEntry, entries, relativePath, options)
-            })
+            .then(entries => entryBuilder.buildDirEntries(rootEntry, entries, relativePath, options))
     }
     return Promise.resolve([rootEntry])
 }
@@ -26,13 +24,13 @@ var getEntries = function (rootEntry, relativePath, loopDetected, options) {
 /**
  * Compares two directories asynchronously.
  */
-var compare = function (rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
+function compare(rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
     var loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
     var loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     loopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
 
-    return Promise.all([getEntries(rootEntry1, relativePath, loopDetected1, options), getEntries(rootEntry2, relativePath, loopDetected2, options)]).then(
-        function (entriesResult) {
+    return Promise.all([getEntries(rootEntry1, relativePath, loopDetected1, options), getEntries(rootEntry2, relativePath, loopDetected2, options)])
+        .then(entriesResult => {
             var entries1 = entriesResult[0]
             var entries2 = entriesResult[1]
             var i1 = 0, i2 = 0
@@ -118,22 +116,22 @@ var compare = function (rootEntry1, rootEntry2, level, relativePath, options, st
                     }
                 }
             }
-            return Promise.all(comparePromises).then(function () {
-                return Promise.all(compareFilePromises).then(function (sameResults) {
-                    for (var i = 0; i < sameResults.length; i++) {
-                        var sameResult = sameResults[i]
-                        if (sameResult.error) {
-                            return Promise.reject(sameResult.error)
-                        } else {
-                            options.resultBuilder(sameResult.entry1, sameResult.entry2,
-                                sameResult.same ? 'equal' : 'distinct',
-                                level, relativePath, options, statistics, sameResult.diffSet,
-                                sameResult.reason)
-                            stats.updateStatisticsBoth(sameResult.entries1, sameResult.entries2, sameResult.same, sameResult.reason, sameResult.type1, statistics, options)
+            return Promise.all(comparePromises)
+                .then(() => Promise.all(compareFilePromises)
+                    .then(sameResults => {
+                        for (var i = 0; i < sameResults.length; i++) {
+                            var sameResult = sameResults[i]
+                            if (sameResult.error) {
+                                return Promise.reject(sameResult.error)
+                            } else {
+                                options.resultBuilder(sameResult.entry1, sameResult.entry2,
+                                    sameResult.same ? 'equal' : 'distinct',
+                                    level, relativePath, options, statistics, sameResult.diffSet,
+                                    sameResult.reason)
+                                stats.updateStatisticsBoth(sameResult.entries1, sameResult.entries2, sameResult.same, sameResult.reason, sameResult.type1, statistics, options)
+                            }
                         }
-                    }
-                })
-            })
+                    }))
         })
 }
 

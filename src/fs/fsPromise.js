@@ -1,9 +1,9 @@
 var fs = require('fs')
 
 module.exports = {
-    readdir: function (path) {
-        return new Promise(function (resolve, reject) {
-            fs.readdir(path, function (err, files) {
+    readdir(path) {
+        return new Promise((resolve, reject) => {
+            fs.readdir(path, (err, files) => {
                 if (err) {
                     reject(err)
                 } else {
@@ -12,10 +12,10 @@ module.exports = {
             })
         })
     },
-    read: function (fd, buffer, offset, length, position) {
-        return new Promise(function (resolve, reject) {
-            fs.read(fd, buffer, offset, length, position, function(err, bytesRead) {
-                if(err){
+    read(fd, buffer, offset, length, position) {
+        return new Promise((resolve, reject) => {
+            fs.read(fd, buffer, offset, length, position, (err, bytesRead) => {
+                if (err) {
                     reject(err)
                 } else {
                     resolve(bytesRead)

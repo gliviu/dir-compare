@@ -9,7 +9,7 @@ module.exports = {
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
-	buildDirEntries: function (rootEntry, dirEntries, relativePath, options) {
+	buildDirEntries(rootEntry, dirEntries, relativePath, options) {
 		var res = []
 		for (var i = 0; i < dirEntries.length; i++) {
 			var entryName = dirEntries[i]
@@ -28,7 +28,7 @@ module.exports = {
 		return res.sort((a, b) => entryComparator.compareEntry(a, b, options))
 	},
 
-	buildEntry: function (absolutePath, path, name) {
+	buildEntry (absolutePath, path, name) {
 		var stats = getStatIgnoreBrokenLink(absolutePath)
 
 		return {

@@ -2,11 +2,11 @@ var tar = require('tar-fs')
 var fs = require('fs')
 var pathUtils = require('path')
 
-var extractFiles = function (tarFile, output, onExtracted, onError) {
+function extractFiles(tarFile, output, onExtracted, onError) {
 
-    var extractLinks = function () {
+    var extractLinks = () => {
         var linkExtractor = tar.extract(output, {
-            ignore: function (_, header) {
+            ignore: (_, header) => {
                 // use the 'ignore' handler for symlink creation.
                 if (header.type === 'symlink') {
                     var target
@@ -42,7 +42,7 @@ var extractFiles = function (tarFile, output, onExtracted, onError) {
     }
 
     var fileExtractor = tar.extract(output, {
-        ignore: function (_, header) {
+        ignore: (_, header) => {
             if (header.type === 'symlink') {
                 return true
             } else {
@@ -53,7 +53,7 @@ var extractFiles = function (tarFile, output, onExtracted, onError) {
     fs.createReadStream(tarFile).on('error', onError).pipe(fileExtractor)
 }
 
-var untar = function (tarFile, output, onExtracted, onError) {
+function untar(tarFile, output, onExtracted, onError) {
     extractFiles(tarFile, output, onExtracted, onError)
 }
 

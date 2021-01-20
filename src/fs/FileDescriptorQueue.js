@@ -15,11 +15,11 @@ var Queue = require('./Queue')
  *  })
  *  As of node v7, calling fd.close without a callback is deprecated.
  */
-var FileDescriptorQueue = function (maxFilesNo) {
+function FileDescriptorQueue(maxFilesNo) {
 	var pendingJobs = new Queue()
 	var activeCount = 0
 
-	var open = function (path, flags, callback) {
+	var open = (path, flags, callback) => {
 		pendingJobs.enqueue({
 			path: path,
 			flags: flags,
@@ -28,7 +28,7 @@ var FileDescriptorQueue = function (maxFilesNo) {
 		process()
 	}
 
-	var process = function () {
+	var process = () => {
 		if (pendingJobs.getLength() > 0 && activeCount < maxFilesNo) {
 			var job = pendingJobs.dequeue()
 			activeCount++
@@ -36,36 +36,32 @@ var FileDescriptorQueue = function (maxFilesNo) {
 		}
 	}
 
-	var close = function (fd, callback) {
+	var close = (fd, callback) => {
 		activeCount--
 		fs.close(fd, callback)
 		process()
 	}
 
 	var promises = {
-		open: function (path, flags) {
-			return new Promise(function (resolve, reject) {
-				open(path, flags, function (err, fd) {
-					if (err) {
-						reject(err)
-					} else {
-						resolve(fd)
-					}
-				})
+		open: (path, flags) => new Promise((resolve, reject) => {
+			open(path, flags, (err, fd) => {
+				if (err) {
+					reject(err)
+				} else {
+					resolve(fd)
+				}
 			})
-		},
-		
-		close: function (fd) {
-			return new Promise(function (resolve, reject) {
-				close(fd, function (err) {
-					if (err) {
-						reject(err)
-					} else {
-						resolve()
-					}
-				})
+		}),
+
+		close: (fd) => new Promise((resolve, reject) => {
+			close(fd, (err) => {
+				if (err) {
+					reject(err)
+				} else {
+					resolve()
+				}
 			})
-		}
+		})
 	}
 
 	return {
