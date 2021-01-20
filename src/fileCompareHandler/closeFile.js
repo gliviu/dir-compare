@@ -1,4 +1,4 @@
-var fs = require('fs')
+const fs = require('fs')
 
 function closeFilesSync(fd1, fd2) {
     if (fd1) {

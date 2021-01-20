@@ -1,15 +1,15 @@
-var tar = require('tar-fs')
-var fs = require('fs')
-var pathUtils = require('path')
+const tar = require('tar-fs')
+const fs = require('fs')
+const pathUtils = require('path')
 
 function extractFiles(tarFile, output, onExtracted, onError) {
 
-    var extractLinks = () => {
-        var linkExtractor = tar.extract(output, {
+    const extractLinks = () => {
+        const linkExtractor = tar.extract(output, {
             ignore: (_, header) => {
                 // use the 'ignore' handler for symlink creation.
                 if (header.type === 'symlink') {
-                    var target
+                    let target
                     if (process.platform === 'win32') {
                         // Absolute symlinks
                         target = pathUtils.join(output, pathUtils.dirname(header.name), header.linkname)
@@ -19,10 +19,10 @@ function extractFiles(tarFile, output, onExtracted, onError) {
                     }
 
 
-                    var linkPath = pathUtils.join(output, header.name)
+                    const linkPath = pathUtils.join(output, header.name)
                     if (!fs.existsSync(linkPath)) {
                         if (fs.existsSync(target)) {
-                            var statTarget = fs.statSync(target)
+                            const statTarget = fs.statSync(target)
                             if (statTarget.isFile()) {
                                 fs.symlinkSync(target, linkPath, 'file')
                             } else if (statTarget.isDirectory()) {
@@ -41,7 +41,7 @@ function extractFiles(tarFile, output, onExtracted, onError) {
         fs.createReadStream(tarFile).on('error', onError).pipe(linkExtractor)
     }
 
-    var fileExtractor = tar.extract(output, {
+    const fileExtractor = tar.extract(output, {
         ignore: (_, header) => {
             if (header.type === 'symlink') {
                 return true

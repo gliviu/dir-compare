@@ -1,12 +1,10 @@
-'use strict'
-
-var fs = require('fs')
-var Queue = require('./Queue')
+const fs = require('fs')
+const Queue = require('./Queue')
 /**
  * Limits the number of concurrent file handlers.
  * Use it as a wrapper over fs.open() and fs.close().
  * Example:
- *  var fdQueue = new FileDescriptorQueue(8)
+ *  const fdQueue = new FileDescriptorQueue(8)
  *  fdQueue.open(path, flags, (err, fd) =>{
  *    ...
  *    fdQueue.close(fd, (err) =>{
@@ -16,10 +14,10 @@ var Queue = require('./Queue')
  *  As of node v7, calling fd.close without a callback is deprecated.
  */
 function FileDescriptorQueue(maxFilesNo) {
-	var pendingJobs = new Queue()
-	var activeCount = 0
+	const pendingJobs = new Queue()
+	let activeCount = 0
 
-	var open = (path, flags, callback) => {
+	const open = (path, flags, callback) => {
 		pendingJobs.enqueue({
 			path: path,
 			flags: flags,
@@ -28,21 +26,21 @@ function FileDescriptorQueue(maxFilesNo) {
 		process()
 	}
 
-	var process = () => {
+	const process = () => {
 		if (pendingJobs.getLength() > 0 && activeCount < maxFilesNo) {
-			var job = pendingJobs.dequeue()
+			const job = pendingJobs.dequeue()
 			activeCount++
 			fs.open(job.path, job.flags, job.callback)
 		}
 	}
 
-	var close = (fd, callback) => {
+	const close = (fd, callback) => {
 		activeCount--
 		fs.close(fd, callback)
 		process()
 	}
 
-	var promises = {
+	const promises = {
 		open: (path, flags) => new Promise((resolve, reject) => {
 			open(path, flags, (err, fd) => {
 				if (err) {

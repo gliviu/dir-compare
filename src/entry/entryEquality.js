@@ -1,4 +1,4 @@
-var fs = require('fs')
+const fs = require('fs')
 /**
  * Compares two entries with identical name and type.
  */
@@ -32,8 +32,8 @@ module.exports = {
 
 
 function isFileEqualSync(entry1, entry2, options) {
-    var p1 = entry1 ? entry1.absolutePath : undefined
-    var p2 = entry2 ? entry2.absolutePath : undefined
+    const p1 = entry1 ? entry1.absolutePath : undefined
+    const p2 = entry2 ? entry2.absolutePath : undefined
     if (options.compareSymlink && !isSymlinkEqual(entry1, entry2)) {
         return { same: false, reason: 'different-symlink' }
     }
@@ -50,8 +50,8 @@ function isFileEqualSync(entry1, entry2, options) {
 }
 
 function isFileEqualAsync(entry1, entry2, type, diffSet, options) {
-    var p1 = entry1 ? entry1.absolutePath : undefined
-    var p2 = entry2 ? entry2.absolutePath : undefined
+    const p1 = entry1 ? entry1.absolutePath : undefined
+    const p2 = entry2 ? entry2.absolutePath : undefined
     if (options.compareSymlink && !isSymlinkEqual(entry1, entry2)) {
         return { same: false, reason: 'different-symlink' }
     }
@@ -64,15 +64,15 @@ function isFileEqualAsync(entry1, entry2, type, diffSet, options) {
     }
 
     if (options.compareContent) {
-        var samePromise = undefined
-        var subDiffSet
+        let samePromise = undefined
+        let subDiffSet
         if (!options.noDiffSet) {
             subDiffSet = []
             diffSet.push(subDiffSet)
         }
         samePromise = options.compareFileAsync(p1, entry1.stat, p2, entry2.stat, options)
             .then((comparisonResult) => {
-                var same, error
+                let same, error
                 if (typeof (comparisonResult) === "boolean") {
                     same = comparisonResult
                 } else {

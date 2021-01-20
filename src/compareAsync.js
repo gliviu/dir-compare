@@ -1,11 +1,11 @@
-var entryBuilder = require('./entry/entryBuilder')
-var entryEquality = require('./entry/entryEquality')
-var stats = require('./statistics/statisticsUpdate')
-var pathUtils = require('path')
-var fsPromise = require('./fs/fsPromise')
-var loopDetector = require('./symlink/loopDetector')
-var entryComparator = require('./entry/entryComparator')
-var entryType = require('./entry/entryType')
+const entryBuilder = require('./entry/entryBuilder')
+const entryEquality = require('./entry/entryEquality')
+const stats = require('./statistics/statisticsUpdate')
+const pathUtils = require('path')
+const fsPromise = require('./fs/fsPromise')
+const loopDetector = require('./symlink/loopDetector')
+const entryComparator = require('./entry/entryComparator')
+const entryType = require('./entry/entryType')
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -25,26 +25,26 @@ function getEntries(rootEntry, relativePath, loopDetected, options) {
  * Compares two directories asynchronously.
  */
 function compare(rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
-    var loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
-    var loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
+    const loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
+    const loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     loopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
 
     return Promise.all([getEntries(rootEntry1, relativePath, loopDetected1, options), getEntries(rootEntry2, relativePath, loopDetected2, options)])
         .then(entriesResult => {
-            var entries1 = entriesResult[0]
-            var entries2 = entriesResult[1]
-            var i1 = 0, i2 = 0
-            var comparePromises = []
-            var compareFilePromises = []
-            var subDiffSet
+            const entries1 = entriesResult[0]
+            const entries2 = entriesResult[1]
+            let i1 = 0, i2 = 0
+            const comparePromises = []
+            const compareFilePromises = []
+            let subDiffSet
 
             while (i1 < entries1.length || i2 < entries2.length) {
-                var entry1 = entries1[i1]
-                var entry2 = entries2[i2]
-                var type1, type2
+                const entry1 = entries1[i1]
+                const entry2 = entries2[i2]
+                let type1, type2
 
                 // compare entry name (-1, 0, 1)
-                var cmp
+                let cmp
                 if (i1 < entries1.length && i2 < entries2.length) {
                     cmp = entryComparator.compareEntry(entry1, entry2, options)
                     type1 = entryType.getType(entry1)
@@ -62,9 +62,9 @@ function compare(rootEntry1, rootEntry2, level, relativePath, options, statistic
                 // process entry
                 if (cmp === 0) {
                     // Both left/right exist and have the same name and type
-                    var compareAsyncRes = entryEquality.isEntryEqualAsync(entry1, entry2, type1, diffSet, options)
-                    var samePromise = compareAsyncRes.samePromise
-                    var same = compareAsyncRes.same
+                    const compareAsyncRes = entryEquality.isEntryEqualAsync(entry1, entry2, type1, diffSet, options)
+                    const samePromise = compareAsyncRes.samePromise
+                    const same = compareAsyncRes.same
                     if (same !== undefined) {
                         options.resultBuilder(entry1, entry2,
                             same ? 'equal' : 'distinct',
@@ -119,8 +119,8 @@ function compare(rootEntry1, rootEntry2, level, relativePath, options, statistic
             return Promise.all(comparePromises)
                 .then(() => Promise.all(compareFilePromises)
                     .then(sameResults => {
-                        for (var i = 0; i < sameResults.length; i++) {
-                            var sameResult = sameResults[i]
+                        for (let i = 0; i < sameResults.length; i++) {
+                            const sameResult = sameResults[i]
                             if (sameResult.error) {
                                 return Promise.reject(sameResult.error)
                             } else {

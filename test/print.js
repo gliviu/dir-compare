@@ -1,7 +1,7 @@
-var util = require('util')
-var pathUtils = require('path')
+const util = require('util')
+const pathUtils = require('path')
 
-var PATH_SEP = pathUtils.sep
+const PATH_SEP = pathUtils.sep
 
 // Prints dir compare results.
 // 'program' represents display options and correspond to dircompare command line parameters.
@@ -10,13 +10,13 @@ var PATH_SEP = pathUtils.sep
 //
 function print(res, writer, displayOptions) {
     // calculate relative path length for pretty print
-    var relativePathMaxLength = 0, fileNameMaxLength = 0
+    let relativePathMaxLength = 0, fileNameMaxLength = 0
     if (!displayOptions.csv && res.diffSet) {
         res.diffSet.forEach(diff => {
             if (diff.relativePath.length > relativePathMaxLength) {
                 relativePathMaxLength = diff.relativePath.length
             }
-            var len = getCompareFile(diff, '??').length
+            const len = getCompareFile(diff, '??').length
             if (len > fileNameMaxLength) {
                 fileNameMaxLength = len
             }
@@ -28,13 +28,13 @@ function print(res, writer, displayOptions) {
         writer.write('path,name,state,type,size1,size2,date1,date2,reason\n')
     }
     if (res.diffSet) {
-        for (var i = 0; i < res.diffSet.length; i++) {
-            var detail = res.diffSet[i]
-            var show = true
+        for (let i = 0; i < res.diffSet.length; i++) {
+            const detail = res.diffSet[i]
+            let show = true
 
             if (!displayOptions.wholeReport) {
                 // show only files or broken links
-                var type = detail.type1 !== 'missing' ? detail.type1 : detail.type2
+                const type = detail.type1 !== 'missing' ? detail.type1 : detail.type2
                 if (type !== 'file' && type !== 'broken-link') {
                     show = false
                 }
@@ -68,7 +68,7 @@ function print(res, writer, displayOptions) {
     }
 
     // PRINT STATISTICS
-    var statTotal, statEqual, statLeft, statRight, statDistinct
+    let statTotal, statEqual, statLeft, statRight, statDistinct
     if (displayOptions.wholeReport) {
         statTotal = res.total
         statEqual = res.equal
@@ -76,7 +76,7 @@ function print(res, writer, displayOptions) {
         statRight = res.right
         statDistinct = res.distinct
     } else {
-        var brokenLInksStats = res.brokenLinks
+        const brokenLInksStats = res.brokenLinks
         statTotal = res.totalFiles + brokenLInksStats.totalBrokenLinks
         statEqual = res.equalFiles
         statLeft = res.leftFiles + brokenLInksStats.leftBrokenLinks
@@ -86,7 +86,7 @@ function print(res, writer, displayOptions) {
     if (!displayOptions.noDiffIndicator) {
         writer.write(res.same ? 'Entries are identical\n' : 'Entries are different\n')
     }
-    var stats = util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
+    let stats = util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
         statTotal,
         statEqual,
         statDistinct,
@@ -104,9 +104,9 @@ function print(res, writer, displayOptions) {
  * Print details for default view mode
  */
 function printPretty(writer, program, detail) {
-    var path = detail.relativePath === '' ? PATH_SEP : detail.relativePath
+    const path = detail.relativePath === '' ? PATH_SEP : detail.relativePath
 
-    var state
+    let state
     switch (detail.state) {
         case 'equal':
             state = '=='
@@ -123,10 +123,10 @@ function printPretty(writer, program, detail) {
         default:
             state = '?'
     }
-    var type = ''
+    let type = ''
     type = detail.type1 !== 'missing' ? detail.type1 : detail.type2
-    var cmpEntry = getCompareFile(detail, state)
-    var reason = ''
+    const cmpEntry = getCompareFile(detail, state)
+    let reason = ''
     if (program.reason && detail.reason) {
         reason = util.format(' <%s>', detail.reason)
     }
@@ -138,10 +138,10 @@ function printPretty(writer, program, detail) {
 }
 
 function getCompareFile(detail, state) {
-    var p1 = detail.name1 ? detail.name1 : ''
-    var p2 = detail.name2 ? detail.name2 : ''
-    var missing1 = detail.type1 === 'missing' ? 'missing' : ''
-    var missing2 = detail.type2 === 'missing' ? 'missing' : ''
+    const p1 = detail.name1 ? detail.name1 : ''
+    const p2 = detail.name2 ? detail.name2 : ''
+    const missing1 = detail.type1 === 'missing' ? 'missing' : ''
+    const missing2 = detail.type2 === 'missing' ? 'missing' : ''
     return util.format('%s%s %s %s%s', missing1, p1, state, missing2, p2)
 }
 
@@ -149,7 +149,7 @@ function getCompareFile(detail, state) {
  * Print csv details.
  */
 function printCsv(writer, detail) {
-    var size1 = '', size2 = ''
+    let size1 = '', size2 = ''
     if (detail.type1 === 'file') {
         size1 = detail.size1 !== undefined ? detail.size1 : ''
     }
@@ -157,16 +157,15 @@ function printCsv(writer, detail) {
         size2 = detail.size2 !== undefined ? detail.size2 : ''
     }
 
-    var date1 = '', date2 = ''
-    date1 = detail.date1 !== undefined ? detail.date1.toISOString() : ''
-    date2 = detail.date2 !== undefined ? detail.date2.toISOString() : ''
+    const date1 = detail.date1 !== undefined ? detail.date1.toISOString() : ''
+    const date2 = detail.date2 !== undefined ? detail.date2.toISOString() : ''
 
-    var type = ''
+    let type = ''
     type = detail.type1 !== 'missing' ? detail.type1 : detail.type2
 
-    var path = detail.relativePath ? detail.relativePath : PATH_SEP
-    var name = (detail.name1 ? detail.name1 : detail.name2)
-    var reason = detail.reason || ''
+    const path = detail.relativePath ? detail.relativePath : PATH_SEP
+    const name = (detail.name1 ? detail.name1 : detail.name2)
+    const reason = detail.reason || ''
 
     writer.write(util.format('%s,%s,%s,%s,%s,%s,%s,%s,%s\n', path, name, detail.state, type, size1, size2, date1, date2, reason))
 }

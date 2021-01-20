@@ -3,7 +3,7 @@
  */
 module.exports = {
     initStats(options) {
-        var symlinkStatistics = undefined
+        let symlinkStatistics = undefined
         if (options.compareSymlink) {
             symlinkStatistics = {
                 distinctSymlinks: 0,
@@ -14,7 +14,7 @@ module.exports = {
                 totalSymlinks: 0,
             }
         }
-        var brokenLinksStatistics = {
+        const brokenLinksStatistics = {
             leftBrokenLinks: 0,
             rightBrokenLinks: 0,
             distinctBrokenLinks: 0,
@@ -45,7 +45,7 @@ module.exports = {
         statistics.total = statistics.equal + statistics.differences
         statistics.totalFiles = statistics.equalFiles + statistics.differencesFiles
         statistics.totalDirs = statistics.equalDirs + statistics.differencesDirs
-        var brokenLInksStats = statistics.brokenLinks
+        const brokenLInksStats = statistics.brokenLinks
         brokenLInksStats.totalBrokenLinks = brokenLInksStats.leftBrokenLinks + brokenLInksStats.rightBrokenLinks + brokenLInksStats.distinctBrokenLinks
         statistics.same = statistics.differences ? false : true
 

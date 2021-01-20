@@ -1,28 +1,27 @@
-var pathUtils = require('path')
-var fs = require('fs')
-var compareSyncInternal = require('./compareSync')
-var compareAsyncInternal = require('./compareAsync')
-var defaultResultBuilderCallback = require('./resultBuilder/defaultResultBuilderCallback')
-var defaultFileCompare = require('./fileCompareHandler/defaultFileCompare')
-var lineBasedFileCompare = require('./fileCompareHandler/lineBasedFileCompare')
-var defaultNameCompare = require('./nameCompare/defaultNameCompare')
-var entryBuilder = require('./entry/entryBuilder')
-var statsLifecycle = require('./statistics/statisticsLifecycle')
-var loopDetector = require('./symlink/loopDetector')
+const pathUtils = require('path')
+const fs = require('fs')
+const compareSyncInternal = require('./compareSync')
+const compareAsyncInternal = require('./compareAsync')
+const defaultResultBuilderCallback = require('./resultBuilder/defaultResultBuilderCallback')
+const defaultFileCompare = require('./fileCompareHandler/defaultFileCompare')
+const lineBasedFileCompare = require('./fileCompareHandler/lineBasedFileCompare')
+const defaultNameCompare = require('./nameCompare/defaultNameCompare')
+const entryBuilder = require('./entry/entryBuilder')
+const statsLifecycle = require('./statistics/statisticsLifecycle')
+const loopDetector = require('./symlink/loopDetector')
 
-var ROOT_PATH = pathUtils.sep
+const ROOT_PATH = pathUtils.sep
 
 function compareSync(path1, path2, options) {
-    'use strict'
     // realpathSync() is necessary for loop detection to work properly
-    var absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
-    var absolutePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
-    var diffSet
+    const absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
+    const absolutePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
+    let diffSet
     options = prepareOptions(options)
     if (!options.noDiffSet) {
         diffSet = []
     }
-    var statistics = statsLifecycle.initStats(options)
+    const statistics = statsLifecycle.initStats(options)
     compareSyncInternal(
         entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
         entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
@@ -33,7 +32,7 @@ function compareSync(path1, path2, options) {
     return statistics
 }
 
-var wrapper = {
+const wrapper = {
     realPath(path, options) {
         return new Promise((resolve, reject) => {
             fs.realpath(path, options, (err, resolvedPath) => {
@@ -48,24 +47,23 @@ var wrapper = {
 }
 
 function compareAsync(path1, path2, options) {
-    'use strict'
-    var absolutePath1, absolutePath2
+    let absolutePath1, absolutePath2
     return Promise.resolve()
         .then(() => Promise.all([wrapper.realPath(path1), wrapper.realPath(path2)]))
         .then(realPaths => {
-            var realPath1 = realPaths[0]
-            var realPath2 = realPaths[1]
+            const realPath1 = realPaths[0]
+            const realPath2 = realPaths[1]
             // realpath() is necessary for loop detection to work properly
             absolutePath1 = pathUtils.normalize(pathUtils.resolve(realPath1))
             absolutePath2 = pathUtils.normalize(pathUtils.resolve(realPath2))
         })
         .then(() => {
             options = prepareOptions(options)
-            var asyncDiffSet
+            let asyncDiffSet
             if (!options.noDiffSet) {
                 asyncDiffSet = []
             }
-            var statistics = statsLifecycle.initStats(options)
+            const statistics = statsLifecycle.initStats(options)
             return compareAsyncInternal(
                 entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
                 entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
@@ -73,7 +71,7 @@ function compareAsync(path1, path2, options) {
                 .then(() => {
                     statsLifecycle.completeStatistics(statistics, options)
                     if (!options.noDiffSet) {
-                        var diffSet = []
+                        const diffSet = []
                         rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)
                         statistics.diffSet = diffSet
                     }
@@ -84,7 +82,7 @@ function compareAsync(path1, path2, options) {
 
 function prepareOptions(options) {
     options = options || {}
-    var clone = JSON.parse(JSON.stringify(options))
+    const clone = JSON.parse(JSON.stringify(options))
     clone.resultBuilder = options.resultBuilder
     clone.compareFileSync = options.compareFileSync
     clone.compareFileAsync = options.compareFileAsync

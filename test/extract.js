@@ -1,6 +1,6 @@
-var untar = require('./untar')
+const untar = require('./untar')
 
-var output = __dirname + '/testdir'
+const output = __dirname + '/testdir'
 untar(__dirname + "/testdir.tar", output,
     () => {
         console.log('Extracted test data into ' + output)

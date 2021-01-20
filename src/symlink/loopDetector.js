@@ -1,4 +1,4 @@
-var fs = require('fs')
+const fs = require('fs')
 
 /**
  * Provides symlink loop detection to directory traversal algorithm.
@@ -6,7 +6,7 @@ var fs = require('fs')
 module.exports = {
 	detectLoop(entry, symlinkCache) {
 		if (entry && entry.isSymlink) {
-			var realPath = fs.realpathSync(entry.absolutePath)
+			const realPath = fs.realpathSync(entry.absolutePath)
 			if (symlinkCache[realPath]) {
 				return true
 			}
@@ -22,7 +22,7 @@ module.exports = {
 	},
 
 	updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2) {
-		var symlinkCachePath1, symlinkCachePath2
+		let symlinkCachePath1, symlinkCachePath2
 		if (rootEntry1 && !loopDetected1) {
 			symlinkCachePath1 = rootEntry1.isSymlink ? fs.realpathSync(rootEntry1.absolutePath) : rootEntry1.absolutePath
 			symlinkCache.dir1[symlinkCachePath1] = true
@@ -42,7 +42,7 @@ module.exports = {
 }
 
 function shallowClone(obj) {
-	var cloned = {}
+	const cloned = {}
 	Object.keys(obj).forEach(key => {
 		cloned[key] = obj[key]
 	})

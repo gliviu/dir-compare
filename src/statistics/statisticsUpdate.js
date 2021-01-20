@@ -14,11 +14,11 @@ module.exports = {
             throw new Error('Unexpected type ' + type)
         }
 
-        var isSymlink1 = entry1 ? entry1.isSymlink : false
-        var isSymlink2 = entry2 ? entry2.isSymlink : false
-        var isSymlink = isSymlink1 || isSymlink2
+        const isSymlink1 = entry1 ? entry1.isSymlink : false
+        const isSymlink2 = entry2 ? entry2.isSymlink : false
+        const isSymlink = isSymlink1 || isSymlink2
         if (options.compareSymlink && isSymlink) {
-            var symlinks = statistics.symlinks
+            const symlinks = statistics.symlinks
             if (reason === 'different-symlink') {
                 symlinks.distinctSymlinks++
             } else {

@@ -11,7 +11,7 @@ http://creativecommons.org/publicdomain/zero/1.0/legalcode
 
 */
 
-var MAX_UNUSED_ARRAY_SIZE = 10000
+const MAX_UNUSED_ARRAY_SIZE = 10000
 
 /* Creates a new queue. A queue is a first-in-first-out (FIFO) data structure -
  * items are added to the end of the queue and removed from the front.
@@ -19,8 +19,8 @@ var MAX_UNUSED_ARRAY_SIZE = 10000
 function Queue() {
 
   // initialise the queue and offset
-  var queue = []
-  var offset = 0
+  let queue = []
+  let offset = 0
 
   // Returns the length of the queue.
   this.getLength = () => (queue.length - offset)
@@ -44,7 +44,7 @@ function Queue() {
     }
 
     // store the item at the front of the queue
-    var item = queue[offset]
+    const item = queue[offset]
 
     // increment the offset and remove the free space if necessary
     if (++offset > MAX_UNUSED_ARRAY_SIZE) {

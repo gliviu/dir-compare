@@ -1,11 +1,11 @@
-var fs = require('fs')
-var pathUtils = require('path')
-var entryBuilder = require('./entry/entryBuilder')
-var entryEquality = require('./entry/entryEquality')
-var stats = require('./statistics/statisticsUpdate')
-var loopDetector = require('./symlink/loopDetector')
-var entryComparator = require('./entry/entryComparator')
-var entryType = require('./entry/entryType')
+const fs = require('fs')
+const pathUtils = require('path')
+const entryBuilder = require('./entry/entryBuilder')
+const entryEquality = require('./entry/entryEquality')
+const stats = require('./statistics/statisticsUpdate')
+const loopDetector = require('./symlink/loopDetector')
+const entryComparator = require('./entry/entryComparator')
+const entryType = require('./entry/entryType')
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -15,7 +15,7 @@ function getEntries(rootEntry, relativePath, loopDetected, options) {
         return []
     }
     if (rootEntry.isDirectory) {
-        var entries = fs.readdirSync(rootEntry.absolutePath)
+        const entries = fs.readdirSync(rootEntry.absolutePath)
         return entryBuilder.buildDirEntries(rootEntry, entries, relativePath, options)
     }
     return [rootEntry]
@@ -25,20 +25,20 @@ function getEntries(rootEntry, relativePath, loopDetected, options) {
  * Compares two directories synchronously.
  */
 function compare(rootEntry1, rootEntry2, level, relativePath, options, statistics, diffSet, symlinkCache) {
-    var loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
-    var loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
+    const loopDetected1 = loopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
+    const loopDetected2 = loopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     loopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
 
-    var entries1 = getEntries(rootEntry1, relativePath, loopDetected1, options)
-    var entries2 = getEntries(rootEntry2, relativePath, loopDetected2, options)
-    var i1 = 0, i2 = 0
+    const entries1 = getEntries(rootEntry1, relativePath, loopDetected1, options)
+    const entries2 = getEntries(rootEntry2, relativePath, loopDetected2, options)
+    let i1 = 0, i2 = 0
     while (i1 < entries1.length || i2 < entries2.length) {
-        var entry1 = entries1[i1]
-        var entry2 = entries2[i2]
-        var type1, type2
+        const entry1 = entries1[i1]
+        const entry2 = entries2[i2]
+        let type1, type2
 
         // compare entry name (-1, 0, 1)
-        var cmp
+        let cmp
         if (i1 < entries1.length && i2 < entries2.length) {
             cmp = entryComparator.compareEntry(entry1, entry2, options)
             type1 = entryType.getType(entry1)
@@ -56,7 +56,7 @@ function compare(rootEntry1, rootEntry2, level, relativePath, options, statistic
         // process entry
         if (cmp === 0) {
             // Both left/right exist and have the same name and type
-            var compareEntryRes = entryEquality.isEntryEqualSync(entry1, entry2, type1, options)
+            let compareEntryRes = entryEquality.isEntryEqualSync(entry1, entry2, type1, options)
             options.resultBuilder(entry1, entry2,
                 compareEntryRes.same ? 'equal' : 'distinct',
                 level, relativePath, options, statistics, diffSet,

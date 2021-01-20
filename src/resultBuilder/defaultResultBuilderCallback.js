@@ -1,7 +1,5 @@
-'use strict'
-
-var pathUtils = require('path')
-var entryType = require('../entry/entryType')
+const pathUtils = require('path')
+const entryType = require('../entry/entryType')
 
 module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason) {
     if (options.noDiffSet) {

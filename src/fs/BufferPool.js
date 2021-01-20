@@ -6,8 +6,8 @@
  * Caller has to make sure no more than bufNo async processes run simultaneously.
  */
 function BufferPool(bufSize, bufNo) {
-    var bufferPool = []
-    for (var i = 0; i < bufNo; i++) {
+    const bufferPool = []
+    for (let i = 0; i < bufNo; i++) {
         bufferPool.push({
             buf1: Buffer.alloc(bufSize),
             buf2: Buffer.alloc(bufSize),
@@ -15,9 +15,9 @@ function BufferPool(bufSize, bufNo) {
         })
     }
 
-    var allocateBuffers = () => {
-        for (var j = 0; j < bufNo; j++) {
-            var bufferPair = bufferPool[j]
+    const allocateBuffers = () => {
+        for (let j = 0; j < bufNo; j++) {
+            const bufferPair = bufferPool[j]
             if (!bufferPair.busy) {
                 bufferPair.busy = true
                 return bufferPair
@@ -26,7 +26,7 @@ function BufferPool(bufSize, bufNo) {
         throw new Error('Async buffer limit reached')
     }
 
-    var freeBuffers = bufferPair => {
+    const freeBuffers = bufferPair => {
         bufferPair.busy = false
     }
 

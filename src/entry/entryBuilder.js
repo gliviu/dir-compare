@@ -1,22 +1,22 @@
-var fs = require('fs')
-var minimatch = require('minimatch')
-var pathUtils = require('path')
-var entryComparator = require('./entryComparator')
+const fs = require('fs')
+const minimatch = require('minimatch')
+const pathUtils = require('path')
+const entryComparator = require('./entryComparator')
 
-var PATH_SEP = pathUtils.sep
+const PATH_SEP = pathUtils.sep
 
 module.exports = {
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
 	buildDirEntries(rootEntry, dirEntries, relativePath, options) {
-		var res = []
-		for (var i = 0; i < dirEntries.length; i++) {
-			var entryName = dirEntries[i]
-			var entryAbsolutePath = rootEntry.absolutePath + PATH_SEP + entryName
-			var entryPath = rootEntry.path + PATH_SEP + entryName
+		const res = []
+		for (let i = 0; i < dirEntries.length; i++) {
+			const entryName = dirEntries[i]
+			const entryAbsolutePath = rootEntry.absolutePath + PATH_SEP + entryName
+			const entryPath = rootEntry.path + PATH_SEP + entryName
 
-			var entry = this.buildEntry(entryAbsolutePath, entryPath, entryName)
+			const entry = this.buildEntry(entryAbsolutePath, entryPath, entryName)
 			if (options.skipSymlinks && entry.isSymlink) {
 				entry.stat = undefined
 			}
@@ -29,7 +29,7 @@ module.exports = {
 	},
 
 	buildEntry (absolutePath, path, name) {
-		var stats = getStatIgnoreBrokenLink(absolutePath)
+		const stats = getStatIgnoreBrokenLink(absolutePath)
 
 		return {
 			name: name,
@@ -47,7 +47,7 @@ module.exports = {
 
 
 function getStatIgnoreBrokenLink(absolutePath) {
-	var lstat = fs.lstatSync(absolutePath)
+	const lstat = fs.lstatSync(absolutePath)
 	try {
 		return {
 			stat: fs.statSync(absolutePath),
@@ -73,7 +73,7 @@ function filterEntry(entry, relativePath, options) {
 	if (entry.isSymlink && options.skipSymlinks) {
 		return false
 	}
-	var path = pathUtils.join(relativePath, entry.name)
+	const path = pathUtils.join(relativePath, entry.name)
 
 	if ((entry.stat.isFile() && options.includeFilter) && (!match(path, options.includeFilter))) {
 		return false
@@ -90,9 +90,9 @@ function filterEntry(entry, relativePath, options) {
  * Matches path by pattern.
  */
 function match(path, pattern) {
-	var patternArray = pattern.split(',')
-	for (var i = 0; i < patternArray.length; i++) {
-		var pat = patternArray[i]
+	const patternArray = pattern.split(',')
+	for (let i = 0; i < patternArray.length; i++) {
+		const pat = patternArray[i]
 		if (minimatch(path, pat, { dot: true, matchBase: true })) { //nocase
 			return true
 		}
