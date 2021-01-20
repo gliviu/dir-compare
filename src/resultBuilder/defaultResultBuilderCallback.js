@@ -1,7 +1,6 @@
 'use strict'
 
 var pathUtils = require('path')
-var common = require('../entry/entryBuilder')
 var entryType = require('../entry/entryType')
 
 module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason) {

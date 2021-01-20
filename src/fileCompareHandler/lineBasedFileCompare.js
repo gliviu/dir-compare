@@ -29,7 +29,7 @@ function compareSync(path1, stat1, path2, stat2, options) {
         var buf1 = bufferPair.buf1
         var buf2 = bufferPair.buf2
         var nextPosition1 = 0, nextPosition2 = 0
-        while (true) {
+        for (; ;) {
             var lines1 = readLinesSync(fd1, buf1, bufferSize, nextPosition1)
             var lines2 = readLinesSync(fd2, buf2, bufferSize, nextPosition2)
             if (lines1.length === 0 && lines2.length === 0) {
@@ -61,7 +61,7 @@ async function compareAsync(path1, stat1, path2, stat2, options) {
         var buf1 = bufferPair.buf1
         var buf2 = bufferPair.buf2
         var nextPosition1 = 0, nextPosition2 = 0
-        while (true) {
+        for (; ;) {
             var lines1 = await readLinesAsync(fd1, buf1, bufferSize, nextPosition1)
             var lines2 = await readLinesAsync(fd2, buf2, bufferSize, nextPosition2)
             if (lines1.length === 0 && lines2.length === 0) {
@@ -88,7 +88,7 @@ async function compareAsync(path1, stat1, path2, stat2, options) {
 function readLinesSync(fd, buf, bufferSize, nextPosition) {
     var lines = []
     var chunk = ""
-    while (true) {
+    for (; ;) {
         var size = fs.readSync(fd, buf, 0, bufferSize, nextPosition)
         if (size === 0) {
             // end of file
@@ -111,7 +111,7 @@ function readLinesSync(fd, buf, bufferSize, nextPosition) {
 async function readLinesAsync(fd, buf, bufferSize, nextPosition) {
     var lines = []
     var chunk = ""
-    while (true) {
+    for (; ;) {
         var size = await fsPromise.read(fd, buf, 0, bufferSize, nextPosition)
         if (size === 0) {
             // end of file

@@ -1,4 +1,4 @@
-import { compareSync, compare, Options, fileCompareHandlers } from "../../src"
+import { compareSync, compare, Options, fileCompareHandlers, Result } from "../../src"
 
 interface Test {
     testId: string,
@@ -82,7 +82,9 @@ const tests: Test[] = [
 
 ]
 
-async function runSingleTest(test: Test, compareFn: (...args: any[]) => any) {
+type CompareFn = (left: string, right: string, options: Options) => Promise<Result> | Result
+
+async function runSingleTest(test: Test, compareFn: CompareFn) {
     const t1 = Date.now()
     const compareResult = await compareFn(test.left, test.right, test.options)
     const t2 = Date.now()

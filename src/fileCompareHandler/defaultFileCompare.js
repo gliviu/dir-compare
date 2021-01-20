@@ -33,8 +33,7 @@ var compareSync = function (path1, stat1, path2, stat2, options) {
         fd2 = fs.openSync(path2, 'r')
         var buf1 = bufferPair.buf1
         var buf2 = bufferPair.buf2
-        var progress = 0
-        while (true) {
+        for(;;) {
             var size1 = fs.readSync(fd1, buf1, 0, BUF_SIZE, null)
             var size2 = fs.readSync(fd2, buf2, 0, BUF_SIZE, null)
             if (size1 !== size2) {
@@ -69,7 +68,6 @@ var compareAsync = function (path1, stat1, path2, stat2, options) {
             fd2 = fds[1]
             var buf1 = bufferPair.buf1
             var buf2 = bufferPair.buf2
-            var progress = 0
             var compareAsyncInternal = function () {
                 return Promise.all([
                     fsPromise.read(fd1, buf1, 0, BUF_SIZE, null),

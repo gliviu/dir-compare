@@ -1,4 +1,3 @@
-var fs = require('fs')
 var entryBuilder = require('./entry/entryBuilder')
 var entryEquality = require('./entry/entryEquality')
 var stats = require('./statistics/statisticsUpdate')

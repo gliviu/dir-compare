@@ -1,7 +1,8 @@
-import { Options, Statistics, SymlinkStatistics } from "../src"
+import { Difference, Options, Result, Statistics, SymlinkStatistics } from "../src"
 import { compare as compareAsync, fileCompareHandlers } from "../src"
 import util = require('util')
 import path from 'path'
+import Streams from 'memory-streams'
 
 export interface DisplayOptions {
     showAll: boolean,
@@ -27,7 +28,7 @@ export interface Test {
     // Display parameters for print method.
     displayOptions: Partial<DisplayOptions>
     // Prints test result. If missing 'defaultPrint()' is used.
-    print: any
+    print: (res: Result, writer: Streams.WritableStream, displayOptions: DisplayOptions) => void
     // Do not call checkStatistics() after each library test.
     skipStatisticsCheck: boolean
     // only apply for synchronous compare
@@ -46,48 +47,48 @@ export interface Test {
 
 type Platform = 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin' | 'netbsd'
 
-export function getTests(testDirPath) {
-    const res: Array<Partial<Test>> = [
+export function getTests(testDirPath: string): Partial<Test>[] {
+    const res: Partial<Test>[] = [
         {
             name: 'test001_1', path1: 'd1', path2: 'd2',
             options: { compareSize: true, },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test001_2', path1: 'd1', path2: 'd2',
             options: { compareSize: true, },
-            displayOptions: { showAll: true, wholeReport: true, csv: true,  },
+            displayOptions: { showAll: true, wholeReport: true, csv: true, },
         },
         {
             name: 'test001_3', path1: 'd3', path2: 'd4',
             options: { compareSize: true, },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test001_4', path1: 'd4', path2: 'd4',
             options: { compareSize: true, },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test001_5', path1: 'd8', path2: 'd9',
             options: { compareSize: true, },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             name: 'test001_6', path1: 'd8', path2: 'd9',
             options: { compareSize: true, },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test001_8', path1: 'd1', path2: 'd2',
             options: { compareSize: true, },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test001_9', path1: 'd1/a1.txt', path2: 'd2/a1.txt',
             description: 'should compare two files',
             options: { compareSize: true, },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test001_10',
@@ -95,8 +96,8 @@ export function getTests(testDirPath) {
             onlyAsync: true,
             runAsync: () => {
                 return compareAsync(testDirPath + '/d1', testDirPath + '/none', {})
-                    .then(function (cmpres) { return 'res: ' + JSON.stringify(cmpres) })
-                    .catch(function (error) { return 'error occurred' })
+                    .then(cmpres => { return 'res: ' + JSON.stringify(cmpres) })
+                    .catch(() => { return `error occurred` })
             }
         },
         {
@@ -120,91 +121,91 @@ export function getTests(testDirPath) {
             description: 'include files by name',
             name: 'test002_0', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '*.e1' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'include files by name; show directories in report',
             name: 'test002_1', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '*.e1' },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             description: 'exclude directories by name; show directories in report',
             name: 'test002_2', path1: 'd1', path2: 'd10',
             options: { compareSize: true, excludeFilter: '.x' },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             description: 'exclude files by name',
             name: 'test002_3', path1: 'd1', path2: 'd2',
             options: { compareSize: true, excludeFilter: '*.txt' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'exclude files by name; show directories in report',
             name: 'test002_4', path1: 'd1', path2: 'd2',
             options: { compareSize: true, excludeFilter: '*.txt' },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             description: 'exclude files and directories by name with multiple patterns; match names beginning with dot',
             name: 'test002_5', path1: 'd6', path2: 'd7',
             options: { compareSize: true, excludeFilter: '*.e1,*.e2' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'exclude files by name with multiple patterns;  match names beginning with dot; show directories in report',
             name: 'test002_6', path1: 'd6', path2: 'd7',
             options: { compareSize: true, excludeFilter: '*.e1,*.e2' },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             description: 'include files by path',
             name: 'test002_7', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '**/A2/**/*.e*' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'exclude directories by path',
             name: 'test002_8', path1: 'd6', path2: 'd7',
             options: { compareSize: true, excludeFilter: '**/A4/**' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'exclude files by path',
             name: 'test002_9', path1: 'd6', path2: 'd7',
             options: { compareSize: true, excludeFilter: '**/A2/**/*.e*' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'simultaneous use of include/exclude patterns',
             name: 'test002_10', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '*.txt', excludeFilter: 'A2' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'include directories by relative path ("/...")',
             name: 'test002_11', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '/A2/**' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'include files by relative path ("/...")',
             name: 'test002_12', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '/A2/**/*.txt' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'exclude files and directories by relative path ("/...")',
             name: 'test002_13', path1: 'd6', path2: 'd7',
             options: { compareSize: true, excludeFilter: '/A2/**/*.txt,/.A3/**,/A1.e1' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             description: 'include all files in root directory',
             name: 'test002_14', path1: 'd6', path2: 'd7',
             options: { compareSize: true, includeFilter: '/*' },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
 
         ////////////////////////////////////////////////////
@@ -213,12 +214,12 @@ export function getTests(testDirPath) {
         {
             name: 'test003_0', path1: 'd11', path2: 'd12',
             options: { compareSize: true, compareContent: true },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             name: 'test003_1', path1: 'd1', path2: 'd2',
             options: { compareSize: true, compareContent: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test003_2', path1: 'd39/a', path2: 'd39/b',
@@ -239,117 +240,117 @@ export function getTests(testDirPath) {
         {
             name: 'test005_0', path1: 'd13', path2: 'd14',
             options: { compareSize: true, skipSymlinks: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_1', path1: 'd17', path2: 'd17',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_1_1', path1: 'd17', path2: 'd17', withRelativePath: true,
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_2', path1: 'd17', path2: 'd17',
             options: { compareSize: true, ignoreCase: true, skipSymlinks: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_3', path1: 'd17', path2: 'd18',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_4', path1: 'd22', path2: 'd22',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_5', path1: 'd19', path2: 'd19',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_5_1', path1: 'd19', path2: 'd19', withRelativePath: true,
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_6', path1: 'd19', path2: 'd19',
             options: { compareSize: true, ignoreCase: true, skipSymlinks: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_7', path1: 'd20', path2: 'd20',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_8', path1: 'd21', path2: 'd21',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_9', path1: 'd20', path2: 'd21',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_10', path1: 'd21', path2: 'd20',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_11', path1: 'd20', path2: 'd22',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_12', path1: 'd22', path2: 'd20',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_13', path1: 'd23', path2: 'd23',
             description: 'be able to compare symlinks to files',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_14', path1: 'd24', path2: 'd24',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_15', path1: 'd25', path2: 'd25',
             description: 'do not fail when broken symlinks are encountered and skipSymlinks option is used',
             options: { compareSize: true, ignoreCase: true, skipSymlinks: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_16', path1: 'd26', path2: 'd27',
             description: 'detect symbolic link loops; loops span between left/right directories',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_17', path1: 'd28', path2: 'd28',
             description: 'detect symbolic link loops; loop back to root directory',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_18', path1: 'd29', path2: 'd30',
             description: 'compare two symlinks',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test005_19', path1: 'd34_symlink/d', path2: 'd34_symlink/d',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
 
         ////////////////////////////////////////////////////
@@ -533,12 +534,12 @@ export function getTests(testDirPath) {
         {
             name: 'test006_0', path1: 'd1', path2: 'd2',
             options: { compareSize: true, skipSubdirs: true },
-            displayOptions: { showAll: true,  },
+            displayOptions: { showAll: true, },
         },
         {
             name: 'test006_1', path1: 'd1', path2: 'd2',
             options: { compareSize: true, skipSubdirs: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         ////////////////////////////////////////////////////
         // Ignore case                                    //
@@ -546,12 +547,12 @@ export function getTests(testDirPath) {
         {
             name: 'test007_0', path1: 'd15', path2: 'd16',
             options: { compareSize: true, ignoreCase: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test007_1', path1: 'd15', path2: 'd16',
             options: { compareSize: true, ignoreCase: false },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         ////////////////////////////////////////////////////
         // Options handling                               //
@@ -581,7 +582,7 @@ export function getTests(testDirPath) {
             name: 'test009_1', path1: 'd1', path2: 'd2',
             expected: 'test: 17',
             options: {
-                resultBuilder(entry1, entry2, state, level, relativePath, options, statistics, diffSet) {
+                resultBuilder(entry1, entry2, state, level, relativePath, options, statistics) {
                     if (!statistics.test) {
                         statistics.test = 0
                     }
@@ -590,7 +591,7 @@ export function getTests(testDirPath) {
             },
             displayOptions: {},
             skipStatisticsCheck: true,
-            print(cmpres, writer, program) { writer.write('test: ' + cmpres.test); }
+            print(cmpres, writer) { writer.write('test: ' + cmpres.test); }
         },
         {
             name: 'test009_2', path1: 'd1', path2: 'd2',
@@ -608,7 +609,10 @@ export function getTests(testDirPath) {
             },
             displayOptions: {},
             skipStatisticsCheck: true,
-            print(cmpres, writer, program) { writer.write(' diffset: ' + JSON.stringify(cmpres.diffSet.sort(function (a, b) { return a - b; }), null, 0)); }
+            print(cmpres, writer) {
+                const comparator = function (a: Difference, b: Difference): number { return (a as unknown as number) - (b as unknown as number) }
+                writer.write(' diffset: ' + JSON.stringify(cmpres.diffSet?.sort(comparator), null, 0));
+            }
         },
         ////////////////////////////////////////////////////
         // Compare date                                   //
@@ -616,40 +620,40 @@ export function getTests(testDirPath) {
         {
             name: 'test010_0', path1: 'd31', path2: 'd32',
             options: { compareSize: true, compareDate: false },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test010_1', path1: 'd31', path2: 'd32',
             options: { compareSize: true, compareDate: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test010_2', path1: 'd31', path2: 'd32',
             options: { compareSize: true, compareDate: false, compareContent: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test010_3', path1: 'd31', path2: 'd32',
             options: { compareSize: true, compareDate: true, compareContent: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test010_4', path1: 'd33/1', path2: 'd33/2',
             description: 'should correctly use tolerance in date comparison',
             options: { compareSize: true, compareDate: true, dateTolerance: 5000 },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test010_5', path1: 'd33/1', path2: 'd33/2',
             description: 'should correctly use tolerance in date comparison',
             options: { compareSize: true, compareDate: true, dateTolerance: 9000 },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         {
             name: 'test010_6', path1: 'd33/1', path2: 'd33/2',
             description: 'should default to 1000 ms for date tolerance',
             options: { compareSize: true, compareDate: true },
-            displayOptions: { showAll: true, wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
         ////////////////////////////////////////////////////
         // Line by line compare                           //
@@ -663,7 +667,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreLineEnding: true,
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_1_1', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
@@ -675,7 +679,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 lineBasedHandlerBufferSize: 2,
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_2', path1: 'd35/crlf-spaces', path2: 'd35/lf-spaces',
@@ -686,7 +690,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreLineEnding: false,
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_3', path1: 'd35/lf-spaces', path2: 'd35/lf-tabs',
@@ -697,7 +701,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_4', path1: 'd35/crlf-spaces', path2: 'd35/lf-tabs',
@@ -709,7 +713,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_5', path1: 'd35/lf-spaces', path2: 'd35/lf-tabs',
@@ -720,7 +724,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_6', path1: 'd35/lf-spaces', path2: 'd35/lf-mix',
@@ -731,7 +735,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_7', path1: 'd35/lf-tabs', path2: 'd35/lf-mix',
@@ -742,7 +746,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_8', path1: 'd35/lf-spaces', path2: 'd35/lf-spaces-inside',
@@ -753,7 +757,7 @@ export function getTests(testDirPath) {
                 compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_20', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf',
@@ -765,7 +769,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_21', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf',
@@ -778,7 +782,7 @@ export function getTests(testDirPath) {
                 ignoreWhiteSpaces: false,
                 lineBasedHandlerBufferSize: 3
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_22', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf',
@@ -790,7 +794,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: false,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_23', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-no-line-ending',
@@ -802,7 +806,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_24', path1: 'd35/single-line/single-line-crlf', path2: 'd35/single-line/single-line-no-line-ending',
@@ -814,7 +818,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_25', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-no-line-ending',
@@ -826,7 +830,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_26', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-no-line-ending',
@@ -839,7 +843,7 @@ export function getTests(testDirPath) {
                 ignoreWhiteSpaces: false,
                 lineBasedHandlerBufferSize: 3
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_27', path1: 'd35/single-line/single-line-lf', path2: 'd35/single-line/single-line-crlf-spaces',
@@ -851,7 +855,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_28', path1: 'd35/single-line/single-line-crlf', path2: 'd35/single-line/single-line-crlf-spaces',
@@ -863,7 +867,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_29', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-crlf-spaces',
@@ -875,7 +879,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_30', path1: 'd35/single-line/single-line-no-line-ending', path2: 'd35/single-line/single-line-no-line-ending-spaces',
@@ -887,7 +891,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_50', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-lf',
@@ -899,7 +903,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_51', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-lf',
@@ -911,7 +915,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: false,
                 ignoreWhiteSpaces: false
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_52', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-spaces-crlf',
@@ -923,7 +927,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
 
         {
@@ -936,7 +940,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_54', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-with-ending-crlf',
@@ -948,7 +952,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_55', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-with-ending-lf',
@@ -960,7 +964,7 @@ export function getTests(testDirPath) {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: true
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         {
             name: 'test011_56', path1: 'd35/last-line-no-ending/last-line-no-ending-crlf', path2: 'd35/last-line-no-ending/last-line-no-ending-spaces-crlf',
@@ -973,7 +977,7 @@ export function getTests(testDirPath) {
                 ignoreWhiteSpaces: true,
                 lineBasedHandlerBufferSize: 3
             },
-            displayOptions: {  },
+            displayOptions: {},
         },
         ////////////////////////////////////////////////////
         // Relative paths                                 //
@@ -983,21 +987,21 @@ export function getTests(testDirPath) {
             description: 'should report relative paths',
             options: {},
             withRelativePath: true,
-            print(cmpres, writer, program) { printRelativePathResult(cmpres, testDirPath, writer) }
+            print(cmpres, writer) { printRelativePathResult(cmpres, testDirPath, writer) }
         },
         {
             name: 'test012_1', path1: 'd1/A6/../../d1', path2: 'd2',
             description: 'should report absolute paths',
             options: {},
             withRelativePath: false,
-            print(cmpres, writer, program) { printRelativePathResult(cmpres, testDirPath, writer) }
+            print(cmpres, writer) { printRelativePathResult(cmpres, testDirPath, writer) }
         },
         {
             name: 'test012_2', path1: testDirPath + '/d1', path2: 'd2',
             description: 'should report absolute and relative paths',
             options: {},
             withRelativePath: true,
-            print(cmpres, writer, program) { printRelativePathResult(cmpres, testDirPath, writer) }
+            print(cmpres, writer) { printRelativePathResult(cmpres, testDirPath, writer) }
         },
         ////////////////////////////////////////////////////
         // Custom name comparator                         //
@@ -1014,7 +1018,7 @@ export function getTests(testDirPath) {
                 compareNameHandler: customNameCompare,
                 ignoreExtension: true
             },
-            displayOptions: { wholeReport: true,  },
+            displayOptions: { wholeReport: true, },
         },
         {
             name: 'test013_2', path1: 'd40/a', path2: 'd40/b',
@@ -1025,7 +1029,7 @@ export function getTests(testDirPath) {
                 compareNameHandler: customNameCompare,
                 ignoreExtension: true
             },
-            displayOptions: { showAll: true,  wholeReport: true,  },
+            displayOptions: { showAll: true, wholeReport: true, },
         },
     ]
     return res
@@ -1040,7 +1044,7 @@ function customNameCompare(name1: string, name2: string, options: Options) {
         name1 = path.basename(name1, path.extname(name1))
         name2 = path.basename(name2, path.extname(name2))
     }
-	return ((name1 === name2) ? 0 : ((name1 > name2) ? 1 : -1))
+    return ((name1 === name2) ? 0 : ((name1 > name2) ? 1 : -1))
 }
 
 function printRelativePathResult(res, testDirPath, writer) {

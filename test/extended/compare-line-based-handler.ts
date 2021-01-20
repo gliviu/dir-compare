@@ -1,4 +1,4 @@
-import { compareSync, compare, Options, fileCompareHandlers } from "../../src"
+import { compareSync, compare, Options, fileCompareHandlers, Result } from "../../src"
 import path = require('path')
 
 const PATH1 = path.join(__dirname, 'res/line-based-handler/lf')
@@ -25,7 +25,9 @@ function warmup() {
     }
 }
 
-async function runSingleTest(compareFn: (...args: any[]) => any) {
+type CompareFn = (left: string, right: string, options: Options) => Result | Promise<Result>
+
+async function runSingleTest(compareFn: CompareFn) {
     const durations: number[] = []
     for (let bufferSize = 1; bufferSize < MAX_BUFFER_SIZE; bufferSize++) {
         const options = {

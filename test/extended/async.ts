@@ -1,10 +1,5 @@
-import { compare, Statistics, compareSync } from "../../src"
+import { compare } from "../../src"
 import os = require('os')
-
-interface AsyncRes {
-    res: Statistics | string,
-    testId: number
-}
 
 const options = {
     compareContent: true,
@@ -15,8 +10,6 @@ const path1 = `/${os.tmpdir()}/linux-4.3`
 const path2 = `/${os.tmpdir()}/linux-4.4`
 
 const expected = '{"distinct":8543,"equal":46693,"left":792,"right":1755,"distinctFiles":8543,"equalFiles":43167,"leftFiles":750,"rightFiles":1639,"distinctDirs":0,"equalDirs":3526,"leftDirs":42,"rightDirs":116,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"same":false,"differences":11090,"differencesFiles":10932,"differencesDirs":158,"total":57783,"totalFiles":54099,"totalDirs":3684}'
-
-const noTests = 5
 
 let referenceTime = Date.now()
 let successfulTimerHitCount = 0

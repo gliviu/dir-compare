@@ -20,7 +20,7 @@ const noTests = 5
 
 async function main() {
     console.log("Start concurrency test")
-    const promises: Array<Promise<AsyncRes>> = []
+    const promises: Promise<AsyncRes>[] = []
     for (let testId = 0; testId < noTests; testId++) {
         const promise: Promise<AsyncRes> = compare(path1, path2, options)
             .then(res => {

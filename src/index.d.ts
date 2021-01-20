@@ -25,6 +25,7 @@ export interface Options {
     /**
      * Properties to be used in various extension points ie. result builder.
      */
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     [key: string]: any
 
     /**
@@ -159,6 +160,7 @@ export interface Statistics {
     /**
      * Any property is allowed if default result builder is not used.
      */
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     [key: string]: any
 
     /**
@@ -342,15 +344,18 @@ export interface Difference {
     /**
      * Any property is allowed if default result builder is not used.
      */
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     [key: string]: any
 
     /**
      * Path not including file/directory name; can be relative or absolute depending on call to compare().
+     * Is undefined if missing on the left side.
      */
     path1?: string
 
     /**
      * Path not including file/directory name; can be relative or absolute depending on call to compare().
+     * Is undefined if missing on the right side.
      */
     path2?: string
 
@@ -361,11 +366,13 @@ export interface Difference {
 
     /**
      * Left file/directory name.
+     * Is undefined if missing on the left side.
      */
     name1?: string
 
     /**
      * Right file/directory name.
+     * Is undefined if missing on the right side.
      */
     name2?: string
 
@@ -376,31 +383,37 @@ export interface Difference {
 
     /**
      * Type of left entry.
+     * Is undefined if missing on the left side.
      */
     type1: DifferenceType
 
     /**
      * Type of right entry.
+     * Is undefined if missing on the right side.
      */
     type2: DifferenceType
 
     /**
      * Left file size.
+     * Is undefined if missing on the left side.
      */
     size1?: number
 
     /**
      * Right file size.
+     * Is undefined if missing on the right side.
      */
     size2?: number
 
     /**
      * Left entry modification date (stat.mtime).
+     * Is undefined if missing on the left side.
      */
     date1?: number
 
     /**
      * Right entry modification date (stat.mtime).
+     * Is undefined if missing on the right side.
      */
     date2?: number
 

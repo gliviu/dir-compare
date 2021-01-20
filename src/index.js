@@ -1,4 +1,3 @@
-var util = require('util')
 var pathUtils = require('path')
 var fs = require('fs')
 var compareSyncInternal = require('./compareSync')

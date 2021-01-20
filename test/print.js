@@ -8,10 +8,10 @@ var PATH_SEP = pathUtils.sep
 // Example: 'dircompare --show-all --exclude *.js dir1 dir2' translates into
 // program: {showAll: true, exclude: '*.js'}
 //
-var print = function (res, writer, program) {
+var print = function (res, writer, displayOptions) {
     // calculate relative path length for pretty print
     var relativePathMaxLength = 0, fileNameMaxLength = 0
-    if (!program.csv && res.diffSet) {
+    if (!displayOptions.csv && res.diffSet) {
         res.diffSet.forEach(function (diff) {
             if (diff.relativePath.length > relativePathMaxLength) {
                 relativePathMaxLength = diff.relativePath.length
@@ -24,7 +24,7 @@ var print = function (res, writer, program) {
     }
 
     // csv header
-    if (program.csv) {
+    if (displayOptions.csv) {
         writer.write('path,name,state,type,size1,size2,date1,date2,reason\n')
     }
     if (res.diffSet) {
@@ -32,7 +32,7 @@ var print = function (res, writer, program) {
             var detail = res.diffSet[i]
             var show = true
 
-            if (!program.wholeReport) {
+            if (!displayOptions.wholeReport) {
                 // show only files or broken links
                 var type = detail.type1 !== 'missing' ? detail.type1 : detail.type2
                 if (type !== 'file' && type !== 'broken-link') {
@@ -42,25 +42,25 @@ var print = function (res, writer, program) {
             if (show) {
                 switch (detail.state) {
                     case 'equal':
-                        show = program.showAll || program.showEqual ? true : false
+                        show = displayOptions.showAll || displayOptions.showEqual ? true : false
                         break
                     case 'left':
-                        show = program.showAll || program.showLeft ? true : false
+                        show = displayOptions.showAll || displayOptions.showLeft ? true : false
                         break
                     case 'right':
-                        show = program.showAll || program.showRight ? true : false
+                        show = displayOptions.showAll || displayOptions.showRight ? true : false
                         break
                     case 'distinct':
-                        show = program.showAll || program.showDistinct ? true : false
+                        show = displayOptions.showAll || displayOptions.showDistinct ? true : false
                         break
                     default:
                         show = true
                 }
                 if (show) {
-                    if (program.csv) {
+                    if (displayOptions.csv) {
                         printCsv(writer, detail)
                     } else {
-                        printPretty(writer, program, detail, relativePathMaxLength, fileNameMaxLength)
+                        printPretty(writer, displayOptions, detail, relativePathMaxLength, fileNameMaxLength)
                     }
                 }
             }
@@ -69,7 +69,7 @@ var print = function (res, writer, program) {
 
     // PRINT STATISTICS
     var statTotal, statEqual, statLeft, statRight, statDistinct
-    if (program.wholeReport) {
+    if (displayOptions.wholeReport) {
         statTotal = res.total
         statEqual = res.equal
         statLeft = res.left
@@ -83,7 +83,7 @@ var print = function (res, writer, program) {
         statRight = res.rightFiles + brokenLInksStats.rightBrokenLinks
         statDistinct = res.distinctFiles + brokenLInksStats.distinctBrokenLinks
     }
-    if (!program.noDiffIndicator) {
+    if (!displayOptions.noDiffIndicator) {
         writer.write(res.same ? 'Entries are identical\n' : 'Entries are different\n')
     }
     var stats = util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
@@ -138,8 +138,8 @@ var printPretty = function (writer, program, detail) {
 }
 
 var getCompareFile = function (detail, state) {
-    p1 = detail.name1 ? detail.name1 : ''
-    p2 = detail.name2 ? detail.name2 : ''
+    var p1 = detail.name1 ? detail.name1 : ''
+    var p2 = detail.name2 ? detail.name2 : ''
     var missing1 = detail.type1 === 'missing' ? 'missing' : ''
     var missing2 = detail.type2 === 'missing' ? 'missing' : ''
     return util.format('%s%s %s %s%s', missing1, p1, state, missing2, p2)

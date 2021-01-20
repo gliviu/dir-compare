@@ -1,16 +1,15 @@
 import { getTests, Test } from "./tests"
-import pjson = require('../package.json')
-
-import colors = require('colors/safe')
-import util = require('util')
-import fs = require('fs')
-import os = require('os')
-import temp = require('temp')
-import defaultPrint = require('./print')
-import Streams = require('memory-streams')
+import pjson from '../package.json'
+import colors from 'colors/safe'
+import util from 'util'
+import fs from 'fs'
+import os from 'os'
+import temp from 'temp'
+import defaultPrint from './print'
+import Streams from 'memory-streams'
 import { compare as compareAsync, compareSync as compareSync, Statistics, Result } from "../src"
-import untar = require('./untar')
-import semver = require('semver')
+import untar from './untar'
+import semver from 'semver'
 
 
 // Usage: node runTests [unpacked] [test001_1] [showresult] [skipasync] [noReport]
@@ -38,7 +37,6 @@ interface RunOptions {
 let count = 0, failed = 0, successful = 0
 let syncCount = 0, syncFailed = 0, syncSuccessful = 0
 let asyncCount = 0, asyncFailed = 0, asyncSuccessful = 0
-let cmdLineCount = 0, cmdLineFailed = 0, cmdLineSuccessful = 0
 
 // Automatically track and cleanup files at exit
 temp.track()
@@ -67,15 +65,6 @@ function passed(value, type) {
             asyncSuccessful++
         } else {
             asyncFailed++
-        }
-    }
-
-    if (type === 'cmdLine') {
-        cmdLineCount++
-        if (value) {
-            cmdLineSuccessful++
-        } else {
-            cmdLineFailed++
         }
     }
 
@@ -146,7 +135,7 @@ const getExpected = function (test) {
     }
 }
 
-const testSync = function (test, testDirPath, saveReport, runOptions: Partial<RunOptions>) {
+const testSync = function (test, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
     process.chdir(testDirPath)
     let path1, path2
     if (test.withRelativePath) {
@@ -156,10 +145,10 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
         path1 = test.path1 ? testDirPath + '/' + test.path1 : ''
         path2 = test.path2 ? testDirPath + '/' + test.path2 : ''
     }
-    return new Promise(function (resolve) {
+    return new Promise<Result>(function (resolve) {
         resolve(compareSync(path1, path2, test.options))
     }).then(
-        function (result: Result) {
+        (result: Result) => {
             // PRINT DETAILS
             const writer = new Streams.WritableStream()
             const print = test.print ? test.print : defaultPrint
@@ -174,13 +163,14 @@ const testSync = function (test, testDirPath, saveReport, runOptions: Partial<Ru
             const res = expected === output && statisticsCheck && validated
             report(test.name, 'sync', output, null, res, saveReport)
             console.log(test.name + ' sync: ' + passed(res, 'sync'))
-        }, function (error) {
+        },
+        (error) => {
             report(test.name, 'sync', error instanceof Error ? error.stack : error, null, false, saveReport)
             console.log(test.name + ' sync: ' + passed(false, 'sync') + '. Error: ' + printError(error))
         })
 }
 
-const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>) {
+const testAsync = function (test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
     if (runOptions.skipAsync) {
         return Promise.resolve()
     }
@@ -295,7 +285,7 @@ function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
     initReport(saveReport)
     Promise.resolve().then(function () {
         // Run sync tests
-        const syncTestsPromises: Array<Promise<any>> = []
+        const syncTestsPromises: Promise<void>[] = []
         getTests(testDirPath)
             .filter(function (test) { return !test.onlyAsync })
             .filter(function (test) { return runOptions.singleTestName ? test.name === runOptions.singleTestName : true; })
@@ -311,7 +301,7 @@ function executeTests(testDirPath, runOptions: Partial<RunOptions>) {
         console.log()
     }).then(function () {
         // Run async tests
-        const asyncTestsPromises: Array<Promise<any>> = []
+        const asyncTestsPromises: Promise<void>[] = []
         getTests(testDirPath)
             .filter(function (test) { return !test.onlySync })
             .filter(function (test) { return test.nodeVersionSupport === undefined || semver.satisfies(process.version, test.nodeVersionSupport) })
