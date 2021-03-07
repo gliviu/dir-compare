@@ -6,6 +6,7 @@ const MAX_CONCURRENT_FILE_COMPARE = 8
 const SPLIT_CONTENT_AND_LINE_ENDING_REGEXP = /([^\r\n]*)([\r\n]*)/
 const TRIM_WHITE_SPACES_REGEXP = /^[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+|[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+$/g
 const TRIM_LINE_ENDING_REGEXP = /\r\n$/g
+const REMOVE_WHITE_SPACES_REGEXP = /[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]/g
 
 module.exports = {
     BUF_SIZE,
@@ -65,6 +66,10 @@ function compareLine(options, line1, line2) {
         line1 = trimSpaces(line1)
         line2 = trimSpaces(line2)
     }
+    if (options.ignoreAllWhiteSpaces) {
+        line1 = removeSpaces(line1)
+        line2 = removeSpaces(line2)
+    }
     return line1 === line2
 }
 
@@ -80,4 +85,8 @@ function trimSpaces(s) {
 // Trims string like 'abc\r\n' into 'abc\n'
 function trimLineEnding(s) {
     return s.replace(TRIM_LINE_ENDING_REGEXP, '\n')
+}
+
+function removeSpaces(s) {
+    return s.replace(REMOVE_WHITE_SPACES_REGEXP, '')
 }

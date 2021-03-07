@@ -1,8 +1,8 @@
 const fs = require('fs')
 const bufferEqual = require('buffer-equal')
 const FileDescriptorQueue = require('../../fs/FileDescriptorQueue')
-const closeFilesSync = require('.././closeFile').closeFilesSync
-const closeFilesAsync = require('.././closeFile').closeFilesAsync
+const closeFilesSync = require('../common/closeFile').closeFilesSync
+const closeFilesAsync = require('../common/closeFile').closeFilesAsync
 const fsPromise = require('../../fs/fsPromise')
 const BufferPool = require('../../fs/BufferPool')
 

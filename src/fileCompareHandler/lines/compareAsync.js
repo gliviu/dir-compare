@@ -3,7 +3,7 @@
  * line endings and white space differences.
  */
 const FileDescriptorQueue = require('../../fs/FileDescriptorQueue')
-const closeFilesAsync = require('../closeFile').closeFilesAsync
+const closeFilesAsync = require('../common/closeFile').closeFilesAsync
 const fsPromise = require('../../fs/fsPromise')
 const common = require('./common')
 

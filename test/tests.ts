@@ -981,6 +981,34 @@ export function getTests(testDirPath: string): Partial<Test>[] {
             },
             displayOptions: {},
         },
+        {
+            name: 'test011_70', path1: 'd35/#29-ignore-all-whitespaces/a/app.ts', path2: 'd35/#29-ignore-all-whitespaces/b/app.ts',
+            description: 'should ignore all white spaces',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false,
+                ignoreAllWhiteSpaces: true,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: {},
+        },
+        {
+            name: 'test011_71', path1: 'd35/#29-ignore-all-whitespaces/a/app.ts', path2: 'd35/#29-ignore-all-whitespaces/c/app.ts',
+            description: 'should not ignore empty lines',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false,
+                ignoreAllWhiteSpaces: true,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: {},
+        },
         ////////////////////////////////////////////////////
         // Relative paths                                 //
         ////////////////////////////////////////////////////

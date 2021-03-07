@@ -1,5 +1,5 @@
 const fs = require('fs')
-const closeFilesSync = require('../closeFile').closeFilesSync
+const closeFilesSync = require('../common/closeFile').closeFilesSync
 const common = require('./common')
 
 module.exports = function compareSync(path1, stat1, path2, stat2, options) {

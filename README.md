@@ -189,8 +189,9 @@ const options = {
   compareContent: true,
   compareFileSync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync,
   compareFileAsync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync,
-  ignoreLineEnding: true,
-  ignoreWhiteSpaces: true
+  ignoreLineEnding: true,      // Ignore cr/lf line endings
+  ignoreWhiteSpaces: true      // Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
+  ignoreAllWhiteSpaces: true   // Ignore all white space differences (similar to 'diff -w')
 };
 
 const path1 = '...';
