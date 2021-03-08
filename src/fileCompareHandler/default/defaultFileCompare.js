@@ -1,10 +1,10 @@
 const fs = require('fs')
 const bufferEqual = require('buffer-equal')
-const FileDescriptorQueue = require('../fs/FileDescriptorQueue')
-const closeFilesSync = require('./closeFile').closeFilesSync
-const closeFilesAsync = require('./closeFile').closeFilesAsync
-const fsPromise = require('../fs/fsPromise')
-const BufferPool = require('../fs/BufferPool')
+const FileDescriptorQueue = require('../../fs/FileDescriptorQueue')
+const closeFilesSync = require('.././closeFile').closeFilesSync
+const closeFilesAsync = require('.././closeFile').closeFilesAsync
+const fsPromise = require('../../fs/fsPromise')
+const BufferPool = require('../../fs/BufferPool')
 
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 100000
