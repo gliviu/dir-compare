@@ -189,9 +189,9 @@ const options = {
   compareContent: true,
   compareFileSync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync,
   compareFileAsync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync,
-  ignoreLineEnding: true,      // Ignore cr/lf line endings
-  ignoreWhiteSpaces: true      // Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
-  ignoreAllWhiteSpaces: true   // Ignore all white space differences (similar to 'diff -w')
+  ignoreLineEnding: true,      // Ignore crlf/lf line ending differences
+  ignoreWhiteSpaces: true,     // Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
+  ignoreAllWhiteSpaces: true,  // Ignore all white space differences (similar to 'diff -w')
   ignoreEmptyLines: true       // Ignores differences caused by empty lines (similar to 'diff -B')
 };
 
@@ -288,6 +288,7 @@ If entries are different because of symlinks, `reason` will be `different-symlin
 See [dir-compare-cli](https://github.com/gliviu/dir-compare-cli).
 
 # Changelog
+* v3.1.0 Added ignoreAllWhiteSpaces and ignoreEmptyLines options
 * v3.0.0 Moved CLI component into separate project [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
 * v2.4.0 New option to customize file/folder name comparison
 * v2.3.0 Fixes

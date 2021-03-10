@@ -1,5 +1,4 @@
 import { Options } from '../../..'
-import { LineBasedCompareContext } from '../LineBasedCompareContext'
 import { LineBatch } from '../lineReader/LineBatch'
 import { compareLines } from './compareLines'
 
