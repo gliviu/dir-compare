@@ -2,21 +2,7 @@
 
 import * as fs from "fs"
 
-/**
- * Synchronously compares given paths.
- * @param path1 Left file or directory to be compared.
- * @param path2 Right file or directory to be compared.
- * @param options Comparison options.
- */
-export function compareSync(path1: string, path2: string, options?: Options): Result
 
-/**
- * Asynchronously compares given paths.
- * @param path1 Left file or directory to be compared.
- * @param path2 Right file or directory to be compared.
- * @param options Comparison options.
- */
-export function compare(path1: string, path2: string, options?: Options): Promise<Result>
 
 /**
  * Comparison options.
@@ -454,29 +440,6 @@ export type CompareFileAsync = (
 export interface CompareFileHandler {
     compareSync: CompareFileSync,
     compareAsync: CompareFileAsync
-}
-
-/**
- * Available file content comparison handlers.
- * These handlers are used when [[Options.compareContent]] is set.
- */
-export const fileCompareHandlers: {
-    /**
-     * Default file content comparison handlers, used if [[Options.compareFileAsync]] or [[Options.compareFileSync]] are not specified.
-     * 
-     * Performs binary comparison.
-     */
-    defaultFileCompare: CompareFileHandler,
-    /**
-     * Compares files line by line.
-     * 
-     * Options:
-     * * ignoreLineEnding - true/false (default: false) - Ignore cr/lf line endings
-     * * ignoreWhiteSpaces - true/false (default: false) - Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
-     * * ignoreAllWhiteSpaces - true/false (default: false) - Ignore all white space differences (similar to 'diff -w')
-     * * ignoreEmptyLines - true/false (default: false) - Ignores differences caused by empty lines (similar to 'diff -B')
-     */
-    lineBasedFileCompare: CompareFileHandler
 }
 
 /**

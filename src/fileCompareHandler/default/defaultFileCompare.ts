@@ -4,7 +4,7 @@ import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
 import fsPromise from '../../fs/fsPromise'
 import { BufferPair, BufferPool } from '../../fs/BufferPool'
 import closeFile from '../../fs/closeFile'
-import { Options } from '../../../types'
+import { Options } from '../../index'
 
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 100000
