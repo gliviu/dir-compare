@@ -1,9 +1,13 @@
-const fs = require('fs')
-const closeFilesSync = require('../common/closeFile').closeFilesSync
-const common = require('./common')
+import fs from 'fs'
+import { Options } from '../..'
+import closeFiles from '../common/closeFile'
+import common from './common'
 
-module.exports = function compareSync(path1, stat1, path2, stat2, options) {
-    let fd1, fd2
+const closeFilesSync = closeFiles.closeFilesSync
+
+export default function compareSync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): boolean {
+    let fd1: number | undefined
+    let fd2: number | undefined
     const bufferPair = common.bufferPool.allocateBuffers()
     const bufferSize = options.lineBasedHandlerBufferSize || common.BUF_SIZE
     try {
@@ -36,8 +40,8 @@ module.exports = function compareSync(path1, stat1, path2, stat2, options) {
  * Read lines from file starting with nextPosition.
  * Returns 0 lines if eof is reached, otherwise returns at least one complete line.
  */
-function readLinesSync(fd, buf, bufferSize, nextPosition) {
-    let lines = []
+function readLinesSync(fd: number, buf: Buffer, bufferSize: number, nextPosition: number): string[] {
+    let lines: string[] = []
     let chunk = ""
     for (; ;) {
         const size = fs.readSync(fd, buf, 0, bufferSize, nextPosition)
@@ -47,7 +51,7 @@ function readLinesSync(fd, buf, bufferSize, nextPosition) {
             return lines
         }
         chunk += buf.toString('utf8', 0, size)
-        lines = chunk.match(common.LINE_TOKENIZER_REGEXP)
+        lines = chunk.match(common.LINE_TOKENIZER_REGEXP) as string[]
         if (lines.length > 1) {
             return common.removeLastIncompleteLine(lines)
         }

@@ -2,19 +2,25 @@
  * Compare files line by line with options to ignore
  * line endings and white space differences.
  */
-const FileDescriptorQueue = require('../../fs/FileDescriptorQueue')
-const closeFilesAsync = require('../common/closeFile').closeFilesAsync
-const fsPromise = require('../../fs/fsPromise')
-const common = require('./common')
+import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
+import closeFiles from '../common/closeFile'
+import fsPromise from '../../fs/fsPromise'
+import common from './common'
+import fs from 'fs'
+import { Options } from '../..'
+import { BufferPair } from '../../fs/BufferPool'
+
+const closeFilesAsync = closeFiles.closeFilesAsync
 
 const fdQueue = new FileDescriptorQueue(common.MAX_CONCURRENT_FILE_COMPARE * 2)
 
-module.exports = async function compareAsync(path1, stat1, path2, stat2, options) {
-    let fd1, fd2
+export default async function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): Promise<boolean> {
+    let fd1: number | undefined
+    let fd2: number | undefined
     const bufferSize = options.lineBasedHandlerBufferSize || common.BUF_SIZE
-    let bufferPair
+    let bufferPair: BufferPair | undefined
     try {
-        const fds = await Promise.all([fdQueue.promises.open(path1, 'r'), fdQueue.promises.open(path2, 'r')])
+        const fds = await Promise.all([fdQueue.openPromise(path1, 'r'), fdQueue.openPromise(path2, 'r')])
         bufferPair = common.bufferPool.allocateBuffers()
         fd1 = fds[0]
         fd2 = fds[1]
@@ -36,7 +42,9 @@ module.exports = async function compareAsync(path1, stat1, path2, stat2, options
             nextPosition2 += common.calculateSize(lines2, equalLines)
         }
     } finally {
-        common.bufferPool.freeBuffers(bufferPair)
+        if (bufferPair) {
+            common.bufferPool.freeBuffers(bufferPair)
+        }
         await closeFilesAsync(fd1, fd2, fdQueue)
     }
 }
@@ -45,8 +53,8 @@ module.exports = async function compareAsync(path1, stat1, path2, stat2, options
  * Read lines from file starting with nextPosition.
  * Returns 0 lines if eof is reached, otherwise returns at least one complete line.
  */
-async function readLinesAsync(fd, buf, bufferSize, nextPosition) {
-    let lines = []
+async function readLinesAsync(fd: number, buf: Buffer, bufferSize: number, nextPosition: number): Promise<string[]> {
+    let lines: string[] = []
     let chunk = ""
     for (; ;) {
         const size = await fsPromise.read(fd, buf, 0, bufferSize, nextPosition)
@@ -56,7 +64,7 @@ async function readLinesAsync(fd, buf, bufferSize, nextPosition) {
             return lines
         }
         chunk += buf.toString('utf8', 0, size)
-        lines = chunk.match(common.LINE_TOKENIZER_REGEXP)
+        lines = chunk.match(common.LINE_TOKENIZER_REGEXP) as string[]
         if (lines.length > 1) {
             return common.removeLastIncompleteLine(lines)
         }

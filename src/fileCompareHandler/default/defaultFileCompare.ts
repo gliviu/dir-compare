@@ -1,10 +1,10 @@
-const fs = require('fs')
-const bufferEqual = require('buffer-equal')
-const FileDescriptorQueue = require('../../fs/FileDescriptorQueue')
-const closeFilesSync = require('../common/closeFile').closeFilesSync
-const closeFilesAsync = require('../common/closeFile').closeFilesAsync
-const fsPromise = require('../../fs/fsPromise')
-const BufferPool = require('../../fs/BufferPool')
+import fs from 'fs'
+import bufferEqual from 'buffer-equal'
+import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
+import fsPromise from '../../fs/fsPromise'
+import { BufferPair, BufferPool } from '../../fs/BufferPool'
+import closeFile from '../common/closeFile'
+import { Options } from '../..'
 
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 100000
@@ -15,15 +15,16 @@ const bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fd
 /**
  * Compares two partial buffers.
  */
-function compareBuffers(buf1, buf2, contentSize) {
+function compareBuffers(buf1: Buffer, buf2: Buffer, contentSize: number) {
     return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize))
 }
 
 /**
  * Compares two files by content.
  */
-function compareSync(path1, stat1, path2, stat2, options) {
-    let fd1, fd2
+function compareSync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): boolean {
+    let fd1: number | undefined
+    let fd2: number | undefined
     if (stat1.size !== stat2.size) {
         return false
     }
@@ -46,7 +47,7 @@ function compareSync(path1, stat1, path2, stat2, options) {
             }
         }
     } finally {
-        closeFilesSync(fd1, fd2)
+        closeFile.closeFilesSync(fd1, fd2)
         bufferPool.freeBuffers(bufferPair)
     }
 }
@@ -55,13 +56,14 @@ function compareSync(path1, stat1, path2, stat2, options) {
 /**
  * Compares two files by content
  */
-function compareAsync(path1, stat1, path2, stat2, options) {
-    let fd1, fd2
-    let bufferPair
+function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): Promise<boolean> {
+    let fd1: number | undefined
+    let fd2: number | undefined
+    let bufferPair: BufferPair | undefined
     if (stat1.size !== stat2.size) {
         return Promise.resolve(false)
     }
-    return Promise.all([fdQueue.promises.open(path1, 'r'), fdQueue.promises.open(path2, 'r')])
+    return Promise.all([fdQueue.openPromise(path1, 'r'), fdQueue.openPromise(path2, 'r')])
         .then(fds => {
             bufferPair = bufferPool.allocateBuffers()
             fd1 = fds[0]
@@ -95,12 +97,13 @@ function compareAsync(path1, stat1, path2, stat2, options) {
         )
 }
 
-function finalizeAsync(fd1, fd2, bufferPair) {
-    bufferPool.freeBuffers(bufferPair)
-    return closeFilesAsync(fd1, fd2, fdQueue)
+function finalizeAsync(fd1?: number, fd2?: number, bufferPair?: BufferPair) {
+    if (bufferPair) {
+        bufferPool.freeBuffers(bufferPair)
+    }
+    return closeFile.closeFilesAsync(fd1, fd2, fdQueue)
 }
 
-module.exports = {
-    compareSync: compareSync,
-    compareAsync: compareAsync
+export default {
+    compareSync, compareAsync
 }
