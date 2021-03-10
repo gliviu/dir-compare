@@ -2,7 +2,7 @@
     "name": "dir-compare",
     "version": "3.1.0",
     "description": "Node JS directory compare",
-    "main": "src/index.js",
+    "main": "build/src/index.js",
     "types": "src/index.d.ts",
     "repository": {
         "type": "git",
@@ -14,11 +14,11 @@
         "folder"
     ],
     "files": [
-        "src"
+        "build/src"
     ],
     "scripts": {
         "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
-        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" package.json build",
+        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" build",
         "build": "tsc && npm run copydeps",
         "lint": "eslint ./src ./test --ext .ts,.js",
         "pretest": "npm install && npm run build",
