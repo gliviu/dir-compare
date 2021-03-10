@@ -1,4 +1,4 @@
-import { Difference, Options, Result, Statistics, SymlinkStatistics } from "../src"
+import { Difference, Options, Result, Statistics, SymlinkStatistics } from "../types"
 import { compare as compareAsync, fileCompareHandlers } from "../src"
 import util = require('util')
 import path from 'path'

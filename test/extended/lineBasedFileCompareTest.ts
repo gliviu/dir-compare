@@ -1,4 +1,4 @@
-import { compareSync, compare, Options, fileCompareHandlers, Result } from "../../src"
+import { compareSync, compare, Options, fileCompareHandlers, Result } from "../../types"
 import path = require('path')
 
 const PATH1 = path.join(__dirname, 'res/line-based-handler/lf')

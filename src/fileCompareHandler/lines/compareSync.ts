@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { Options } from '../..'
+import { Options } from '../../../types'
 import closeFiles from '../../fs/closeFile'
 import { LineBasedCompareContext } from './LineBasedCompareContext'
 import { compareLineBatches } from './compare/compareLineBatches'

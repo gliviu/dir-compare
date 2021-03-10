@@ -6,7 +6,7 @@ import os from 'os'
 import temp from 'temp'
 import defaultPrint from './print'
 import Streams from 'memory-streams'
-import { compare as compareAsync, compareSync as compareSync, Statistics, Result } from "../src"
+import { compare as compareAsync, compareSync as compareSync, Statistics, Result } from "../types"
 import untar from './untar'
 import semver from 'semver'
 

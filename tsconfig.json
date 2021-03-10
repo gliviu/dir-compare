@@ -12,7 +12,7 @@
       "esModuleInterop": true,
     },
     "files": [
-      "./src/index.d.ts"
+      "types.d.ts"
     ],
     "include": [
       "**/*.ts",

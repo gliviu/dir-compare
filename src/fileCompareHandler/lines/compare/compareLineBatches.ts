@@ -1,4 +1,4 @@
-import { Options } from '../../..'
+import { Options } from '../../../../types'
 import { LineBatch } from '../lineReader/LineBatch'
 import { compareLines } from './compareLines'
 

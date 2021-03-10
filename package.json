@@ -3,7 +3,7 @@
     "version": "3.1.2",
     "description": "Node JS directory compare",
     "main": "build/src/index.js",
-    "types": "src/index.d.ts",
+    "types": "build/types.d.ts",
     "repository": {
         "type": "git",
         "url": "https://github.com/gliviu/dir-compare"
@@ -14,12 +14,13 @@
         "folder"
     ],
     "files": [
-        "build/src"
+        "build/src",
+        "build/types.d.ts"
     ],
     "scripts": {
         "prepublishOnly": "npm run clean && npm run build",
         "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
-        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" build",
+        "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" types.d.ts build",
         "build": "tsc && npm run lint && npm run copydeps",
         "lint": "eslint ./src ./test --ext .ts,.js",
         "pretest": "npm install && npm run build",
