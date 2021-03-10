@@ -3,21 +3,14 @@ import bufferEqual from 'buffer-equal'
 import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
 import fsPromise from '../../fs/fsPromise'
 import { BufferPair, BufferPool } from '../../fs/BufferPool'
-import closeFile from '../common/closeFile'
+import closeFile from '../../fs/closeFile'
 import { Options } from '../..'
 
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 100000
 const fdQueue = new FileDescriptorQueue(MAX_CONCURRENT_FILE_COMPARE * 2)
-const bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE);  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
+const bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE)  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
 
-
-/**
- * Compares two partial buffers.
- */
-function compareBuffers(buf1: Buffer, buf2: Buffer, contentSize: number) {
-    return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize))
-}
 
 /**
  * Compares two files by content.
@@ -95,6 +88,10 @@ function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.S
             res => finalizeAsync(fd1, fd2, bufferPair).then(() => res),
             err => finalizeAsync(fd1, fd2, bufferPair).then(() => { throw err })
         )
+}
+
+function compareBuffers(buf1: Buffer, buf2: Buffer, contentSize: number) {
+    return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize))
 }
 
 function finalizeAsync(fd1?: number, fd2?: number, bufferPair?: BufferPair) {

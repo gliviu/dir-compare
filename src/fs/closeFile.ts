@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
+import { FileDescriptorQueue } from './FileDescriptorQueue'
 
 function closeFilesSync(fd1?: number, fd2?: number): void {
     if (fd1) {
