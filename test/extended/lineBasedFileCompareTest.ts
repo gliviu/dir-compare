@@ -9,6 +9,7 @@ const BASE_OPTIONS: Options = {
     compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
     ignoreLineEnding: true,
     ignoreWhiteSpaces: true,
+    ignoreEmptyLines: true,
 }
 const MAX_BUFFER_SIZE = 100
 
@@ -19,13 +20,14 @@ function warmup() {
         compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
         ignoreLineEnding: true,
         ignoreWhiteSpaces: true,
+        ignoreEmptyLines: true,
     }
     for (let i = 1; i < 50; i++) {
         compareSync(PATH1, PATH2, baseOptions)
     }
 }
 
-type CompareFn = (left: string, right: string, options: Options) => Result | Promise<Result>
+type CompareFn = (left: string, right: string, options: Options) => (Result | Promise<Result>)
 
 async function runSingleTest(compareFn: CompareFn) {
     const durations: number[] = []

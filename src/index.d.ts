@@ -471,9 +471,10 @@ export const fileCompareHandlers: {
      * Compares files line by line.
      * 
      * Options:
-     * * ignoreLineEnding - tru/false (default: false) - Ignore cr/lf line endings
-     * * ignoreWhiteSpaces - tru/false (default: false) - Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
-     * * ignoreAllWhiteSpaces - tru/false (default: false) - Ignore all white space differences (similar to 'diff -w')
+     * * ignoreLineEnding - true/false (default: false) - Ignore cr/lf line endings
+     * * ignoreWhiteSpaces - true/false (default: false) - Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
+     * * ignoreAllWhiteSpaces - true/false (default: false) - Ignore all white space differences (similar to 'diff -w')
+     * * ignoreEmptyLines - true/false (default: false) - Ignores differences caused by empty lines (similar to 'diff -B')
      */
     lineBasedFileCompare: CompareFileHandler
 }

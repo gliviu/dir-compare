@@ -6,6 +6,10 @@ const TRIM_LINE_ENDING_REGEXP = /\r\n|\n$/g
 const REMOVE_WHITE_SPACES_REGEXP = /[ \f\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]/g
 
 export function compareLines(lines1: string[], lines2: string[], options: Options): CompareLinesResult {
+    if (options.ignoreEmptyLines) {
+        lines1 = removeEmptyLines(lines1)
+        lines2 = removeEmptyLines(lines2)
+    }
     const len = Math.min(lines1.length, lines2.length)
     let i = 0
     for (; i < len; i++) {
@@ -51,6 +55,14 @@ function trimLineEnding(s: string): string {
 
 function removeSpaces(s: string): string {
     return s.replace(REMOVE_WHITE_SPACES_REGEXP, '')
+}
+
+function removeEmptyLines(lines: string[]): string[] {
+    return lines.filter(line => !isEmptyLine(line))
+}
+
+function isEmptyLine(line: string): boolean {
+    return line === '\n' || line === '\r\n'
 }
 
 function separateEol(s: string) {

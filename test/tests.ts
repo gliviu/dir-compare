@@ -997,7 +997,7 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         },
         {
             name: 'test011_71', path1: 'd35/#29-ignore-all-whitespaces/a/app.ts', path2: 'd35/#29-ignore-all-whitespaces/c/app.ts',
-            description: 'should not ignore empty lines',
+            description: 'should not ignore empty lines if `ignore all whitespaces` is active',
             options: {
                 compareContent: true,
                 compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
@@ -1005,6 +1005,52 @@ export function getTests(testDirPath: string): Partial<Test>[] {
                 ignoreLineEnding: true,
                 ignoreWhiteSpaces: false,
                 ignoreAllWhiteSpaces: true,
+                ignoreEmptyLines: false,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: {},
+        },
+        {
+            name: 'test011_72', path1: 'd35/#29-ignore-all-whitespaces/a/app.ts', path2: 'd35/#29-ignore-all-whitespaces/c/app.ts',
+            description: 'should ignore empty lines and all whitespaces',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false,
+                ignoreAllWhiteSpaces: true,
+                ignoreEmptyLines: true,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: {},
+        },
+        {
+            name: 'test011_80', path1: 'd35/#29-ignore-empty-lines/a-lf/app.ts', path2: 'd35/#29-ignore-empty-lines/b-lf/app.ts',
+            description: 'should ignore empty lines',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: false,
+                ignoreWhiteSpaces: false,
+                ignoreAllWhiteSpaces: false,
+                ignoreEmptyLines: true,
+                lineBasedHandlerBufferSize: 3
+            },
+            displayOptions: {},
+        },
+        {
+            name: 'test011_81', path1: 'd35/#29-ignore-empty-lines/a-lf/app.ts', path2: 'd35/#29-ignore-empty-lines/b-crlf/app.ts',
+            description: 'should ignore empty lines when line endings are different',
+            options: {
+                compareContent: true,
+                compareFileSync: fileCompareHandlers.lineBasedFileCompare.compareSync,
+                compareFileAsync: fileCompareHandlers.lineBasedFileCompare.compareAsync,
+                ignoreLineEnding: true,
+                ignoreWhiteSpaces: false,
+                ignoreAllWhiteSpaces: false,
+                ignoreEmptyLines: true,
                 lineBasedHandlerBufferSize: 3
             },
             displayOptions: {},

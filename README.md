@@ -192,6 +192,7 @@ const options = {
   ignoreLineEnding: true,      // Ignore cr/lf line endings
   ignoreWhiteSpaces: true      // Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
   ignoreAllWhiteSpaces: true   // Ignore all white space differences (similar to 'diff -w')
+  ignoreEmptyLines: true       // Ignores differences caused by empty lines (similar to 'diff -B')
 };
 
 const path1 = '...';
