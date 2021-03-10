@@ -1,5 +1,4 @@
 import { getTests, Test } from "./tests"
-import pjson from '../package.json'
 import colors from 'colors/safe'
 import util from 'util'
 import fs from 'fs'
@@ -228,8 +227,8 @@ function initReport(saveReport) {
         if (fs.existsSync(REPORT_FILE)) {
             fs.unlinkSync(REPORT_FILE)
         }
-        fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s, dir-compare version: %s\n',
-            new Date(), process.version, os.platform(), os.release(), pjson.version))
+        fs.appendFileSync(REPORT_FILE, util.format('Date: %s, Node version: %s. OS platform: %s, OS release: %s\n',
+            new Date(), process.version, os.platform(), os.release()))
     }
 }
 

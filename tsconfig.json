@@ -6,7 +6,6 @@
       "sourceMap": true,
       "strictNullChecks": true,
       "allowJs": true,
-      "resolveJsonModule": true,
       "declaration": true,
       "composite": true,
       "declarationMap": true,
@@ -18,7 +17,6 @@
     "include": [
       "**/*.ts",
       "**/*.js",
-      "package.json"
     ],
     "exclude": [
       "build",

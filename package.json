@@ -17,9 +17,10 @@
         "build/src"
     ],
     "scripts": {
+        "prepublishOnly": "npm run clean && npm run build",
         "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
         "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" build",
-        "build": "tsc && npm run copydeps",
+        "build": "tsc && npm run lint && npm run copydeps",
         "lint": "eslint ./src ./test --ext .ts,.js",
         "pretest": "npm install && npm run build",
         "test": "node build/test/runTests.js",
