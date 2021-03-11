@@ -15,6 +15,7 @@ import { FileCompareHandlers } from './FileCompareHandlers'
 const ROOT_PATH = pathUtils.sep
 
 export * from './types'
+export { FileCompareHandlers }
 
 /**
  * Synchronously compares given paths.
