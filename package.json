@@ -17,17 +17,17 @@
         "build/src"
     ],
     "scripts": {
-        "prepublishOnly": "npm run clean && npm run build",
+        "prepublishOnly": "npm run clean && npm run build && npm run lint",
         "clean": "rm -rf build && rm -rf .nyc_output && rm -rf coverage",
         "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" build",
-        "build": "tsc && npm run lint && npm run copydeps",
+        "build": "tsc && npm run copydeps",
         "lint": "eslint ./src ./test --ext .ts,.js",
         "pretest": "npm install && npm run build",
         "test": "node build/test/runTests.js",
         "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
         "coverage": "npx nyc --exclude \"build/test/**\" --reporter=lcov npm test && npx nyc report",
         "toc": "npx markdown-toc README.md; echo \n",
-        "docs": "typedoc --includeVersion --excludeExternals --theme minimal --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.d.ts"
+        "docs": "typedoc --includeVersion --excludeExternals --theme minimal --readme none --gitRevision master --toc compare,compareSync,fileCompareHandlers,Options,Result --out docs ./src/index.ts"
     },
     "dependencies": {
         "buffer-equal": "^1.0.0",

@@ -8,6 +8,7 @@ import { LineBasedCompareContext } from './LineBasedCompareContext'
 import { BufferPool } from '../../fs/BufferPool'
 import { compareLineBatches } from './compare/compareLineBatches'
 import { readBufferedLines } from './lineReader/readBufferedLines'
+import { CompareFileAsync } from '../../types'
 
 const BUF_SIZE = 100000
 const MAX_CONCURRENT_FILE_COMPARE = 8
@@ -15,7 +16,7 @@ const MAX_CONCURRENT_FILE_COMPARE = 8
 const fdQueue = new FileDescriptorQueue(MAX_CONCURRENT_FILE_COMPARE * 2)
 const bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE)  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
 
-export default async function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): Promise<boolean> {
+export const lineBasedCompareAsync: CompareFileAsync = async (path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): Promise<boolean> => {
     const bufferSize = Math.min(BUF_SIZE, options.lineBasedHandlerBufferSize ?? Number.MAX_VALUE)
     let context: LineBasedCompareContext | undefined
     try {

@@ -6,6 +6,7 @@ import { compareLineBatches } from './compare/compareLineBatches'
 import { readBufferedLines } from './lineReader/readBufferedLines'
 import { BufferPair } from '../../fs/BufferPool'
 import { LineBatch } from './lineReader/LineBatch'
+import { CompareFileSync } from '../../types'
 
 const BUF_SIZE = 100000
 
@@ -15,7 +16,7 @@ const bufferPair: BufferPair = {
     busy: true
 }
 
-export default function compareSync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): boolean {
+export const lineBasedCompareSync: CompareFileSync = (path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): boolean =>  {
     const bufferSize = Math.min(BUF_SIZE, options.lineBasedHandlerBufferSize ?? Number.MAX_VALUE)
     let context: LineBasedCompareContext | undefined
     try {

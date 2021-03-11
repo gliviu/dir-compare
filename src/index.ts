@@ -3,45 +3,18 @@ import fs from 'fs'
 import compareSyncInternal from './compareSync'
 import compareAsyncInternal from './compareAsync'
 import defaultResultBuilderCallback from './resultBuilder/defaultResultBuilderCallback'
-import defaultFileCompare from './fileCompareHandler/default/defaultFileCompare'
-import lineBasedFileCompare from './fileCompareHandler/lines/lineBasedFileCompare'
+import { defaultFileCompare } from './fileCompareHandler/default/defaultFileCompare'
+import { lineBasedFileCompare } from './fileCompareHandler/lines/lineBasedFileCompare'
 import defaultNameCompare from './nameCompare/defaultNameCompare'
 import entryBuilder from './entry/entryBuilder'
 import statsLifecycle from './statistics/statisticsLifecycle'
 import loopDetector from './symlink/loopDetector'
-import { CompareFileHandler, Options, Result } from './types'
+import { Options, Result } from './types'
+import { FileCompareHandlers } from './FileCompareHandlers'
 
 const ROOT_PATH = pathUtils.sep
 
 export * from './types'
-
-/**
- * Available file content comparison handlers.
- * These handlers are used when [[Options.compareContent]] is set.
- */
-export interface FileCompareHandlers {
-    /**
-     * Default file content comparison handlers, used if [[Options.compareFileAsync]] or [[Options.compareFileSync]] are not specified.
-     * 
-     * Performs binary comparison.
-     */
-    defaultFileCompare: CompareFileHandler,
-    /**
-     * Compares files line by line.
-     * 
-     * Options:
-     * * ignoreLineEnding - true/false (default: false) - Ignore cr/lf line endings
-     * * ignoreWhiteSpaces - true/false (default: false) - Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
-     * * ignoreAllWhiteSpaces - true/false (default: false) - Ignore all white space differences (similar to 'diff -w')
-     * * ignoreEmptyLines - true/false (default: false) - Ignores differences caused by empty lines (similar to 'diff -B')
-     */
-    lineBasedFileCompare: CompareFileHandler
-}
-
-export const fileCompareHandlers: FileCompareHandlers = {
-    defaultFileCompare: defaultFileCompare,
-    lineBasedFileCompare: lineBasedFileCompare
-}
 
 /**
  * Synchronously compares given paths.
@@ -67,22 +40,6 @@ export function compareSync(path1: string, path2: string, options?: Options): Re
     statistics.diffSet = diffSet
 
     return statistics as unknown as Result
-}
-
-type RealPathOptions = { encoding?: BufferEncoding | null } | BufferEncoding
-
-const wrapper = {
-    realPath(path: string, options?: RealPathOptions): Promise<string> {
-        return new Promise((resolve, reject) => {
-            fs.realpath(path, options, (err, resolvedPath) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(resolvedPath)
-                }
-            })
-        })
-    }
 }
 
 /**
@@ -123,6 +80,31 @@ export function compare(path1: string, path2: string, options?: Options): Promis
                     return statistics
                 })
         })
+}
+
+/**
+ * File comparison handlers.
+ * These handlers are used when [[Options.compareContent]] is set.
+ */
+export const fileCompareHandlers: FileCompareHandlers = {
+    defaultFileCompare,
+    lineBasedFileCompare
+}
+
+type RealPathOptions = { encoding?: BufferEncoding | null } | BufferEncoding
+
+const wrapper = {
+    realPath(path: string, options?: RealPathOptions): Promise<string> {
+        return new Promise((resolve, reject) => {
+            fs.realpath(path, options, (err, resolvedPath) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(resolvedPath)
+                }
+            })
+        })
+    }
 }
 
 function prepareOptions(options?: Options): Options {
