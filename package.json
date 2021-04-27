@@ -22,6 +22,7 @@
         "copydeps": "copyfiles \"test/expected/**\" test/testdir.tar \"test/extended/res/**\" build",
         "build": "tsc && npm run copydeps",
         "lint": "eslint ./src ./test --ext .ts,.js",
+        "watch": "tsc-watch --onSuccess 'npm run copydeps --silent'",
         "pretest": "npm install && npm run build",
         "test": "node build/test/runTests.js",
         "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
@@ -45,6 +46,7 @@
         "tar-fs": "2.1.1",
         "temp": "0.9.0",
         "ts-node": "9.1.1",
+        "tsc-watch": "^4.2.9",
         "typedoc": "0.20.16",
         "typescript": "^4.1.3"
     },
