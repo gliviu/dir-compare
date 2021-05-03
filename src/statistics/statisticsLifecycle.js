@@ -19,6 +19,11 @@ module.exports = {
             rightBrokenLinks: 0,
             distinctBrokenLinks: 0,
         }
+        const permissionDeniedStatistics = {
+            leftPermissionDenied: 0,
+            rightPermissionDenied: 0,
+            distinctPermissionDenied: 0,
+        }
         return {
             distinct: 0,
             equal: 0,
@@ -34,6 +39,7 @@ module.exports = {
             rightDirs: 0,
             brokenLinks: brokenLinksStatistics,
             symlinks: symlinkStatistics,
+            permissionDenied: permissionDeniedStatistics,
             same: undefined
         }
     },
@@ -47,6 +53,8 @@ module.exports = {
         statistics.totalDirs = statistics.equalDirs + statistics.differencesDirs
         const brokenLInksStats = statistics.brokenLinks
         brokenLInksStats.totalBrokenLinks = brokenLInksStats.leftBrokenLinks + brokenLInksStats.rightBrokenLinks + brokenLInksStats.distinctBrokenLinks
+        const permissionDeniedStats = statistics.permissionDenied
+        permissionDeniedStats.totalPermissionDenied = permissionDeniedStats.leftPermissionDenied + permissionDeniedStats.rightPermissionDenied + permissionDeniedStats.distinctPermissionDenied
         statistics.same = statistics.differences ? false : true
 
         if (options.compareSymlink) {

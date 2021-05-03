@@ -6,6 +6,7 @@ const stats = require('./statistics/statisticsUpdate')
 const loopDetector = require('./symlink/loopDetector')
 const entryComparator = require('./entry/entryComparator')
 const entryType = require('./entry/entryType')
+const { getPrmissionDenieStateWhenLeftMissing, getPrmissionDenieStateWhenRightMissing, getPermissionDeniedState } = require('./permissions/permissionDeniedState')
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -15,6 +16,9 @@ function getEntries(rootEntry, relativePath, loopDetected, options) {
         return []
     }
     if (rootEntry.isDirectory) {
+        if (rootEntry.isPermissionDenied) {
+            return []
+        }
         const entries = fs.readdirSync(rootEntry.absolutePath)
         return entryBuilder.buildDirEntries(rootEntry, entries, relativePath, options)
     }
@@ -56,12 +60,23 @@ function compare(rootEntry1, rootEntry2, level, relativePath, options, statistic
         // process entry
         if (cmp === 0) {
             // Both left/right exist and have the same name and type
-            let compareEntryRes = entryEquality.isEntryEqualSync(entry1, entry2, type1, options)
-            options.resultBuilder(entry1, entry2,
-                compareEntryRes.same ? 'equal' : 'distinct',
-                level, relativePath, options, statistics, diffSet,
-                compareEntryRes.reason)
-            stats.updateStatisticsBoth(entry1, entry2, compareEntryRes.same, compareEntryRes.reason, type1, statistics, options)
+            let same, reason, state
+            const permissionDeniedState = getPermissionDeniedState(entry1, entry2)
+
+            if (permissionDeniedState === "access-ok") {
+                const compareEntryRes = entryEquality.isEntryEqualSync(entry1, entry2, type1, options)
+                state = compareEntryRes.same ? 'equal' : 'distinct'
+                same = compareEntryRes.same
+                reason = compareEntryRes.reason
+            } else {
+                state = 'distinct'
+                same = false
+                reason = "permission-denied"
+            }
+
+
+            options.resultBuilder(entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason, permissionDeniedState)
+            stats.updateStatisticsBoth(entry1, entry2, same, reason, type1, permissionDeniedState, statistics, options)
             i1++
             i2++
             if (!options.skipSubdirs && type1 === 'directory') {
@@ -69,16 +84,18 @@ function compare(rootEntry1, rootEntry2, level, relativePath, options, statistic
             }
         } else if (cmp < 0) {
             // Right missing
-            options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet)
-            stats.updateStatisticsLeft(entry1, type1, statistics, options)
+            const permissionDeniedState = getPrmissionDenieStateWhenRightMissing(entry1)
+            options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
+            stats.updateStatisticsLeft(entry1, type1, permissionDeniedState, statistics, options)
             i1++
             if (type1 === 'directory' && !options.skipSubdirs) {
                 compare(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, loopDetector.cloneSymlinkCache(symlinkCache))
             }
         } else {
             // Left missing
-            options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet)
-            stats.updateStatisticsRight(entry2, type2, statistics, options)
+            let permissionDeniedState = getPrmissionDenieStateWhenLeftMissing(entry2)
+            options.resultBuilder(undefined, entry2, "right", level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
+            stats.updateStatisticsRight(entry2, type2, permissionDeniedState, statistics, options)
             i2++
             if (type2 === 'directory' && !options.skipSubdirs) {
                 compare(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, loopDetector.cloneSymlinkCache(symlinkCache))

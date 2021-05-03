@@ -3,11 +3,6 @@ const pathUtils = require('path')
 
 const PATH_SEP = pathUtils.sep
 
-// Prints dir compare results.
-// 'program' represents display options and correspond to dircompare command line parameters.
-// Example: 'dircompare --show-all --exclude *.js dir1 dir2' translates into
-// program: {showAll: true, exclude: '*.js'}
-//
 function print(res, writer, displayOptions) {
     // calculate relative path length for pretty print
     let relativePathMaxLength = 0, fileNameMaxLength = 0
@@ -86,12 +81,17 @@ function print(res, writer, displayOptions) {
     if (!displayOptions.noDiffIndicator) {
         writer.write(res.same ? 'Entries are identical\n' : 'Entries are different\n')
     }
-    let stats = util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s',
+    let permissionDeniedStats = ''
+    if (res.permissionDenied.totalPermissionDenied > 0) {
+        permissionDeniedStats = `, permission denied: {left: ${res.permissionDenied.leftPermissionDenied}, right: ${res.permissionDenied.rightPermissionDenied}, distinct: ${res.permissionDenied.distinctPermissionDenied}, total: ${res.permissionDenied.totalPermissionDenied}}`
+    }
+    let stats = util.format('total: %s, equal: %s, distinct: %s, only left: %s, only right: %s%s',
         statTotal,
         statEqual,
         statDistinct,
         statLeft,
-        statRight
+        statRight,
+        permissionDeniedStats
     )
     if (res.brokenLinks.totalBrokenLinks > 0) {
         stats += util.format(', broken links: %s', res.brokenLinks.totalBrokenLinks)
@@ -103,7 +103,7 @@ function print(res, writer, displayOptions) {
 /**
  * Print details for default view mode
  */
-function printPretty(writer, program, detail) {
+function printPretty(writer, displayOptions, detail) {
     const path = detail.relativePath === '' ? PATH_SEP : detail.relativePath
 
     let state
@@ -127,13 +127,17 @@ function printPretty(writer, program, detail) {
     type = detail.type1 !== 'missing' ? detail.type1 : detail.type2
     const cmpEntry = getCompareFile(detail, state)
     let reason = ''
-    if (program.reason && detail.reason) {
+    if (displayOptions.reason && detail.reason) {
         reason = util.format(' <%s>', detail.reason)
     }
-    if (program.wholeReport || type === 'broken-link') {
-        writer.write(util.format('[%s] %s (%s)%s\n', path, cmpEntry, type, reason))
+    let permissionDeniedState = ''
+    if (detail.permissionDeniedState && detail.permissionDeniedState !== 'access-ok') {
+        permissionDeniedState = ` EACCES: ${detail.permissionDeniedState} `
+    }
+    if (displayOptions.wholeReport || type === 'broken-link') {
+        writer.write(util.format('[%s] %s (%s)%s%s\n', path, cmpEntry, type, reason, permissionDeniedState))
     } else {
-        writer.write(util.format('[%s] %s%s\n', path, cmpEntry, reason))
+        writer.write(util.format('[%s] %s%s%s\n', path, cmpEntry, reason, permissionDeniedState))
     }
 }
 

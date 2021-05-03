@@ -1,0 +1,1 @@
+Error: EACCES: permission denied, open '/tmp/37-perms-test/t1-files-and-dirs/b/t1-left-file-ok,right-file-forbidden/t1.txt'

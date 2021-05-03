@@ -36,6 +36,13 @@ export interface Options {
 
     /**
      * Compares entries by symlink. Defaults to 'false'.
+
+     * If this option is enabled two entries must have the same type in order to be considered equal. 
+     * They have to be either two fies, two directories or two symlinks.
+     * 
+     * If left entry is a file and right entry is a symlink, they are considered distinct disregarding the content of the file.
+     * 
+     * Further if both entries are symlinks they need to have the same link value. For example if one symlink points to '/x/b.txt' and the other to '/x/../x/b.txt' the symlinks are considered distinct even if they point to the same file.
      */
     compareSymlink?: boolean
 
@@ -68,6 +75,39 @@ export interface Options {
      * File/directory name exclude filter. Comma separated minimatch patterns. See [Glob patterns](https://github.com/gliviu/dir-compare#glob-patterns)
      */
     excludeFilter?: string
+
+    /**
+     * Handle permission denied errors. Defaults to 'false'.
+     * 
+     * By default when some entry cannot be read due to `EACCES` error the comparison will
+     * stop immediately with an exception.
+     * 
+     * If `handlePermissionDenied` is set to true the comparison will continue when unreadable entries are encountered.
+     * 
+     * Offending entries will be reported within [[Difference.permissionDeniedState]], [[Difference.reason]] and [[Result.permissionDenied]].
+     * 
+     * Lets consider we want to compare two identical folders `A` and `B` with `B/dir2` being unreadable for current user.
+     * ```
+     * A                    B
+     *   dir1                 dir1
+     *     file1                file1
+     *   dir2                 dir2 (permission denied)
+     *     file2                file2
+     * ```
+     * 
+     * [[Result.diffSet]] will look like:
+     * 
+     * |relativePath  |path1    |path2    | state      |reason                  |permissionDeniedState|
+     * |--------------|---------|---------|------------|------------------------|---------------------|
+     * |[/]           |dir1     |dir1     |`equal`     |                        |                     |  
+     * |[/dir1]       |file1    |file1    |`equal`     |                        |                     |  
+     * |[/]           |dir2     |dir2     |`distinct`  |  `permission-denied`   |`access-error-right` |  
+     * |[/dir2]       |file2    |missing  |`left`      |                        |                     |  
+     * 
+     * And [[Result.permissionDenied]] statistics look like - left: 0, right: 1, distinct: 0, total: 1
+     * 
+     */
+    handlePermissionDenied?: boolean
 
     /**
      * Callback for constructing result. Called for each compared entry pair.
@@ -130,6 +170,11 @@ export interface Entry {
     stat: fs.Stats
     lstat: fs.Stats
     symlink: boolean
+    /**
+     * True when this entry is not readable.
+     * This value is set only when [[Options.handlePermissionDenied]] is enabled.
+     */
+    isPermissionDenied: boolean
 }
 
 /**
@@ -253,6 +298,11 @@ export interface Statistics {
      * Statistics available if 'compareSymlink' options is used.
      */
     symlinks?: SymlinkStatistics
+
+    /**
+     * Stats about entries that could not be accessed.
+     */
+    permissionDenied: PermissionDeniedStatistics
 }
 
 export interface BrokenLinksStatistics {
@@ -267,7 +317,7 @@ export interface BrokenLinksStatistics {
     rightBrokenLinks: number
 
     /**
-     * Number of broken links with same name appearing in both path1 and path2  (leftBrokenLinks+rightBrokenLinks+distinctBrokenLinks)
+     * Number of broken links with same name appearing in both path1 and path2  (leftBrokenLinks + rightBrokenLinks + distinctBrokenLinks)
      */
     distinctBrokenLinks: number
 
@@ -275,6 +325,29 @@ export interface BrokenLinksStatistics {
      * Total number of broken links
      */
     totalBrokenLinks: number
+
+}
+
+export interface PermissionDeniedStatistics {
+    /**
+     * Number of forbidden entries found only in path1
+     */
+    leftPermissionDenied: number
+
+    /**
+     * Number of forbidden entries found only in path2
+     */
+    rightPermissionDenied: number
+
+    /**
+     * Number of forbidden entries with same name appearing in both path1 and path2  (leftPermissionDenied + rightPermissionDenied + distinctPermissionDenied)
+     */
+    distinctPermissionDenied: number
+
+    /**
+     * Total number of forbidden entries
+     */
+    totalPermissionDenied: number
 
 }
 
@@ -313,8 +386,21 @@ export interface SymlinkStatistics {
 
 /**
  * State of left/right entries relative to each other.
+ * * `equal` - Identical entries are found in both left/right dirs.
+ * * `left` - Entry is found only in left dir.
+ * * `right` - Entry is found only in right dir.
+ * * `distinct` - Entries exist in both left/right dir but have different content. See [[Difference.reason]] to understan why entries are considered distinct.
  */
 export type DifferenceState = "equal" | "left" | "right" | "distinct"
+
+/**
+ * Permission related state of left/right entries. Available only when [[Options.handlePermissionDenied]] is enabled.
+ * * `access-ok`          - Both entries are accessible.
+ * * `access-error-both`  - Neither entry can be accessed.
+ * * `access-error-left`  - Left entry cannot be accessed.
+ * * `access-error-right` - Right entry cannot be accessed.
+ */
+export type PermissionDeniedState = "access-ok" | "access-error-both" | "access-error-left" | "access-error-right"
 
 /**
  * Type of entry.
@@ -323,8 +409,17 @@ export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
 
 /**
  * Provides reason when two identically named entries are distinct.
+ * 
+ * Not available if entries are equal.
+ * 
+ * * `different-size` - Files differ in size.
+ * * `different-date - Entry dates are different. Used when [[Options.compareDate]] is `true`.
+ * * `different-content` - File contents are different. Used when [[Options.compareContent]] is `true`.
+ * * `broken-link` - Both left/right entries are broken links.
+ * * `different-symlink` - Symlinks are different. See [[Options.compareSymlink]] for details.
+ * * `permission-denied` - One or both left/right entries are not accessible. See [[Options.handlePermissionDenied]] for details.
  */
-export type Reason = "different-size" | "different-date" | "different-content" | "broken-link" | 'different-symlink'
+export type Reason = undefined | "different-size" | "different-date" | "different-content" | "broken-link" | 'different-symlink' | 'permission-denied'
 
 export interface Difference {
     /**
@@ -368,6 +463,11 @@ export interface Difference {
     state: DifferenceState
 
     /**
+     * Permission related state of left/right entries.
+     */
+    permissionDeniedState: PermissionDeniedState
+
+    /**
      * Type of left entry.
      * Is undefined if missing on the left side.
      */
@@ -409,10 +509,9 @@ export interface Difference {
     level: number
 
     /**
-     * See [[Reason]].
-     * Not available if entries are equal.
+     * Provides reason when two identically named entries are distinct.
      */
-    reason?: Reason
+    reason: Reason
 }
 
 /**

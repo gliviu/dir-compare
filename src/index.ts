@@ -34,8 +34,8 @@ export function compareSync(path1: string, path2: string, options?: Options): Re
     }
     const statistics = statsLifecycle.initStats(options)
     compareSyncInternal(
-        entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1)),
-        entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2)),
+        entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), options),
+        entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), options),
         0, ROOT_PATH, options, statistics, diffSet, loopDetector.initSymlinkCache())
     statsLifecycle.completeStatistics(statistics, options)
     statistics.diffSet = diffSet
@@ -68,8 +68,8 @@ export function compare(path1: string, path2: string, options?: Options): Promis
             }
             const statistics = statsLifecycle.initStats(options)
             return compareAsyncInternal(
-                entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1)),
-                entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(path2)),
+                entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1), options),
+                entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(path2), options),
                 0, ROOT_PATH, options, statistics, asyncDiffSet, loopDetector.initSymlinkCache())
                 .then(() => {
                     statsLifecycle.completeStatistics(statistics, options)

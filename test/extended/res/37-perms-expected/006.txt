@@ -1,0 +1,20 @@
+[/] t0-ok == t0-ok (directory)
+[/t0-ok] test.txt == test.txt (file)
+[/] t1-left-file-ok,right-file-forbidden == t1-left-file-ok,right-file-forbidden (directory)
+[/t1-left-file-ok,right-file-forbidden] t1.txt == t1.txt (file)
+[/] t2-left-dir-ok,right-dir-forbidden == t2-left-dir-ok,right-dir-forbidden (directory)
+[/t2-left-dir-ok,right-dir-forbidden] xx <> xx (directory) <permission-denied> EACCES: access-error-right 
+[/t2-left-dir-ok,right-dir-forbidden/xx] xx.txt -> missing (file)
+[/] t3-left-dir-forbidden,right-dir-forbidden == t3-left-dir-forbidden,right-dir-forbidden (directory)
+[/t3-left-dir-forbidden,right-dir-forbidden] x <> x (directory) <permission-denied> EACCES: access-error-both 
+[/] t4-left-file-forbidden,right-file-forbidden == t4-left-file-forbidden,right-file-forbidden (directory)
+[/t4-left-file-forbidden,right-file-forbidden] test.txt == test.txt (file)
+[/] t5-left-file-missing,right-file-forbidden == t5-left-file-missing,right-file-forbidden (directory)
+[/t5-left-file-missing,right-file-forbidden] missing <- test.txt (file)
+[/] t6-left-dir-missing,right-dir-forbidden == t6-left-dir-missing,right-dir-forbidden (directory)
+[/t6-left-dir-missing,right-dir-forbidden] missing <- xx (directory) EACCES: access-error-right 
+[/] t7-left-file-forbidden,right-dir-forbidden == t7-left-file-forbidden,right-dir-forbidden (directory)
+[/t7-left-file-forbidden,right-dir-forbidden] missing <- xx (directory) EACCES: access-error-right 
+[/t7-left-file-forbidden,right-dir-forbidden] xx -> missing (file)
+Entries are different
+total: 18, equal: 11, distinct: 2, only left: 2, only right: 3, permission denied: {left: 0, right: 3, distinct: 1, total: 4}

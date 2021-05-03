@@ -2,7 +2,7 @@
  * Calculates comparison statistics.
  */
 module.exports = {
-    updateStatisticsBoth(entry1, entry2, same, reason, type, statistics, options) {
+    updateStatisticsBoth(entry1, entry2, same, reason, type, permissionDeniedState, statistics, options) {
         same ? statistics.equal++ : statistics.distinct++
         if (type === 'file') {
             same ? statistics.equalFiles++ : statistics.distinctFiles++
@@ -26,8 +26,15 @@ module.exports = {
             }
         }
 
+        if (permissionDeniedState === "access-error-left") {
+            statistics.permissionDenied.leftPermissionDenied++
+        } else if (permissionDeniedState === "access-error-right") {
+            statistics.permissionDenied.rightPermissionDenied++
+        } else if (permissionDeniedState === "access-error-both") {
+            statistics.permissionDenied.distinctPermissionDenied++
+        }
     },
-    updateStatisticsLeft(entry1, type, statistics, options) {
+    updateStatisticsLeft(entry1, type, permissionDeniedState, statistics, options) {
         statistics.left++
         if (type === 'file') {
             statistics.leftFiles++
@@ -42,8 +49,12 @@ module.exports = {
         if (options.compareSymlink && entry1.isSymlink) {
             statistics.symlinks.leftSymlinks++
         }
+
+        if (permissionDeniedState === "access-error-left") {
+            statistics.permissionDenied.leftPermissionDenied++
+        }
     },
-    updateStatisticsRight(entry2, type, statistics, options) {
+    updateStatisticsRight(entry2, type, permissionDeniedState, statistics, options) {
         statistics.right++
         if (type === 'file') {
             statistics.rightFiles++
@@ -57,6 +68,10 @@ module.exports = {
 
         if (options.compareSymlink && entry2.isSymlink) {
             statistics.symlinks.rightSymlinks++
+        }
+
+        if (permissionDeniedState === "access-error-right") {
+            statistics.permissionDenied.rightPermissionDenied++
         }
     },
 }

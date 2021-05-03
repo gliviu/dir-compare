@@ -1,0 +1,13 @@
+[/] t1-left-file-forbidden,right-file-missing == t1-left-file-forbidden,right-file-missing (directory)
+[/t1-left-file-forbidden,right-file-missing] test-forbidden.txt -> missing (file) EACCES: access-error-left 
+[/] t2-left-dir-forbidden,right-dir-missing == t2-left-dir-forbidden,right-dir-missing (directory)
+[/t2-left-dir-forbidden,right-dir-missing] test-forbidden-dir -> missing (directory) EACCES: access-error-left 
+[/] t3-left-dir-forbidden,right-dir-forbidden == t3-left-dir-forbidden,right-dir-forbidden (directory)
+[/t3-left-dir-forbidden,right-dir-forbidden] test-forbidden-dir <> test-forbidden-dir (directory) <permission-denied> EACCES: access-error-both 
+[/] t4-left-dir-ok,right-dir-forbidden == t4-left-dir-ok,right-dir-forbidden (directory)
+[/t4-left-dir-ok,right-dir-forbidden] test-forbidden-dir <> test-forbidden-dir (directory) <permission-denied> EACCES: access-error-right 
+[/t4-left-dir-ok,right-dir-forbidden/test-forbidden-dir] aa.txt -> missing (file)
+[/] t5-left-file-forbidden,right-file-ok == t5-left-file-forbidden,right-file-ok (directory)
+[/t5-left-file-forbidden,right-file-ok] test-forbidden.txt <> test-forbidden.txt (file) <permission-denied> EACCES: access-error-left 
+Entries are different
+total: 11, equal: 5, distinct: 3, only left: 3, only right: 0, permission denied: {left: 3, right: 1, distinct: 1, total: 5}
