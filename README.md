@@ -17,7 +17,8 @@ Node JS directory compare
   * [Custom name comparators](#custom-name-comparators)
   * [Custom result builder](#custom-result-builder)
   * [Symbolic links](#symbolic-links)
-- [Command line](#command-line)
+  * [Handling permission denied errors](#handling-permission-denied-errors)
+- [UI tools](#ui-tools)
 - [Changelog](#changelog)
 
 # Installation
@@ -76,77 +77,16 @@ compare(path1, path2, options)
 ## Api
 
 
-Below is a quick recap of the api. For more details check the [reference documentation](https://gliviu.github.io/dc-api/).
 ```typescript
 compare(path1: string, path2: string, options?: Options): Promise<Result>
 compareSync(path1: string, path2: string, options?: Options): Result
 ```
+More details can be found in the reference documentation:
+* [compare](https://gliviu.github.io/dc-api/index.html#compare)
+* [compareSync](https://gliviu.github.io/dc-api/index.html#comparesync)
+* [Options](https://gliviu.github.io/dc-api/interfaces/options.html) 
+* [Result](https://gliviu.github.io/dc-api/interfaces/result.html)
 
-```Options```
-* **compareSize**: true/false - Compares files by size. Defaults to 'false'.
-* **compareContent**: true/false - Compares files by content. Defaults to 'false'.
-* **compareFileSync**, **compareFileAsync**: Callbacks for file comparison. See [Custom file content comparators](#custom-file-content-comparators).
-* **compareDate**: true/false - Compares files by date of modification (stat.mtime). Defaults to 'false'.
-* **compareNameHandler**: Callback for name comparison. See [Custom name comparators](#custom-name-comparators).
-* **dateTolerance**: milliseconds - Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
-* **compareSymlink**: true/false - Compares entries by symlink. Defaults to 'false'.
-* **skipSymlinks**: true/false - Ignore symbolic links. Defaults to 'false'.
-* **skipSubdirs**: true/false - Skips sub directories. Defaults to 'false'.
-* **ignoreCase**: true/false - Ignores case when comparing names. Defaults to 'false'.
-* **noDiffSet**: true/false - Toggles presence of diffSet in output. If true, only statistics are provided. Use this when comparing large number of files to avoid out of memory situations. Defaults to 'false'.
-* **includeFilter**: File name filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns. See [Glob patterns](#glob-patterns) below.
-* **excludeFilter**: File/directory name exclude filter. Comma separated [minimatch](https://www.npmjs.com/package/minimatch) patterns.  See [Glob patterns](#glob-patterns) below.
-* **resultBuilder**: Callback for constructing result. Called for each compared entry pair. Updates `statistics` and `diffSet`. More details in [Custom result builder](#custom-result-builder).
-
-```Result```
-* **same**: true if directories are identical
-* **distinct**: number of distinct entries
-* **equal**: number of equal entries
-* **left**: number of entries only in path1
-* **right**: number of entries only in path2
-* **differences**: total number of differences (distinct+left+right)
-* **total**: total number of entries (differences+equal)
-* **distinctFiles**: number of distinct files
-* **equalFiles**: number of equal files
-* **leftFiles**: number of files only in path1
-* **rightFiles**: number of files only in path2
-* **differencesFiles**: total number of different files (distinctFiles+leftFiles+rightFiles)
-* **totalFiles**: total number of files (differencesFiles+equalFiles)
-* **distinctDirs**: number of distinct directories
-* **equalDirs**: number of equal directories
-* **leftDirs**: number of directories only in path1
-* **rightDirs**: number of directories only in path2
-* **differencesDirs**: total number of different directories (distinctDirs+leftDirs+rightDirs)
-* **totalDirs**: total number of directories (differencesDirs+equalDirs)
-* **brokenLinks**:
-    * **leftBrokenLinks**: number of broken links only in path1
-    * **rightBrokenLinks**: number of broken links only in path2
-    * **distinctBrokenLinks**: number of broken links with same name appearing in both path1 and path2
-    * **totalBrokenLinks**: total number of broken links (leftBrokenLinks+rightBrokenLinks+distinctBrokenLinks)
-* **symlinks**: Statistics available if `compareSymlink` options is used
-    * **distinctSymlinks**: number of distinct links
-    * **equalSymlinks**: number of equal links
-    * **leftSymlinks**: number of links only in path1
-    * **rightSymlinks**: number of links only in path2
-    * **differencesSymlinks**: total number of different links (distinctSymlinks+leftSymlinks+rightSymlinks)
-    * **totalSymlinks**: total number of links (differencesSymlinks+equalSymlinks)
-* **diffSet** - List of changes (present if `options.noDiffSet` is false)
-    * **path1**: path not including file/directory name; can be relative or absolute depending on call to compare(),
-    * **path2**: path not including file/directory name; can be relative or absolute depending on call to compare(),
-    * **relativePath**: path relative to root,
-    * **name1**: file/directory name
-    * **name2**: file/directory name
-    * **state**: one of equal, left, right, distinct,
-    * **type1**: one of missing, file, directory, broken-link
-    * **type2**: one of missing, file, directory, broken-link
-    * **size1**: file size
-    * **size2**: file size
-    * **date1**: modification date (stat.mtime)
-    * **date2**: modification date (stat.mtime)
-    * **level**: depth
-    * **reason**: Provides reason when two identically named entries are distinct.  
-      Not available if entries are equal.  
-      One of "different-size", "different-date", "different-content", "broken-link", "different-symlink".
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -181,7 +121,7 @@ A couple of handlers are included in the library:
 Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/fileCompareHandler/defaultFileCompare.js) as an example to create your own.
 
 ### Ignore line endings and white spaces
-Line based comparator can be used to ignore line ending and white space differences. This comparator is not available in [CLI](#command-line) mode.
+Line based comparator can be used to ignore line ending and white space differences.
 ```javascript
 const dircompare = require('dir-compare');
 
@@ -284,10 +224,16 @@ These rules are applied in addition to the other comparison modes; ie. by conten
 
 If entries are different because of symlinks, `reason` will be `different-symlink`. Also statistics summarizes differences caused by symbolik links.
 
-# Command line
-See [dir-compare-cli](https://github.com/gliviu/dir-compare-cli).
+## Handling permission denied errors
+Unreadable files or directories are normally reported as errors. The comparison will be intrerrupted with an `EACCES` exception.
+This behavior can be altered with [Options.handlePermissionDenied](https://gliviu.github.io/dc-api/interfaces/options.html#handlepermissiondenied).
+
+# UI tools
+* [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
+* [Visual Studio Code - Compare Folders](https://marketplace.visualstudio.com/items?itemName=moshfeu.compare-folders)
 
 # Changelog
+* v3.2.0 [Handle permission denied errors](#handling-permission-denied-errors)
 * v3.1.0 Added ignoreAllWhiteSpaces and ignoreEmptyLines options
 * v3.0.0 Moved CLI component into separate project [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
 * v2.4.0 New option to customize file/folder name comparison
@@ -323,3 +269,4 @@ See [dir-compare-cli](https://github.com/gliviu/dir-compare-cli).
     * new --async command line option
     * Fix for https://github.com/tj/commander.js/issues/125
 * v0.0.3 Fix fille ordering issue for newer node versions
+
