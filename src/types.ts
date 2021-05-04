@@ -86,13 +86,13 @@ export interface Options {
      * 
      * Offending entries will be reported within [[Difference.permissionDeniedState]], [[Difference.reason]] and [[Result.permissionDenied]].
      * 
-     * Lets consider we want to compare two identical folders `A` and `B` with `B/dir2` being unreadable for current user.
+     * Lets consider we want to compare two identical folders `A` and `B` with `B/dir2` being unreadable for the current user.
      * ```
      * A                    B
-     *   dir1                 dir1
-     *     file1                file1
-     *   dir2                 dir2 (permission denied)
-     *     file2                file2
+     * ├── dir1             ├── dir1   
+     * ├──── file1          ├──── file1
+     * ├── dir2             ├── dir2 (permission denied)  
+     * └─────file2          └─────file2
      * ```
      * 
      * [[Result.diffSet]] will look like:
