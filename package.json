@@ -35,7 +35,7 @@
         "minimatch": "^3.0.4"
     },
     "devDependencies": {
-        "@types/node": "^12.11.7",
+        "@types/node": "^12.20.5",
         "@typescript-eslint/eslint-plugin": "^4.14.0",
         "@typescript-eslint/parser": "^4.14.0",
         "colors": "^1.4.0",
