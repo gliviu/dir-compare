@@ -16,8 +16,17 @@ export interface Options {
 
     /**
      * Compares files by size. Defaults to 'false'.
+     * 
+     * Usually one of `compareSize` or `compareContent` options has to be activated. Otherwise files are compared by name disregarding size or content.
      */
     compareSize?: boolean
+
+    /**
+     * Compares files by content. Defaults to 'false'.
+     * 
+     * Usually one of `compareSize` or `compareContent` options has to be activated. Otherwise files are compared by name disregarding size or content.
+     */
+    compareContent?: boolean
 
     /**
      * Compares files by date of modification (stat.mtime). Defaults to 'false'.
@@ -30,11 +39,6 @@ export interface Options {
      * Two files are considered to have the same date if the difference between their modification dates fits within date tolerance. Defaults to 1000 ms.
      */
     dateTolerance?: number
-
-    /**
-     * Compares files by content. Defaults to 'false'.
-     */
-    compareContent?: boolean
 
     /**
      * Compares entries by symlink. Defaults to 'false'.
