@@ -76,7 +76,6 @@ compare(path1, path2, options)
 
 ## Api
 
-
 ```typescript
 compare(path1: string, path2: string, options?: Options): Promise<Result>
 compareSync(path1: string, path2: string, options?: Options): Result
@@ -87,6 +86,14 @@ More details can be found in the reference documentation:
 * [Options](https://gliviu.github.io/dc-api/interfaces/options.html) 
 * [Result](https://gliviu.github.io/dc-api/interfaces/result.html)
 
+Common options:
+* [compareSize](https://gliviu.github.io/dc-api/interfaces/options.html#comparesize)
+* [compareContent](https://gliviu.github.io/dc-api/interfaces/options.html#comparecontent)
+* [compareDate](https://gliviu.github.io/dc-api/interfaces/options.html#comparedate) 
+* [excludeFilter](https://gliviu.github.io/dc-api/interfaces/options.html#excludefilter)
+* [includeFilter](https://gliviu.github.io/dc-api/interfaces/options.html#includefilter) 
+* [ignoreCase](https://gliviu.github.io/dc-api/interfaces/options.html#ignorecase) 
+* [skipSubdirs](https://gliviu.github.io/dc-api/interfaces/options.html#skipsubdirs)
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -96,15 +103,18 @@ The pattern is matched against the relative path of the entry being compared.
 Following examples assume we are comparing two [dir-compare](https://github.com/gliviu/dir-compare) code bases.
 
 
-```
-dircompare -x ".git,node_modules" dir1 dir2')    exclude git and node modules directories
-dircompare -x "expected" dir1 dir2')             exclude '/tests/expected' directory
-dircompare -x "/tests/expected" dir1 dir2')      exclude '/tests/expected' directory
-dircompare -x "**/expected" dir1 dir2')          exclude '/tests/expected' directory
-dircompare -x "**/tests/**/*.js" dir1 dir2')     exclude all js files in '/tests' directory and subdirectories
-dircompare -f "*.js,*.yml" dir1 dir2')           include js and yaml files
-dircompare -f "/tests/**/*.js" dir1 dir2')       include all js files in '/tests' directory and subdirectories
-dircompare -f "**/tests/**/*.ts" dir1 dir2')     include all js files in '/tests' directory and subdirectories
+```javascript
+const options = { 
+  excludeFilter: ".git,node_modules",   //  exclude git and node modules directories  
+  excludeFilter: "expected"         ,   //  exclude '/tests/expected' directory  
+  excludeFilter: "/tests/expected"  ,   //  exclude '/tests/expected' directory  
+  excludeFilter: "**/expected"      ,   //  exclude '/tests/expected' directory  
+  excludeFilter: "**/tests/**/*.js" ,   //  exclude all js files in '/tests' directory and subdirectories  
+
+  includeFilter: "*.js,*.yml"       ,   //  include js and yaml files  
+  includeFilter: "/tests/**/*.js"   ,   //  include all js files in '/tests' directory and subdirectories  
+  includeFilter: "**/tests/**/*.ts"     //  include all js files in '/tests' directory and subdirectories  
+}
 ```
 
 ## Custom file content comparators

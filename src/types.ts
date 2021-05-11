@@ -20,7 +20,9 @@ export interface Options {
     compareSize?: boolean
 
     /**
-     *  Compares files by date of modification (stat.mtime). Defaults to 'false'.
+     * Compares files by date of modification (stat.mtime). Defaults to 'false'.
+     * 
+     * Also see [[Options.dateTolerance]].
      */
     compareDate?: boolean
 
