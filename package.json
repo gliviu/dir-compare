@@ -1,6 +1,6 @@
 {
     "name": "dir-compare",
-    "version": "3.2.0",
+    "version": "3.2.1",
     "description": "Node JS directory compare",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
