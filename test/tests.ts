@@ -542,6 +542,15 @@ export function getTests(testDirPath: string): Partial<Test>[] {
             displayOptions: { showAll: true, wholeReport: true, },
         },
         ////////////////////////////////////////////////////
+        // Skip empty directories                         //
+        ////////////////////////////////////////////////////
+        {
+            name: 'test006_10', path1: '#43/a', path2: '#43/b',
+            description: 'should ignore empty directories',
+            options: { compareSize: true, skipEmptyDirs: true },
+            displayOptions: { showAll: true, wholeReport: true},
+        },
+        ////////////////////////////////////////////////////
         // Ignore case                                    //
         ////////////////////////////////////////////////////
         {

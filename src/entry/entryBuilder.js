@@ -92,7 +92,12 @@ function filterEntry(entry, relativePath, options) {
 	if (entry.isSymlink && options.skipSymlinks) {
 		return false
 	}
+
 	const path = pathUtils.join(relativePath, entry.name)
+
+	if (options.skipEmptyDirs && entry.stat.isDirectory() && isEmptyDir(entry.absolutePath)) {
+		return false
+	}
 
 	if ((entry.stat.isFile() && options.includeFilter) && (!match(path, options.includeFilter))) {
 		return false
@@ -103,6 +108,10 @@ function filterEntry(entry, relativePath, options) {
 	}
 
 	return true
+}
+
+function isEmptyDir(path) {
+	return fs.readdirSync(path).length === 0
 }
 
 /**

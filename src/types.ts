@@ -58,6 +58,11 @@ export interface Options {
     skipSubdirs?: boolean
 
     /**
+     * Ignore empty directories. Defaults to 'false'.
+     */
+    skipEmptyDirs?: boolean
+
+    /**
      * Ignore symbolic links. Defaults to 'false'.
      */
     skipSymlinks?: boolean

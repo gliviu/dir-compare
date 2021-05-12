@@ -94,6 +94,7 @@ Common options:
 * [includeFilter](https://gliviu.github.io/dc-api/interfaces/options.html#includefilter) 
 * [ignoreCase](https://gliviu.github.io/dc-api/interfaces/options.html#ignorecase) 
 * [skipSubdirs](https://gliviu.github.io/dc-api/interfaces/options.html#skipsubdirs)
+* [skipEmptyDirs](https://gliviu.github.io/dc-api/interfaces/options.html#skipemptydirs)
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -243,8 +244,9 @@ This behavior can be altered with [Options.handlePermissionDenied](https://glivi
 * [Visual Studio Code - Compare Folders](https://marketplace.visualstudio.com/items?itemName=moshfeu.compare-folders)
 
 # Changelog
+* v3.3.0 Added `skipEmptyDirs` option
 * v3.2.0 [Handle permission denied errors](#handling-permission-denied-errors)
-* v3.1.0 Added ignoreAllWhiteSpaces and ignoreEmptyLines options
+* v3.1.0 Added `ignoreAllWhiteSpaces` and `ignoreEmptyLines` options
 * v3.0.0 Moved CLI component into separate project [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
 * v2.4.0 New option to customize file/folder name comparison
 * v2.3.0 Fixes
