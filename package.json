@@ -39,7 +39,7 @@
         "@typescript-eslint/eslint-plugin": "^4.14.0",
         "@typescript-eslint/parser": "^4.14.0",
         "colors": "^1.4.0",
-        "copyfiles": "^1.2.0",
+        "copyfiles": "2.4.1",
         "eslint": "^7.18.0",
         "memory-streams": "0.1.0",
         "semver": "5.6.0",
