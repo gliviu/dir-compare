@@ -129,7 +129,7 @@ A couple of handlers are included in the library:
 * text sync compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
 * text async compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
 
-Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/fileCompareHandler/defaultFileCompare.js) as an example to create your own.
+Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/fileCompareHandler/default/defaultFileCompare.ts) as an example to create your own.
 
 ### Ignore line endings and white spaces
 Line based comparator can be used to ignore line ending and white space differences.
