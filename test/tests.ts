@@ -440,9 +440,17 @@ export function getTests(testDirPath: string): Partial<Test>[] {
             excludePlatform: ['win32'],
         },
         {
-            name: 'test005_56', path1: '#19/02/a', path2: '#19/02/b',
-            description: "evaluate different file symlinks pointing to identical files as distinct when compare-symlink is used",
+            name: 'test005_56_1', path1: '#19/02/a', path2: '#19/02/b',
+            description: "evaluate different file symlinks pointing to identical files as distinct when compare-symlink is used (comparing by size)",
             options: { compareSize: true, compareSymlink: true },
+            displayOptions: { showAll: true, wholeReport: true, reason: true },
+            customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
+            excludePlatform: ['win32'],
+        },
+        {
+            name: 'test005_56_2', path1: '#19/02/a', path2: '#19/02/b',
+            description: "evaluate different file symlinks pointing to identical files as distinct when compare-symlink is used (comparing by content)",
+            options: { compareContent: true, compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, reason: true },
             customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
@@ -548,7 +556,7 @@ export function getTests(testDirPath: string): Partial<Test>[] {
             name: 'test006_10', path1: '#43/a', path2: '#43/b',
             description: 'should ignore empty directories',
             options: { compareSize: true, skipEmptyDirs: true },
-            displayOptions: { showAll: true, wholeReport: true},
+            displayOptions: { showAll: true, wholeReport: true },
         },
         ////////////////////////////////////////////////////
         // Ignore case                                    //

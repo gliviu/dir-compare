@@ -17,7 +17,7 @@ function getEntries(rootEntry, relativePath, loopDetected, options) {
     }
     if (rootEntry.isDirectory) {
         if (rootEntry.isPermissionDenied) {
-            return []
+            return Promise.resolve([])
         }
         return fsPromise.readdir(rootEntry.absolutePath)
             .then(entries => entryBuilder.buildDirEntries(rootEntry, entries, relativePath, options))
@@ -145,7 +145,7 @@ function compare(rootEntry1, rootEntry2, level, relativePath, options, statistic
                                     sameResult.same ? 'equal' : 'distinct',
                                     level, relativePath, options, statistics, sameResult.diffSet,
                                     sameResult.reason, permissionDeniedState)
-                                stats.updateStatisticsBoth(sameResult.entries1, sameResult.entries2, sameResult.same,
+                                stats.updateStatisticsBoth(sameResult.entry1, sameResult.entry2, sameResult.same,
                                     sameResult.reason, sameResult.type1, permissionDeniedState, statistics, options)
                             }
                         }
