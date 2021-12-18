@@ -1,8 +1,13 @@
+import { DifferenceType, Entry, InitialStatistics, Options, PermissionDeniedState, Reason, SymlinkStatistics } from ".."
+import { ExtOptions } from "../types/ExtOptions"
+
 /**
  * Calculates comparison statistics.
  */
-module.exports = {
-    updateStatisticsBoth(entry1, entry2, same, reason, type, permissionDeniedState, statistics, options) {
+export = {
+    updateStatisticsBoth(entry1: Entry, entry2: Entry, same: boolean, reason: Reason, type: DifferenceType,
+        permissionDeniedState: PermissionDeniedState, statistics: InitialStatistics, options: ExtOptions): void {
+
         same ? statistics.equal++ : statistics.distinct++
         if (type === 'file') {
             same ? statistics.equalFiles++ : statistics.distinctFiles++
@@ -18,11 +23,11 @@ module.exports = {
         const isSymlink2 = entry2 ? entry2.isSymlink : false
         const isSymlink = isSymlink1 || isSymlink2
         if (options.compareSymlink && isSymlink) {
-            const symlinks = statistics.symlinks
+            const symlinkStatistics = statistics.symlinks as SymlinkStatistics
             if (reason === 'different-symlink') {
-                symlinks.distinctSymlinks++
+                symlinkStatistics.distinctSymlinks++
             } else {
-                symlinks.equalSymlinks++
+                symlinkStatistics.equalSymlinks++
             }
         }
 
@@ -34,7 +39,9 @@ module.exports = {
             statistics.permissionDenied.distinctPermissionDenied++
         }
     },
-    updateStatisticsLeft(entry1, type, permissionDeniedState, statistics, options) {
+    updateStatisticsLeft(entry1: Entry, type: DifferenceType, permissionDeniedState: PermissionDeniedState,
+        statistics: InitialStatistics, options: ExtOptions): void {
+
         statistics.left++
         if (type === 'file') {
             statistics.leftFiles++
@@ -47,14 +54,17 @@ module.exports = {
         }
 
         if (options.compareSymlink && entry1.isSymlink) {
-            statistics.symlinks.leftSymlinks++
+            const symlinkStatistics = statistics.symlinks as SymlinkStatistics
+            symlinkStatistics.leftSymlinks++
         }
 
         if (permissionDeniedState === "access-error-left") {
             statistics.permissionDenied.leftPermissionDenied++
         }
     },
-    updateStatisticsRight(entry2, type, permissionDeniedState, statistics, options) {
+    updateStatisticsRight(entry2: Entry, type: DifferenceType, permissionDeniedState: PermissionDeniedState,
+        statistics: InitialStatistics, options: Options): void {
+
         statistics.right++
         if (type === 'file') {
             statistics.rightFiles++
@@ -67,7 +77,8 @@ module.exports = {
         }
 
         if (options.compareSymlink && entry2.isSymlink) {
-            statistics.symlinks.rightSymlinks++
+            const symlinkStatistics = statistics.symlinks as SymlinkStatistics
+            symlinkStatistics.rightSymlinks++
         }
 
         if (permissionDeniedState === "access-error-right") {

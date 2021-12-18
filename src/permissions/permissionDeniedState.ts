@@ -12,7 +12,7 @@ export function getPermissionDeniedState(entry1: Entry, entry2: Entry): Permissi
     }
 }
 
-export function getPrmissionDenieStateWhenLeftMissing(entry2: Entry): PermissionDeniedState {
+export function getPermissionDeniedStateWhenLeftMissing(entry2: Entry): PermissionDeniedState {
     let permissionDeniedState: PermissionDeniedState = "access-ok"
     if (entry2.isPermissionDenied) {
         permissionDeniedState = "access-error-right"
@@ -20,7 +20,7 @@ export function getPrmissionDenieStateWhenLeftMissing(entry2: Entry): Permission
     return permissionDeniedState
 }
 
-export function getPrmissionDenieStateWhenRightMissing(entry1: Entry): PermissionDeniedState {
+export function getPermissionDeniedStateWhenRightMissing(entry1: Entry): PermissionDeniedState {
     let permissionDeniedState: PermissionDeniedState = "access-ok"
     if (entry1.isPermissionDenied) {
         permissionDeniedState = "access-error-left"

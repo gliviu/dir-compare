@@ -1,8 +1,13 @@
 import fs, { NoParamCallback } from 'fs'
-import Queue from './Queue'
+import { Queue } from './Queue'
 
-type OpenFileFlags = string | undefined
+type OpenFileFlags = string
 type OpenFileCallback = (err: NodeJS.ErrnoException | null, fd: number) => void
+type Job = {
+	path: string
+	flags: OpenFileFlags
+	callback: OpenFileCallback
+}
 
 /**
  * Limits the number of concurrent file handlers.
@@ -19,7 +24,7 @@ type OpenFileCallback = (err: NodeJS.ErrnoException | null, fd: number) => void
  */
 export class FileDescriptorQueue {
 	private activeCount = 0
-	private pendingJobs = new Queue()
+	private pendingJobs = new Queue<Job>()
 	constructor(private maxFilesNo: number) { }
 
 	open(path: string, flags: OpenFileFlags, callback: OpenFileCallback): void {
@@ -33,7 +38,7 @@ export class FileDescriptorQueue {
 
 	process(): void {
 		if (this.pendingJobs.getLength() > 0 && this.activeCount < this.maxFilesNo) {
-			const job = this.pendingJobs.dequeue()
+			const job = this.pendingJobs.dequeue() as Job
 			this.activeCount++
 			fs.open(job.path, job.flags, job.callback)
 		}

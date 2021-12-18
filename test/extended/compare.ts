@@ -1,4 +1,5 @@
-import { compareSync, compare, Options, fileCompareHandlers, Result } from "../../src"
+import { compare, Options, Result } from "../../src"
+import { deepCompare } from "./deepCompare"
 
 interface Test {
     testId: string,
@@ -88,10 +89,9 @@ async function runSingleTest(test: Test, compareFn: CompareFn) {
     const t1 = Date.now()
     const compareResult = await compareFn(test.left, test.right, test.options)
     const t2 = Date.now()
-    const compareResultStr = JSON.stringify(compareResult)
     const duration = (t2 - t1) / 1000
-    const ok = compareResultStr === test.expected
-    const testResult = ok ? `ok ${duration} s` : 'fail - ' + compareResultStr
+    const ok = deepCompare(compareResult, JSON.parse(test.expected))
+    const testResult = ok ? `ok ${duration} s` : 'fail - ' + JSON.stringify(compareResult)
     console.log(`${test.testId} ${test.description}: ${testResult}`)
     if (!ok) {
         process.exit(1)

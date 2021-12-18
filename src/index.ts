@@ -9,8 +9,9 @@ import defaultNameCompare from './nameCompare/defaultNameCompare'
 import entryBuilder from './entry/entryBuilder'
 import statsLifecycle from './statistics/statisticsLifecycle'
 import loopDetector from './symlink/loopDetector'
-import { Options, Result } from './types'
+import { Options, Result, Statistics, DiffSet } from './types'
 import { FileCompareHandlers } from './FileCompareHandlers'
+import { ExtOptions } from './types/ExtOptions'
 
 const ROOT_PATH = pathUtils.sep
 
@@ -28,26 +29,27 @@ export function compareSync(path1: string, path2: string, options?: Options): Re
     const absolutePath1 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path1)))
     const absolutePath2 = pathUtils.normalize(pathUtils.resolve(fs.realpathSync(path2)))
     let diffSet
-    options = prepareOptions(options)
-    if (!options.noDiffSet) {
+    const extOptions = prepareOptions(options)
+    if (!extOptions.noDiffSet) {
         diffSet = []
     }
-    const statistics = statsLifecycle.initStats(options)
+    const initialStatistics = statsLifecycle.initStats(extOptions)
     compareSyncInternal(
-        entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), options),
-        entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), options),
-        0, ROOT_PATH, options, statistics, diffSet, loopDetector.initSymlinkCache())
-    statsLifecycle.completeStatistics(statistics, options)
-    statistics.diffSet = diffSet
+        entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), extOptions),
+        entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), extOptions),
+        0, ROOT_PATH, extOptions, initialStatistics, diffSet, loopDetector.initSymlinkCache())
 
-    return statistics as unknown as Result
+    const result: Result = statsLifecycle.completeStatistics(initialStatistics, extOptions)
+    result.diffSet = diffSet
+
+    return result
 }
 
 /**
  * Asynchronously compares given paths.
  * @param path1 Left file or directory to be compared.
  * @param path2 Right file or directory to be compared.
- * @param options Comparison options.
+ * @param extOptions Comparison options.
  */
 export function compare(path1: string, path2: string, options?: Options): Promise<Result> {
     let absolutePath1, absolutePath2
@@ -61,24 +63,24 @@ export function compare(path1: string, path2: string, options?: Options): Promis
             absolutePath2 = pathUtils.normalize(pathUtils.resolve(realPath2))
         })
         .then(() => {
-            options = prepareOptions(options)
+            const extOptions = prepareOptions(options)
             let asyncDiffSet
-            if (!options.noDiffSet) {
+            if (!extOptions.noDiffSet) {
                 asyncDiffSet = []
             }
-            const statistics = statsLifecycle.initStats(options)
+            const initialStatistics = statsLifecycle.initStats(extOptions)
             return compareAsyncInternal(
-                entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1), options),
-                entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(path2), options),
-                0, ROOT_PATH, options, statistics, asyncDiffSet, loopDetector.initSymlinkCache())
+                entryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1), extOptions),
+                entryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(path2), extOptions),
+                0, ROOT_PATH, extOptions, initialStatistics, asyncDiffSet, loopDetector.initSymlinkCache())
                 .then(() => {
-                    statsLifecycle.completeStatistics(statistics, options)
-                    if (!options?.noDiffSet) {
+                    const result: Result = statsLifecycle.completeStatistics(initialStatistics, extOptions)
+                    if (!extOptions?.noDiffSet) {
                         const diffSet = []
-                        rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet)
-                        statistics.diffSet = diffSet
+                        rebuildAsyncDiffSet(result, asyncDiffSet, diffSet)
+                        result.diffSet = diffSet
                     }
-                    return statistics
+                    return result
                 })
         })
 }
@@ -108,7 +110,7 @@ const wrapper = {
     }
 }
 
-function prepareOptions(options?: Options): Options {
+function prepareOptions(options?: Options): ExtOptions {
     options = options || {}
     const clone = JSON.parse(JSON.stringify(options))
     clone.resultBuilder = options.resultBuilder
@@ -138,7 +140,7 @@ function prepareOptions(options?: Options): Options {
 
 // Async diffsets are kept into recursive structures.
 // This method transforms them into one dimensional arrays.
-function rebuildAsyncDiffSet(statistics, asyncDiffSet, diffSet) {
+function rebuildAsyncDiffSet(statistics: Statistics, asyncDiffSet, diffSet: DiffSet) {
     asyncDiffSet.forEach(rawDiff => {
         if (!Array.isArray(rawDiff)) {
             diffSet.push(rawDiff)

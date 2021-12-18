@@ -1,9 +1,11 @@
+import { DifferenceType } from ".."
+import { OptionalEntry } from "../types/OptionalEntry"
 
-module.exports = {
+export = {
 	/**
 	 * One of 'missing','file','directory','broken-link'
 	 */
-	getType (entry) {
+	getType (entry: OptionalEntry): DifferenceType {
 		if (!entry) {
 			return 'missing'
 		}

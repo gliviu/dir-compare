@@ -1,16 +1,18 @@
-const fs = require('fs')
-const minimatch = require('minimatch')
-const pathUtils = require('path')
-const entryComparator = require('./entryComparator')
+import fs, { Stats } from 'fs'
+import minimatch from 'minimatch'
+import pathUtils from 'path'
+import { Entry } from '..'
+import { ExtOptions } from '../types/ExtOptions'
+import entryComparator from './entryComparator'
 
 const PATH_SEP = pathUtils.sep
 
-module.exports = {
+export = {
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
-	buildDirEntries(rootEntry, dirEntries, relativePath, options) {
-		const res = []
+	buildDirEntries(rootEntry: Entry, dirEntries: string[], relativePath: string, options: ExtOptions): Entry[] {
+		const res: Entry[] = []
 		for (let i = 0; i < dirEntries.length; i++) {
 			const entryName = dirEntries[i]
 			const entryAbsolutePath = rootEntry.absolutePath + PATH_SEP + entryName
@@ -28,7 +30,7 @@ module.exports = {
 		return res.sort((a, b) => entryComparator.compareEntry(a, b, options))
 	},
 
-	buildEntry(absolutePath, path, name, options) {
+	buildEntry(absolutePath: string, path: string, name: string, options: ExtOptions): Entry {
 		const stats = getStatIgnoreBrokenLink(absolutePath)
 		const isDirectory = stats.stat.isDirectory()
 
@@ -53,7 +55,7 @@ module.exports = {
 
 }
 
-function hasPermissionDenied(absolutePath, isFile, options) {
+function hasPermissionDenied(absolutePath: string, isFile: boolean, options: ExtOptions): boolean {
 	if (isFile && !options.compareContent) {
 		return false
 	}
@@ -65,7 +67,13 @@ function hasPermissionDenied(absolutePath, isFile, options) {
 	}
 }
 
-function getStatIgnoreBrokenLink(absolutePath) {
+type CombinedStats = {
+	stat: Stats
+	lstat: Stats
+	isBrokenLink: boolean
+}
+
+function getStatIgnoreBrokenLink(absolutePath: string): CombinedStats {
 	const lstat = fs.lstatSync(absolutePath)
 	try {
 		return {
@@ -88,7 +96,7 @@ function getStatIgnoreBrokenLink(absolutePath) {
 /**
  * Filter entries by file name. Returns true if the file is to be processed.
  */
-function filterEntry(entry, relativePath, options) {
+function filterEntry(entry: Entry, relativePath: string, options: ExtOptions): boolean {
 	if (entry.isSymlink && options.skipSymlinks) {
 		return false
 	}
@@ -110,14 +118,14 @@ function filterEntry(entry, relativePath, options) {
 	return true
 }
 
-function isEmptyDir(path) {
+function isEmptyDir(path: string): boolean {
 	return fs.readdirSync(path).length === 0
 }
 
 /**
  * Matches path by pattern.
  */
-function match(path, pattern) {
+function match(path: string, pattern: string): boolean {
 	const patternArray = pattern.split(',')
 	for (let i = 0; i < patternArray.length; i++) {
 		const pat = patternArray[i]

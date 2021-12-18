@@ -1,10 +1,15 @@
-const fs = require('fs')
+import fs from 'fs'
+import { SymlinkCache } from './types/SymlinkCache'
+import { RootDirSymlinkCache } from "./types/RootDirSymlinkCache"
+import { OptionalEntry } from '../types/OptionalEntry'
+
+
 
 /**
  * Provides symlink loop detection to directory traversal algorithm.
  */
-module.exports = {
-	detectLoop(entry, symlinkCache) {
+export = {
+	detectLoop(entry: OptionalEntry, symlinkCache: RootDirSymlinkCache): boolean {
 		if (entry && entry.isSymlink) {
 			const realPath = fs.realpathSync(entry.absolutePath)
 			if (symlinkCache[realPath]) {
@@ -14,14 +19,16 @@ module.exports = {
 		return false
 	},
 
-	initSymlinkCache() {
+	initSymlinkCache(): SymlinkCache {
 		return {
 			dir1: {},
 			dir2: {}
 		}
 	},
 
-	updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2) {
+	updateSymlinkCache(symlinkCache: SymlinkCache, rootEntry1: OptionalEntry, rootEntry2: OptionalEntry,
+		loopDetected1: boolean, loopDetected2: boolean): void {
+
 		let symlinkCachePath1, symlinkCachePath2
 		if (rootEntry1 && !loopDetected1) {
 			symlinkCachePath1 = rootEntry1.isSymlink ? fs.realpathSync(rootEntry1.absolutePath) : rootEntry1.absolutePath
@@ -33,7 +40,7 @@ module.exports = {
 		}
 	},
 
-	cloneSymlinkCache(symlinkCache) {
+	cloneSymlinkCache(symlinkCache: SymlinkCache): SymlinkCache {
 		return {
 			dir1: shallowClone(symlinkCache.dir1),
 			dir2: shallowClone(symlinkCache.dir2)
@@ -41,7 +48,7 @@ module.exports = {
 	},
 }
 
-function shallowClone(obj) {
+function shallowClone(obj: RootDirSymlinkCache): RootDirSymlinkCache {
 	const cloned = {}
 	Object.keys(obj).forEach(key => {
 		cloned[key] = obj[key]

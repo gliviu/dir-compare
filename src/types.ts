@@ -145,6 +145,8 @@ export interface Options {
     compareNameHandler?: CompareNameHandler
 }
 
+export type DiffSet = Array<Difference>
+
 /**
  * Callback for constructing result. Called for each compared entry pair.
  * 
@@ -169,9 +171,10 @@ export type ResultBuilder =
         level: number,
         relativePath: string,
         options: Options,
-        statistics: Statistics,
-        diffSet: Array<Difference> | undefined,
-        reason: Reason | undefined
+        statistics: InitialStatistics,
+        diffSet: DiffSet | undefined,
+        reason: Reason | undefined,
+        permissionDeniedState: PermissionDeniedState
     ) => void
 
 export interface Entry {
@@ -180,7 +183,9 @@ export interface Entry {
     path: string
     stat: fs.Stats
     lstat: fs.Stats
-    symlink: boolean
+    isDirectory: boolean
+    isSymlink: boolean
+    isBrokenLink: boolean
     /**
      * True when this entry is not readable.
      * This value is set only when [[Options.handlePermissionDenied]] is enabled.
@@ -195,20 +200,18 @@ export interface Result extends Statistics {
     /**
      * List of changes (present if [[Options.noDiffSet]] is false).
      */
-    diffSet?: Array<Difference>
+    diffSet?: DiffSet
 }
 
-export interface Statistics {
+/**
+ * @internal
+ */
+export interface InitialStatistics {
     /**
      * Any property is allowed if default result builder is not used.
      */
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     [key: string]: any
-
-    /**
-     * True if directories are identical.
-     */
-    same: boolean
 
     /**
      * Number of distinct entries.
@@ -231,16 +234,6 @@ export interface Statistics {
     right: number
 
     /**
-     * Total number of differences (distinct+left+right).
-     */
-    differences: number
-
-    /**
-     * Total number of entries (differences+equal).
-     */
-    total: number
-
-    /**
      * Number of distinct files.
      */
     distinctFiles: number
@@ -259,16 +252,6 @@ export interface Statistics {
      * Number of files only in path2
      */
     rightFiles: number
-
-    /**
-     * Total number of different files (distinctFiles+leftFiles+rightFiles).
-     */
-    differencesFiles: number
-
-    /**
-     * Total number of files (differencesFiles+equalFiles).
-     */
-    totalFiles: number
 
     /**
      * Number of distinct directories.
@@ -291,16 +274,6 @@ export interface Statistics {
     rightDirs: number
 
     /**
-     * Total number of different directories (distinctDirs+leftDirs+rightDirs).
-     */
-    differencesDirs: number
-
-    /**
-     * Total number of directories (differencesDirs+equalDirs).
-     */
-    totalDirs: number
-
-    /**
      * Stats about broken links.
      */
     brokenLinks: BrokenLinksStatistics
@@ -314,6 +287,45 @@ export interface Statistics {
      * Stats about entries that could not be accessed.
      */
     permissionDenied: PermissionDeniedStatistics
+}
+
+export interface Statistics extends InitialStatistics {
+
+    /**
+     * True if directories are identical.
+     */
+    same: boolean
+
+    /**
+     * Total number of differences (distinct+left+right).
+     */
+    differences: number
+
+    /**
+     * Total number of entries (differences+equal).
+     */
+    total: number
+
+    /**
+     * Total number of different files (distinctFiles+leftFiles+rightFiles).
+     */
+    differencesFiles: number
+
+    /**
+     * Total number of files (differencesFiles+equalFiles).
+     */
+    totalFiles: number
+
+    /**
+     * Total number of different directories (distinctDirs+leftDirs+rightDirs).
+     */
+    differencesDirs: number
+
+    /**
+     * Total number of directories (differencesDirs+equalDirs).
+     */
+    totalDirs: number
+
 }
 
 export interface BrokenLinksStatistics {
@@ -506,13 +518,13 @@ export interface Difference {
      * Left entry modification date (stat.mtime).
      * Is undefined if missing on the left side.
      */
-    date1?: number
+    date1?: Date
 
     /**
      * Right entry modification date (stat.mtime).
      * Is undefined if missing on the right side.
      */
-    date2?: number
+    date2?: Date
 
     /**
      * Depth level relative to root dir.

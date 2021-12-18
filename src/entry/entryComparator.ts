@@ -1,8 +1,11 @@
+import { Entry} from ".."
+import { ExtOptions } from "../types/ExtOptions"
+
 /**
  * Determines order criteria for sorting entries in a directory.
  */
-module.exports = {
-	compareEntry (a, b, options) {
+export = {
+	compareEntry (a: Entry, b: Entry, options: ExtOptions): number {
 		if (a.isBrokenLink && b.isBrokenLink) {
 			return options.compareNameHandler(a.name, b.name, options)
 		} else if (a.isBrokenLink) {

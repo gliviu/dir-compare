@@ -78,7 +78,7 @@ async function runSingleTest(test: Test, compareFn: CompareFn) {
     const expectedFilePath = join(__dirname, 'res', '37-perms-expected', `${test.testId}.txt`)
     const expected = readFileSync(expectedFilePath).toString()
     const ok = compareResultStr === expected
-    const testResult = ok ? `OK` : 'FAIL'
+    const testResult = ok ? `OK` : 'FAIL ' + compareResultStr
     console.log(`${test.testId} ${test.description}: ${testResult}`)
     if (test.testId === '001') {
         // console.log(compareResultStr)

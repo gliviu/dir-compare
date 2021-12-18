@@ -1,7 +1,12 @@
-const pathUtils = require('path')
-const entryType = require('../entry/entryType')
+import pathUtils from 'path'
+import { DifferenceState, DiffSet, Entry, PermissionDeniedState, Reason, Statistics } from '..'
+import entryType from '../entry/entryType'
+import { ExtOptions } from '../types/ExtOptions'
 
-module.exports = function (entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason, permissionDeniedState) {
+export = function (entry1: Entry, entry2: Entry, state: DifferenceState, level: number,
+    relativePath: string, options: ExtOptions, statistics: Statistics, diffSet: DiffSet, reason: Reason, 
+    permissionDeniedState: PermissionDeniedState): void {
+
     if (options.noDiffSet) {
         return
     }

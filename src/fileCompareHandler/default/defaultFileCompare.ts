@@ -65,8 +65,8 @@ export const defaultFileCompare: CompareFileHandler = {
                 const buf1 = bufferPair.buf1
                 const buf2 = bufferPair.buf2
                 const compareAsyncInternal = () => Promise.all([
-                    fsPromise.read(fd1, buf1, 0, BUF_SIZE, null),
-                    fsPromise.read(fd2, buf2, 0, BUF_SIZE, null)
+                    fsPromise.read(fd1 as number, buf1, 0, BUF_SIZE, null),
+                    fsPromise.read(fd2 as number, buf2, 0, BUF_SIZE, null)
                 ])
                     .then((bufferSizes) => {
                         const size1 = bufferSizes[0]
