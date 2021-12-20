@@ -1,14 +1,28 @@
 import fs from 'fs'
-import { SymlinkCache } from './types/SymlinkCache'
-import { RootDirSymlinkCache } from "./types/RootDirSymlinkCache"
-import { OptionalEntry } from '../types/OptionalEntry'
+import { OptionalEntry } from '../entry/entryType';
 
+export type SymlinkCache = {
+	dir1: RootDirSymlinkCache
+	dir2: RootDirSymlinkCache
+}
+
+/**
+ * Symlink cache for one of the left or right root directories.
+ */
+type RootDirSymlinkCache = {
+	/**
+	 * True if this symlink has already been traversed.
+	 */
+	[key: SymlinkPath]: boolean
+}
+
+type SymlinkPath = string;
 
 
 /**
  * Provides symlink loop detection to directory traversal algorithm.
  */
-export = {
+export const LoopDetector = {
 	detectLoop(entry: OptionalEntry, symlinkCache: RootDirSymlinkCache): boolean {
 		if (entry && entry.isSymlink) {
 			const realPath = fs.realpathSync(entry.absolutePath)

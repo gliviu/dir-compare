@@ -2,12 +2,12 @@ import fs, { Stats } from 'fs'
 import minimatch from 'minimatch'
 import pathUtils from 'path'
 import { Entry } from '..'
-import { ExtOptions } from '../types/ExtOptions'
-import entryComparator from './entryComparator'
+import { ExtOptions } from '../ExtOptions'
+import { EntryComparator } from './entryComparator'
 
 const PATH_SEP = pathUtils.sep
 
-export = {
+export const EntryBuilder = {
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
@@ -27,7 +27,7 @@ export = {
 				res.push(entry)
 			}
 		}
-		return res.sort((a, b) => entryComparator.compareEntry(a, b, options))
+		return res.sort((a, b) => EntryComparator.compareEntry(a, b, options))
 	},
 
 	buildEntry(absolutePath: string, path: string, name: string, options: ExtOptions): Entry {

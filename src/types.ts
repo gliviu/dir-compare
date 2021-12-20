@@ -204,7 +204,7 @@ export interface Result extends Statistics {
 }
 
 /**
- * @internal
+ * Basic statistics information. Does not have any computed fields.
  */
 export interface InitialStatistics {
     /**
@@ -289,6 +289,10 @@ export interface InitialStatistics {
     permissionDenied: PermissionDeniedStatistics
 }
 
+/**
+ * In addition to fields inherited from {@link InitialStatistics} this class
+ * adds fields computed at the final stage of the comparison.
+ */
 export interface Statistics extends InitialStatistics {
 
     /**

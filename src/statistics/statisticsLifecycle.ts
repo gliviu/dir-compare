@@ -1,10 +1,10 @@
 import { BrokenLinksStatistics, InitialStatistics, PermissionDeniedStatistics, Statistics, SymlinkStatistics } from ".."
-import { ExtOptions } from "../types/ExtOptions"
+import { ExtOptions } from "../ExtOptions"
 
 /**
  * Controls creation/completion of global statistics object.
  */
-export = {
+export const StatisticsLifecycle = {
     initStats(options: ExtOptions): InitialStatistics {
         let symlinkStatistics: SymlinkStatistics | undefined = undefined
         if (options.compareSymlink) {

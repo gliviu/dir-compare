@@ -1,6 +1,4 @@
 import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
-import closeFiles from '../../fs/closeFile'
-import fsPromise from '../../fs/fsPromise'
 import fs from 'fs'
 import { Options } from '../../index'
 import { LineBatch } from './lineReader/LineBatch'
@@ -9,6 +7,8 @@ import { BufferPool } from '../../fs/BufferPool'
 import { compareLineBatches } from './compare/compareLineBatches'
 import { readBufferedLines } from './lineReader/readBufferedLines'
 import { CompareFileAsync } from '../../types'
+import { CloseFile } from '../../fs/closeFile'
+import { FsPromise } from '../../fs/fsPromise'
 
 const BUF_SIZE = 100000
 const MAX_CONCURRENT_FILE_COMPARE = 8
@@ -44,7 +44,7 @@ export const lineBasedCompareAsync: CompareFileAsync = async (path1: string, sta
     } finally {
         if (context) {
             bufferPool.freeBuffers(context.buffer)
-            await closeFiles.closeFilesAsync(context.fd1, context.fd2, fdQueue)
+            await CloseFile.closeFilesAsync(context.fd1, context.fd2, fdQueue)
         }
     }
 }
@@ -61,7 +61,7 @@ export const lineBasedCompareAsync: CompareFileAsync = async (path1: string, sta
  *             Will be added to result.
  */
 async function readLineBatchAsync(fd: number, buf: Buffer, bufferSize: number, rest: string, restLines: string[]): Promise<LineBatch> {
-    const size = await fsPromise.read(fd, buf, 0, bufferSize, null)
+    const size = await FsPromise.read(fd, buf, 0, bufferSize, null)
     return readBufferedLines(buf, size, bufferSize, rest, restLines)
 }
 

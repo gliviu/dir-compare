@@ -1,7 +1,8 @@
-import { DifferenceType } from ".."
-import { OptionalEntry } from "../types/OptionalEntry"
+import { DifferenceType, Entry } from ".."
 
-export = {
+export type OptionalEntry = Entry | undefined;
+
+export const EntryType = {
 	/**
 	 * One of 'missing','file','directory','broken-link'
 	 */

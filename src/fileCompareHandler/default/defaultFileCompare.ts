@@ -1,11 +1,11 @@
 import fs from 'fs'
 import bufferEqual from 'buffer-equal'
 import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
-import fsPromise from '../../fs/fsPromise'
 import { BufferPair, BufferPool } from '../../fs/BufferPool'
-import closeFile from '../../fs/closeFile'
 import { Options } from '../../index'
 import { CompareFileHandler } from '../../types'
+import { CloseFile } from '../../fs/closeFile'
+import { FsPromise } from '../../fs/fsPromise'
 
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 100000
@@ -41,7 +41,7 @@ export const defaultFileCompare: CompareFileHandler = {
                 }
             }
         } finally {
-            closeFile.closeFilesSync(fd1, fd2)
+            CloseFile.closeFilesSync(fd1, fd2)
             bufferPool.freeBuffers(bufferPair)
         }
     },
@@ -65,8 +65,8 @@ export const defaultFileCompare: CompareFileHandler = {
                 const buf1 = bufferPair.buf1
                 const buf2 = bufferPair.buf2
                 const compareAsyncInternal = () => Promise.all([
-                    fsPromise.read(fd1 as number, buf1, 0, BUF_SIZE, null),
-                    fsPromise.read(fd2 as number, buf2, 0, BUF_SIZE, null)
+                    FsPromise.read(fd1 as number, buf1, 0, BUF_SIZE, null),
+                    FsPromise.read(fd2 as number, buf2, 0, BUF_SIZE, null)
                 ])
                     .then((bufferSizes) => {
                         const size1 = bufferSizes[0]
@@ -102,6 +102,6 @@ function finalizeAsync(fd1?: number, fd2?: number, bufferPair?: BufferPair) {
     if (bufferPair) {
         bufferPool.freeBuffers(bufferPair)
     }
-    return closeFile.closeFilesAsync(fd1, fd2, fdQueue)
+    return CloseFile.closeFilesAsync(fd1, fd2, fdQueue)
 }
 

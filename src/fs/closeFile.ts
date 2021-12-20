@@ -23,7 +23,7 @@ async function closeFilesAsync(fd1: number | undefined, fd2: number | undefined,
 }
 
 
-export = {
+export const CloseFile = {
     closeFilesSync,
     closeFilesAsync
 }

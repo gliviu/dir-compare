@@ -1,4 +1,4 @@
-import { CompareFileAsync, CompareFileSync, CompareNameHandler, Options, ResultBuilder } from ".";
+import { CompareFileAsync, CompareFileSync, CompareNameHandler, Options, ResultBuilder } from "./types";
 
 
 /**

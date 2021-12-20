@@ -1,10 +1,10 @@
 import { DifferenceType, Entry, InitialStatistics, Options, PermissionDeniedState, Reason, SymlinkStatistics } from ".."
-import { ExtOptions } from "../types/ExtOptions"
+import { ExtOptions } from "../ExtOptions"
 
 /**
  * Calculates comparison statistics.
  */
-export = {
+export const StatisticsUpdate = {
     updateStatisticsBoth(entry1: Entry, entry2: Entry, same: boolean, reason: Reason, type: DifferenceType,
         permissionDeniedState: PermissionDeniedState, statistics: InitialStatistics, options: ExtOptions): void {
 
