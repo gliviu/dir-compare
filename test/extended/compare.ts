@@ -1,4 +1,4 @@
-import { compare, Options, Result } from "../../src"
+import { compare, compareSync, fileCompareHandlers, Options, Result } from "../../src"
 import { deepCompare } from "./deepCompare"
 
 interface Test {
@@ -28,12 +28,12 @@ const tests: Test[] = [
         expected: '{"distinct":8543,"equal":46693,"left":792,"right":1755,"distinctFiles":8543,"equalFiles":43167,"leftFiles":750,"rightFiles":1639,"distinctDirs":0,"equalDirs":3526,"leftDirs":42,"rightDirs":116,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"permissionDenied":{"leftPermissionDenied":0,"rightPermissionDenied":0,"distinctPermissionDenied":0,"totalPermissionDenied":0},"same":false,"differences":11090,"differencesFiles":10932,"differencesDirs":158,"total":57783,"totalFiles":54099,"totalDirs":3684}'
     },
     {
-        testId: '002_2',
-        description: 'compare by file content',
+        testId: '002_3',
+        description: 'compare big files by content',
         left: '/tmp/dircompare',
         right: '/tmp/dircompare',
         options: { noDiffSet: true, compareContent: true },
-        expected: '{"distinct":0,"equal":2,"left":0,"right":0,"distinctFiles":0,"equalFiles":2,"leftFiles":0,"rightFiles":0,"distinctDirs":0,"equalDirs":0,"leftDirs":0,"rightDirs":0,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"permissionDenied":{"leftPermissionDenied":0,"rightPermissionDenied":0,"distinctPermissionDenied":0,"totalPermissionDenied":0},"same":true,"differences":0,"differencesFiles":0,"differencesDirs":0,"total":2,"totalFiles":2,"totalDirs":0}'
+        expected: '{"distinct":0,"equal":3,"left":0,"right":0,"distinctFiles":0,"equalFiles":3,"leftFiles":0,"rightFiles":0,"distinctDirs":0,"equalDirs":0,"leftDirs":0,"rightDirs":0,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"permissionDenied":{"leftPermissionDenied":0,"rightPermissionDenied":0,"distinctPermissionDenied":0,"totalPermissionDenied":0},"differences":0,"differencesFiles":0,"differencesDirs":0,"total":3,"totalFiles":3,"totalDirs":0,"same":true}'
     },
     {
         testId: '003',
@@ -79,8 +79,15 @@ const tests: Test[] = [
         right: '/tmp/linux-4.4',
         options: { noDiffSet: true, excludeFilter: '**/crypto/internal', compareContent: true },
         expected: '{"distinct":8542,"equal":46685,"left":792,"right":1755,"distinctFiles":8542,"equalFiles":43160,"leftFiles":750,"rightFiles":1639,"distinctDirs":0,"equalDirs":3525,"leftDirs":42,"rightDirs":116,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"permissionDenied":{"leftPermissionDenied":0,"rightPermissionDenied":0,"distinctPermissionDenied":0,"totalPermissionDenied":0},"same":false,"differences":11089,"differencesFiles":10931,"differencesDirs":158,"total":57774,"totalFiles":54091,"totalDirs":3683}'
-    }
-
+    },
+    {
+        testId: '008',
+        description: 'compare files',
+        left: '/tmp/dircompare/linux-4.3.tar.gz',
+        right: '/tmp/dircompare/linux-4.3.tar.gz',
+        options: { noDiffSet: true, compareContent: true },
+        expected: '{"distinct":0,"equal":1,"left":0,"right":0,"distinctFiles":0,"equalFiles":1,"leftFiles":0,"rightFiles":0,"distinctDirs":0,"equalDirs":0,"leftDirs":0,"rightDirs":0,"brokenLinks":{"leftBrokenLinks":0,"rightBrokenLinks":0,"distinctBrokenLinks":0,"totalBrokenLinks":0},"permissionDenied":{"leftPermissionDenied":0,"rightPermissionDenied":0,"distinctPermissionDenied":0,"totalPermissionDenied":0},"differences":0,"differencesFiles":0,"differencesDirs":0,"total":1,"totalFiles":1,"totalDirs":0,"same":true}'
+    },
 ]
 
 type CompareFn = (left: string, right: string, options: Options) => Promise<Result> | Result
