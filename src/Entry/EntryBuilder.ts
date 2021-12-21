@@ -3,7 +3,7 @@ import minimatch from 'minimatch'
 import pathUtils from 'path'
 import { Entry } from '..'
 import { ExtOptions } from '../ExtOptions'
-import { EntryComparator } from './entryComparator'
+import { EntryComparator } from './EntryComparator'
 
 const PATH_SEP = pathUtils.sep
 

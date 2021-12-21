@@ -1,14 +1,20 @@
 import pathUtils from 'path'
 import { ExtOptions } from './ExtOptions'
-import { DiffSet, Entry, InitialStatistics } from '.'
-import { EntryEquality, FileEqualityAsync } from './entry/entryEquality'
-import { FsPromise } from './fs/fsPromise'
-import { EntryBuilder } from './entry/entryBuilder'
-import { LoopDetector, SymlinkCache } from './symlink/loopDetector'
-import { EntryComparator } from './entry/entryComparator'
-import { EntryType, OptionalEntry } from './entry/entryType'
-import { Permission } from './permissions/permissionDeniedState'
-import { StatisticsUpdate } from './statistics/statisticsUpdate'
+import { Difference, DiffSet, Entry, InitialStatistics } from '.'
+import { EntryEquality, FileEqualityAsync } from './Entry/EntryEquality'
+import { FsPromise } from './FileSystem/FsPromise'
+import { EntryBuilder } from './Entry/EntryBuilder'
+import { LoopDetector, SymlinkCache } from './Symlink/LoopDetector'
+import { EntryComparator } from './Entry/EntryComparator'
+import { EntryType, OptionalEntry } from './Entry/EntryType'
+import { Permission } from './Permission/Permission'
+import { StatisticsUpdate } from './Statistics/StatisticsUpdate'
+
+/**
+ * List of differences occurred during comparison.
+ * Async DiffSets are kept into recursive structures.
+ */
+export type AsyncDiffSet = Array<Difference | AsyncDiffSet>
 
 /**
  * Returns the sorted list of entries in a directory.
@@ -33,7 +39,7 @@ function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected
  * Compares two directories asynchronously.
  */
 export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntry, level: number, relativePath: string,
-    options: ExtOptions, statistics: InitialStatistics, diffSet: DiffSet, symlinkCache: SymlinkCache): Promise<void> {
+    options: ExtOptions, statistics: InitialStatistics, asyncDiffSet: AsyncDiffSet, symlinkCache: SymlinkCache): Promise<void> {
 
     const loopDetected1 = LoopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
     const loopDetected2 = LoopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
@@ -46,7 +52,6 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
             let i1 = 0, i2 = 0
             const comparePromises: Promise<void>[] = []
             const fileEqualityAsyncPromises: Promise<FileEqualityAsync>[] = []
-            let subDiffSet
 
             while (i1 < entries1.length || i2 < entries2.length) {
                 const entry1 = entries1[i1]
@@ -75,11 +80,11 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                     const permissionDeniedState = Permission.getPermissionDeniedState(entry1, entry2)
 
                     if (permissionDeniedState === "access-ok") {
-                        const compareEntryRes = EntryEquality.isEntryEqualAsync(entry1, entry2, type1, diffSet, options)
+                        const compareEntryRes = EntryEquality.isEntryEqualAsync(entry1, entry2, type1, asyncDiffSet, options)
                         if (compareEntryRes.isSync) {
                             options.resultBuilder(entry1, entry2,
                                 compareEntryRes.same ? 'equal' : 'distinct',
-                                level, relativePath, options, statistics, diffSet,
+                                level, relativePath, options, statistics, asyncDiffSet as DiffSet,
                                 compareEntryRes.reason, permissionDeniedState)
                             StatisticsUpdate.updateStatisticsBoth(entry1, entry2, compareEntryRes.same, compareEntryRes.reason,
                                 type1, permissionDeniedState, statistics, options)
@@ -90,16 +95,16 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                         const state = 'distinct'
                         const reason = "permission-denied"
                         const same = false
-                        options.resultBuilder(entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason, permissionDeniedState)
+                        options.resultBuilder(entry1, entry2, state, level, relativePath, options, statistics, asyncDiffSet as DiffSet, reason, permissionDeniedState)
                         StatisticsUpdate.updateStatisticsBoth(entry1, entry2, same, reason, type1, permissionDeniedState, statistics, options)
                     }
 
                     i1++
                     i2++
                     if (!options.skipSubdirs && type1 === 'directory') {
+                        const subDiffSet: AsyncDiffSet = []
                         if (!options.noDiffSet) {
-                            subDiffSet = []
-                            diffSet.push(subDiffSet)
+                            asyncDiffSet.push(subDiffSet)
                         }
                         comparePromises.push(compareAsync(entry1, entry2, level + 1,
                             pathUtils.join(relativePath, entry1.name),
@@ -108,13 +113,13 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                 } else if (cmp < 0) {
                     // Right missing
                     const permissionDeniedState = Permission.getPermissionDeniedStateWhenRightMissing(entry1)
-                    options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
+                    options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, asyncDiffSet as DiffSet, undefined, permissionDeniedState)
                     StatisticsUpdate.updateStatisticsLeft(entry1, type1, permissionDeniedState, statistics, options)
                     i1++
                     if (type1 === 'directory' && !options.skipSubdirs) {
+                        const subDiffSet: AsyncDiffSet = []
                         if (!options.noDiffSet) {
-                            subDiffSet = []
-                            diffSet.push(subDiffSet)
+                            asyncDiffSet.push(subDiffSet)
                         }
                         comparePromises.push(compareAsync(entry1, undefined,
                             level + 1,
@@ -123,13 +128,13 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                 } else {
                     // Left missing
                     const permissionDeniedState = Permission.getPermissionDeniedStateWhenLeftMissing(entry2)
-                    options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
+                    options.resultBuilder(undefined, entry2, 'right', level, relativePath, options, statistics, asyncDiffSet as DiffSet, undefined, permissionDeniedState)
                     StatisticsUpdate.updateStatisticsRight(entry2, type2, permissionDeniedState, statistics, options)
                     i2++
                     if (type2 === 'directory' && !options.skipSubdirs) {
+                        const subDiffSet: AsyncDiffSet = []
                         if (!options.noDiffSet) {
-                            subDiffSet = []
-                            diffSet.push(subDiffSet)
+                            asyncDiffSet.push(subDiffSet)
                         }
                         comparePromises.push(compareAsync(undefined, entry2,
                             level + 1,
@@ -148,7 +153,7 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                             const permissionDeniedState = "access-ok"
                             options.resultBuilder(fileEqualityAsync.context.entry1, fileEqualityAsync.context.entry2,
                                 fileEqualityAsync.same ? 'equal' : 'distinct',
-                                level, relativePath, options, statistics, fileEqualityAsync.context.diffSet,
+                                level, relativePath, options, statistics, fileEqualityAsync.context.asyncDiffSet as DiffSet,
                                 fileEqualityAsync.reason, permissionDeniedState)
                             StatisticsUpdate.updateStatisticsBoth(fileEqualityAsync.context.entry1, fileEqualityAsync.context.entry2, fileEqualityAsync.same,
                                 fileEqualityAsync.reason, fileEqualityAsync.context.type1, permissionDeniedState, statistics, options)

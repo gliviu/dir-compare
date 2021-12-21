@@ -1,5 +1,5 @@
-import {lineBasedCompareSync} from './compareSync'
-import {lineBasedCompareAsync} from './compareAsync'
+import {lineBasedCompareSync} from './lineBasedCompareSync'
+import {lineBasedCompareAsync} from './lineBasedCompareAsync'
 import { CompareFileHandler } from '../../types'
 
 /**

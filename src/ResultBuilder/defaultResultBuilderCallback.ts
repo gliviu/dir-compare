@@ -1,6 +1,6 @@
 import pathUtils from 'path'
 import { DifferenceState, DiffSet, Entry, PermissionDeniedState, Reason, Statistics } from '..'
-import { EntryType } from '../entry/entryType'
+import { EntryType } from '../Entry/EntryType'
 import { ExtOptions } from '../ExtOptions'
 
 export function defaultResultBuilderCallback(entry1: Entry, entry2: Entry, state: DifferenceState, level: number,

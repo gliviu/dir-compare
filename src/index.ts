@@ -1,22 +1,20 @@
 import pathUtils from 'path'
 import fs from 'fs'
 import { compareSync as compareSyncInternal } from './compareSync'
-import { compareAsync as compareAsyncInternal } from './compareAsync'
-import { defaultFileCompare } from './fileCompareHandler/default/defaultFileCompare'
-import { lineBasedFileCompare } from './fileCompareHandler/lines/lineBasedFileCompare'
-import { defaultNameCompare } from './nameCompare/defaultNameCompare'
-import { Options, Result, Statistics, DiffSet } from './types'
-import { FileCompareHandlers } from './FileCompareHandlers'
+import { AsyncDiffSet, compareAsync as compareAsyncInternal } from './compareAsync'
+import { defaultFileCompare } from './FileCompareHandler/default/defaultFileCompare'
+import { lineBasedFileCompare } from './FileCompareHandler/lines/lineBasedFileCompare'
+import { defaultNameCompare } from './NameCompare/defaultNameCompare'
+import { Options, Result, Statistics, DiffSet, FileCompareHandlers } from './types'
 import { ExtOptions } from './ExtOptions'
-import { EntryBuilder } from './entry/entryBuilder'
-import { StatisticsLifecycle } from './statistics/statisticsLifecycle'
-import { LoopDetector } from './symlink/loopDetector'
-import { defaultResultBuilderCallback } from './resultBuilder/defaultResultBuilderCallback'
+import { EntryBuilder } from './Entry/EntryBuilder'
+import { StatisticsLifecycle } from './Statistics/StatisticsLifecycle'
+import { LoopDetector } from './Symlink/LoopDetector'
+import { defaultResultBuilderCallback } from './ResultBuilder/defaultResultBuilderCallback'
 
 const ROOT_PATH = pathUtils.sep
 
 export * from './types'
-export { FileCompareHandlers }
 
 /**
  * Synchronously compares given paths.
@@ -64,10 +62,7 @@ export function compare(path1: string, path2: string, options?: Options): Promis
         })
         .then(() => {
             const extOptions = prepareOptions(options)
-            let asyncDiffSet
-            if (!extOptions.noDiffSet) {
-                asyncDiffSet = []
-            }
+            const asyncDiffSet: AsyncDiffSet = []
             const initialStatistics = StatisticsLifecycle.initStats(extOptions)
             return compareAsyncInternal(
                 EntryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(path1), extOptions),
@@ -138,9 +133,9 @@ function prepareOptions(options?: Options): ExtOptions {
 }
 
 
-// Async diffsets are kept into recursive structures.
+// Async DiffSets are kept into recursive structures.
 // This method transforms them into one dimensional arrays.
-function rebuildAsyncDiffSet(statistics: Statistics, asyncDiffSet, diffSet: DiffSet) {
+function rebuildAsyncDiffSet(statistics: Statistics, asyncDiffSet: AsyncDiffSet, diffSet: DiffSet): void {
     asyncDiffSet.forEach(rawDiff => {
         if (!Array.isArray(rawDiff)) {
             diffSet.push(rawDiff)

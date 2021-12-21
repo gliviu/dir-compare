@@ -1,14 +1,14 @@
-import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
+import { FileDescriptorQueue } from '../../FileSystem/FileDescriptorQueue'
 import fs from 'fs'
 import { Options } from '../../index'
 import { LineBatch } from './lineReader/LineBatch'
 import { LineBasedCompareContext } from './LineBasedCompareContext'
-import { BufferPool } from '../../fs/BufferPool'
+import { BufferPool } from '../../FileSystem/BufferPool'
 import { compareLineBatches } from './compare/compareLineBatches'
 import { readBufferedLines } from './lineReader/readBufferedLines'
 import { CompareFileAsync } from '../../types'
-import { CloseFile } from '../../fs/closeFile'
-import { FsPromise } from '../../fs/fsPromise'
+import { FileCloser } from '../../FileSystem/FileCloser'
+import { FsPromise } from '../../FileSystem/FsPromise'
 
 const BUF_SIZE = 100000
 const MAX_CONCURRENT_FILE_COMPARE = 8
@@ -44,7 +44,7 @@ export const lineBasedCompareAsync: CompareFileAsync = async (path1: string, sta
     } finally {
         if (context) {
             bufferPool.freeBuffers(context.buffer)
-            await CloseFile.closeFilesAsync(context.fd1, context.fd2, fdQueue)
+            await FileCloser.closeFilesAsync(context.fd1, context.fd2, fdQueue)
         }
     }
 }

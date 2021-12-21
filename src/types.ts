@@ -145,6 +145,9 @@ export interface Options {
     compareNameHandler?: CompareNameHandler
 }
 
+/**
+ * List of differences occurred during comparison.
+ */
 export type DiffSet = Array<Difference>
 
 /**
@@ -198,7 +201,8 @@ export interface Entry {
  */
 export interface Result extends Statistics {
     /**
-     * List of changes (present if [[Options.noDiffSet]] is false).
+     * Detailed list of comparison results.
+     * Present if [[Options.noDiffSet]] is false.
      */
     diffSet?: DiffSet
 }
@@ -578,3 +582,22 @@ export type CompareNameHandler = (
     name2: string,
     options: Options
 ) => 0 | 1 | -1
+
+export interface FileCompareHandlers {
+    /**
+     * Default file content comparison handlers, used if [[Options.compareFileAsync]] or [[Options.compareFileSync]] are not specified.
+     *
+     * Performs binary comparison.
+     */
+    defaultFileCompare: CompareFileHandler;
+    /**
+     * Compares files line by line.
+     *
+     * Options:
+     * * ignoreLineEnding - true/false (default: false) - Ignore cr/lf line endings
+     * * ignoreWhiteSpaces - true/false (default: false) - Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
+     * * ignoreAllWhiteSpaces - true/false (default: false) - Ignore all white space differences (similar to 'diff -w')
+     * * ignoreEmptyLines - true/false (default: false) - Ignores differences caused by empty lines (similar to 'diff -B')
+     */
+    lineBasedFileCompare: CompareFileHandler;
+}

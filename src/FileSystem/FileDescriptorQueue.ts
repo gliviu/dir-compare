@@ -20,7 +20,6 @@ type Job = {
  *      ...
  *    })
  *  })
- *  As of node v7, calling fd.close without a callback is deprecated.
  */
 export class FileDescriptorQueue {
 	private activeCount = 0

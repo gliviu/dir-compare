@@ -3,10 +3,10 @@ import { Options } from '../../index'
 import { LineBasedCompareContext } from './LineBasedCompareContext'
 import { compareLineBatches } from './compare/compareLineBatches'
 import { readBufferedLines } from './lineReader/readBufferedLines'
-import { BufferPair } from '../../fs/BufferPool'
+import { BufferPair } from '../../FileSystem/BufferPool'
 import { LineBatch } from './lineReader/LineBatch'
 import { CompareFileSync } from '../../types'
-import { CloseFile } from '../../fs/closeFile'
+import { FileCloser } from '../../FileSystem/FileCloser'
 
 const BUF_SIZE = 100000
 
@@ -44,7 +44,7 @@ export const lineBasedCompareSync: CompareFileSync = (path1: string, stat1: fs.S
             context.restLines.restLines2 = compareResult.restLines.restLines2
         }
     } finally {
-        CloseFile.closeFilesSync(context?.fd1, context?.fd2)
+        FileCloser.closeFilesSync(context?.fd1, context?.fd2)
     }
 }
 

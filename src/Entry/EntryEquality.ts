@@ -1,5 +1,6 @@
 import fs from 'fs'
-import { DifferenceType, DiffSet, Entry, Reason } from '..'
+import { DifferenceType, Entry, Reason } from '..'
+import { AsyncDiffSet } from '../compareAsync'
 import { ExtOptions } from '../ExtOptions'
 
 /**
@@ -19,9 +20,9 @@ export const EntryEquality = {
         throw new Error('Unexpected type ' + type)
     },
 
-    isEntryEqualAsync(entry1: Entry, entry2: Entry, type: DifferenceType, diffSet: DiffSet, options: ExtOptions): FileEqualityPromise {
+    isEntryEqualAsync(entry1: Entry, entry2: Entry, type: DifferenceType, asyncDiffSet: AsyncDiffSet, options: ExtOptions): FileEqualityPromise {
         if (type === 'file') {
-            return isFileEqualAsync(entry1, entry2, type, diffSet, options)
+            return isFileEqualAsync(entry1, entry2, type, asyncDiffSet, options)
         }
         if (type === 'directory') {
             return { isSync: true, ...isDirectoryEqual(entry1, entry2, options) }
@@ -59,7 +60,8 @@ export type FileEqualityPromise = FileEqualityPromiseSync | FileEqualityPromiseA
 export type FileEqualityAsync = FileEqualityAsyncSuccess | FileEqualityAsyncError
 
 /**
-* File equality response that represents a promise resolved synchronously (ie. no i/o calls involved).
+* File equality response that represents a promise resolved synchronously.
+* This can happen when files are compared by size avoiding async i/o calls.
 */
 type FileEqualityPromiseSync = {
     isSync: true
@@ -111,7 +113,7 @@ type FileEqualityAsyncError = {
 type FileEqualityAsyncContext = {
     entry1: Entry
     entry2: Entry
-    diffSet: DiffSet
+    asyncDiffSet: AsyncDiffSet
     type1: DifferenceType
     type2: DifferenceType
 }
@@ -132,7 +134,7 @@ function isFileEqualSync(entry1: Entry, entry2: Entry, options: ExtOptions): Fil
     return { same: true }
 }
 
-function isFileEqualAsync(entry1: Entry, entry2: Entry, type: DifferenceType, diffSet: DiffSet,
+function isFileEqualAsync(entry1: Entry, entry2: Entry, type: DifferenceType, asyncDiffSet: AsyncDiffSet,
     options: ExtOptions): FileEqualityPromise {
 
     if (options.compareSymlink && !isSymlinkEqual(entry1, entry2)) {
@@ -147,10 +149,10 @@ function isFileEqualAsync(entry1: Entry, entry2: Entry, type: DifferenceType, di
     }
 
     if (options.compareContent) {
-        let subDiffSet
+        let subDiffSet: AsyncDiffSet
         if (!options.noDiffSet) {
             subDiffSet = []
-            diffSet.push(subDiffSet)
+            asyncDiffSet.push(subDiffSet)
         }
         const samePromise: Promise<FileEqualityAsync> = options.compareFileAsync(entry1.absolutePath, entry1.stat, entry2.absolutePath, entry2.stat, options)
             .then((comparisonResult) => {
@@ -170,7 +172,7 @@ function isFileEqualAsync(entry1: Entry, entry2: Entry, type: DifferenceType, di
                     context: {
                         entry1, entry2,
                         type1: type, type2: type,
-                        diffSet: subDiffSet,
+                        asyncDiffSet: subDiffSet,
                     }
                 } as FileEqualityAsync
             })

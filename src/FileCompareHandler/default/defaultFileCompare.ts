@@ -1,11 +1,11 @@
 import fs from 'fs'
 import bufferEqual from 'buffer-equal'
-import { FileDescriptorQueue } from '../../fs/FileDescriptorQueue'
-import { BufferPair, BufferPool } from '../../fs/BufferPool'
+import { FileDescriptorQueue } from '../../FileSystem/FileDescriptorQueue'
+import { BufferPair, BufferPool } from '../../FileSystem/BufferPool'
 import { Options } from '../../index'
 import { CompareFileHandler } from '../../types'
-import { CloseFile } from '../../fs/closeFile'
-import { FsPromise } from '../../fs/fsPromise'
+import { FileCloser } from '../../FileSystem/FileCloser'
+import { FsPromise } from '../../FileSystem/FsPromise'
 
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 100000
@@ -41,7 +41,7 @@ export const defaultFileCompare: CompareFileHandler = {
                 }
             }
         } finally {
-            CloseFile.closeFilesSync(fd1, fd2)
+            FileCloser.closeFilesSync(fd1, fd2)
             bufferPool.freeBuffers(bufferPair)
         }
     },
@@ -50,7 +50,7 @@ export const defaultFileCompare: CompareFileHandler = {
     /**
      * Compares two files by content
      */
-    async compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): Promise<boolean> {
+    compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.Stats, options: Options): Promise<boolean> {
         let fd1: number | undefined
         let fd2: number | undefined
         let bufferPair: BufferPair | undefined
@@ -64,11 +64,11 @@ export const defaultFileCompare: CompareFileHandler = {
                 fd2 = fds[1]
                 const buf1 = bufferPair.buf1
                 const buf2 = bufferPair.buf2
-                const compareAsyncInternal = () => Promise.all([
-                    FsPromise.read(fd1 as number, buf1, 0, BUF_SIZE, null),
-                    FsPromise.read(fd2 as number, buf2, 0, BUF_SIZE, null)
-                ])
-                    .then((bufferSizes) => {
+                const compareAsyncInternal = () => {
+                    return Promise.all([
+                        FsPromise.read(fd1 as number, buf1, 0, BUF_SIZE, null),
+                        FsPromise.read(fd2 as number, buf2, 0, BUF_SIZE, null)
+                    ]).then((bufferSizes) => {
                         const size1 = bufferSizes[0]
                         const size2 = bufferSizes[1]
                         if (size1 !== size2) {
@@ -82,6 +82,7 @@ export const defaultFileCompare: CompareFileHandler = {
                             return compareAsyncInternal()
                         }
                     })
+                }
                 return compareAsyncInternal()
             })
             .then(
@@ -102,6 +103,6 @@ function finalizeAsync(fd1?: number, fd2?: number, bufferPair?: BufferPair) {
     if (bufferPair) {
         bufferPool.freeBuffers(bufferPair)
     }
-    return CloseFile.closeFilesAsync(fd1, fd2, fdQueue)
+    return FileCloser.closeFilesAsync(fd1, fd2, fdQueue)
 }
 
