@@ -1,8 +1,9 @@
-import { compareSync, compare, Options, Result } from "../../src"
+import { compareSync, compare, Options } from "../../src"
 import print from '../print'
 import Streams from 'memory-streams'
 import { readFileSync } from "fs"
 import { join } from "path"
+import { CompareFn } from "./CompareFn"
 
 interface Test {
     testId: string,
@@ -64,9 +65,7 @@ const tests: Test[] = [
     },
 ]
 
-type CompareFn = (left: string, right: string, options: Options) => Promise<Result> | Result
-
-async function runSingleTest(test: Test, compareFn: CompareFn) {
+async function runSingleTest(test: Test, compareFn: CompareFn): Promise<void> {
     const outputWriter = new Streams.WritableStream()
     try {
         const compareResult = await compareFn(test.left, test.right, test.options)

@@ -1,5 +1,6 @@
-import { compareSync, compare, Options, fileCompareHandlers, Result } from "../../src"
+import { compareSync, compare, Options, fileCompareHandlers } from "../../src"
 import path = require('path')
+import { CompareFn } from "./CompareFn"
 
 const PATH1 = path.join(__dirname, 'res/line-based-handler/lf')
 const PATH2 = path.join(__dirname, 'res/line-based-handler/crlf-spaces')
@@ -27,9 +28,7 @@ function warmup() {
     }
 }
 
-type CompareFn = (left: string, right: string, options: Options) => (Result | Promise<Result>)
-
-async function runSingleTest(compareFn: CompareFn) {
+async function runSingleTest(compareFn: CompareFn): Promise<void> {
     const durations: number[] = []
     for (let bufferSize = 1; bufferSize < MAX_BUFFER_SIZE; bufferSize++) {
         const options = {

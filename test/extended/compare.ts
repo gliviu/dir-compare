@@ -1,4 +1,5 @@
-import { compare, compareSync, fileCompareHandlers, Options, Result } from "../../src"
+import { compare, compareSync, fileCompareHandlers, Options } from "../../src"
+import { CompareFn } from "./CompareFn"
 import { deepCompare } from "./deepCompare"
 
 interface Test {
@@ -90,9 +91,7 @@ const tests: Test[] = [
     },
 ]
 
-type CompareFn = (left: string, right: string, options: Options) => Promise<Result> | Result
-
-async function runSingleTest(test: Test, compareFn: CompareFn) {
+async function runSingleTest(test: Test, compareFn: CompareFn): Promise<void> {
     const t1 = Date.now()
     const compareResult = await compareFn(test.left, test.right, test.options)
     const t2 = Date.now()
