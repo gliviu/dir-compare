@@ -9,6 +9,12 @@ import { EntryComparator } from './Entry/EntryComparator'
 import { EntryType, OptionalEntry } from './Entry/EntryType'
 import { Permission } from './Permission/Permission'
 import { StatisticsUpdate } from './Statistics/StatisticsUpdate'
+import pLimit from 'p-limit'
+
+/**
+ * Limits concurrent promises.
+ */
+const CONCURRENCY = 2
 
 /**
  * List of differences occurred during comparison.
@@ -41,6 +47,7 @@ function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected
 export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntry, level: number, relativePath: string,
     options: ExtOptions, statistics: InitialStatistics, asyncDiffSet: AsyncDiffSet, symlinkCache: SymlinkCache): Promise<void> {
 
+    const limit = pLimit(CONCURRENCY)
     const loopDetected1 = LoopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
     const loopDetected2 = LoopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     LoopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
@@ -106,9 +113,10 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                         if (!options.noDiffSet) {
                             asyncDiffSet.push(subDiffSet)
                         }
-                        comparePromises.push(compareAsync(entry1, entry2, level + 1,
+                        const comparePromise = limit(() => compareAsync(entry1, entry2, level + 1,
                             pathUtils.join(relativePath, entry1.name),
                             options, statistics, subDiffSet, LoopDetector.cloneSymlinkCache(symlinkCache)))
+                        comparePromises.push(comparePromise)
                     }
                 } else if (cmp < 0) {
                     // Right missing
@@ -121,9 +129,10 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                         if (!options.noDiffSet) {
                             asyncDiffSet.push(subDiffSet)
                         }
-                        comparePromises.push(compareAsync(entry1, undefined,
+                        const comparePromise = limit(() => compareAsync(entry1, undefined,
                             level + 1,
                             pathUtils.join(relativePath, entry1.name), options, statistics, subDiffSet, LoopDetector.cloneSymlinkCache(symlinkCache)))
+                        comparePromises.push(comparePromise)
                     }
                 } else {
                     // Left missing
@@ -136,9 +145,10 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
                         if (!options.noDiffSet) {
                             asyncDiffSet.push(subDiffSet)
                         }
-                        comparePromises.push(compareAsync(undefined, entry2,
+                        const comparePromise = limit(() => compareAsync(undefined, entry2,
                             level + 1,
                             pathUtils.join(relativePath, entry2.name), options, statistics, subDiffSet, LoopDetector.cloneSymlinkCache(symlinkCache)))
+                        comparePromises.push(comparePromise)
                     }
                 }
             }
