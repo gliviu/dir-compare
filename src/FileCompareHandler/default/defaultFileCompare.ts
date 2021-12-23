@@ -1,5 +1,4 @@
 import fs from 'fs'
-import bufferEqual from 'buffer-equal'
 import { FileDescriptorQueue } from '../../FileSystem/FileDescriptorQueue'
 import { BufferPair, BufferPool } from '../../FileSystem/BufferPool'
 import { Options } from '../../index'
@@ -10,7 +9,7 @@ import { FsPromise } from '../../FileSystem/FsPromise'
 const MAX_CONCURRENT_FILE_COMPARE = 8
 const BUF_SIZE = 1000000
 const fdQueue = new FileDescriptorQueue(MAX_CONCURRENT_FILE_COMPARE * 2)
-const bufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE)  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
+const asyncBufferPool = new BufferPool(BUF_SIZE, MAX_CONCURRENT_FILE_COMPARE)  // fdQueue guarantees there will be no more than MAX_CONCURRENT_FILE_COMPARE async processes accessing the buffers concurrently
 const syncBufferPool = new BufferPool(BUF_SIZE, 2)
 
 export const defaultFileCompare: CompareFileHandler = {
@@ -65,7 +64,7 @@ function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.S
     }
     return Promise.all([fdQueue.openPromise(path1, 'r'), fdQueue.openPromise(path2, 'r')])
         .then(fds => {
-            bufferPair = bufferPool.allocateBuffers()
+            bufferPair = asyncBufferPool.allocateBuffers()
             fd1 = fds[0]
             fd2 = fds[1]
             const buf1 = bufferPair.buf1
@@ -99,12 +98,12 @@ function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.S
 }
 
 function compareBuffers(buf1: Buffer, buf2: Buffer, contentSize: number) {
-    return bufferEqual(buf1.slice(0, contentSize), buf2.slice(0, contentSize))
+    return buf1.slice(0, contentSize).equals(buf2.slice(0, contentSize))
 }
 
 function finalizeAsync(fd1?: number, fd2?: number, bufferPair?: BufferPair) {
     if (bufferPair) {
-        bufferPool.freeBuffers(bufferPair)
+        asyncBufferPool.freeBuffers(bufferPair)
     }
     return FileCloser.closeFilesAsync(fd1, fd2, fdQueue)
 }
