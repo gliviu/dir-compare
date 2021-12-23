@@ -10,14 +10,13 @@ init:
 
 environment:
   matrix:
+    - nodejs_version: 16
     - nodejs_version: 15
     - nodejs_version: 14
     - nodejs_version: 13
     - nodejs_version: 12
     - nodejs_version: 11
     - nodejs_version: 10
-    - nodejs_version: 9
-    - nodejs_version: 8
 
 for:
   - matrix:
@@ -48,7 +47,7 @@ for:
     test_script:
       - node --version
       - npm --version
-      - if [[ ${nodejs_version} != 15 ]]; then npm run test; fi;
-      - if [[ ${nodejs_version} == 15 ]]; then npm run coverage; npx codecov; fi;
+      - if [[ ${nodejs_version} != 16 ]]; then npm run test; fi;
+      - if [[ ${nodejs_version} == 16 ]]; then npm run coverage; npx codecov; fi;
 
 build: off
