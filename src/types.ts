@@ -115,8 +115,15 @@ export interface Options {
      * |[/]           |dir2     |dir2     |`distinct`  |  `permission-denied`   |`access-error-right` |  
      * |[/dir2]       |file2    |missing  |`left`      |                        |                     |  
      * 
-     * And [[Result.permissionDenied]] statistics look like - left: 0, right: 1, distinct: 0, total: 1
-     * 
+     * And [[Result.permissionDenied]] statistics look like 
+     * ```json
+     * {
+     *   leftPermissionDenied: 0, 
+     *   rightPermissionDenied: 1, 
+     *   distinctPermissionDenied: 0, 
+     *   totalPermissionDenied: 1
+     * }
+     * ```
      */
     handlePermissionDenied?: boolean
 
@@ -130,12 +137,12 @@ export interface Options {
     resultBuilder?: ResultBuilder
 
     /**
-     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
+     * File content comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
      */
     compareFileSync?: CompareFileSync
 
     /**
-     * File comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
+     * File content comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
      */
     compareFileAsync?: CompareFileAsync
 
@@ -149,6 +156,11 @@ export interface Options {
  * List of differences occurred during comparison.
  */
 export type DiffSet = Array<Difference>
+
+/**
+ * @internal
+ */
+export type OptionalDiffSet = DiffSet | undefined
 
 /**
  * Callback for constructing result. Called for each compared entry pair.

@@ -1,6 +1,6 @@
 import fs from 'fs'
 import pathUtils from 'path'
-import { DiffSet, Entry, InitialStatistics } from '.'
+import { Entry, InitialStatistics, OptionalDiffSet } from '.'
 import { ExtOptions } from './ExtOptions'
 import { EntryEquality } from './Entry/EntryEquality'
 import { EntryBuilder } from './Entry/EntryBuilder'
@@ -33,7 +33,7 @@ function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected
  * Compares two directories synchronously.
  */
 export function compareSync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntry, level: number, relativePath: string,
-    options: ExtOptions, statistics: InitialStatistics, diffSet: DiffSet, symlinkCache: SymlinkCache): void {
+    options: ExtOptions, statistics: InitialStatistics, diffSet: OptionalDiffSet, symlinkCache: SymlinkCache): void {
 
     const loopDetected1 = LoopDetector.detectLoop(rootEntry1, symlinkCache.dir1)
     const loopDetected2 = LoopDetector.detectLoop(rootEntry2, symlinkCache.dir2)

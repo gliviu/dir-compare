@@ -128,15 +128,19 @@ function checkStatistics(statistics, test) {
     return true
 }
 
-function getExpected(test) {
+function getExpected(test: Partial<Test>): string {
     if (test.expected) {
         return test.expected.trim()
-    } else {
-        return normalize(fs.readFileSync(__dirname + '/expected/' + test.name + '.txt', 'utf8')).trim()
     }
+    const expectedFilePath = __dirname + '/expected/' + test.name + '.txt'
+    if (!fs.existsSync(expectedFilePath)) {
+        return ''
+    }
+    return normalize(fs.readFileSync(expectedFilePath, 'utf8')).trim()
+
 }
 
-function testSync(test, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
+function testSync(test: Partial<Test>, testDirPath, saveReport, runOptions: Partial<RunOptions>): Promise<void> {
     process.chdir(testDirPath)
     let path1, path2
     if (test.withRelativePath) {
@@ -154,16 +158,21 @@ function testSync(test, testDirPath, saveReport, runOptions: Partial<RunOptions>
             print(result, writer, test.displayOptions)
             const output = normalize(writer.toString()).trim()
             const expected = getExpected(test)
-            if (runOptions.showResult) {
-                printResult(output, expected)
-            }
             const statisticsCheck = checkStatistics(result, test)
             const validated = runCustomValidator(test, result)
             const res = expected === output && statisticsCheck && validated
+            if (runOptions.showResult) {
+                printResult(output, expected, res)
+            }
             report(test.name, 'sync', output, null, res, saveReport)
             console.log(test.name + ' sync: ' + passed(res, 'sync'))
         })
         .catch(error => {
+            if (test.expectedError && JSON.stringify(error).includes(test.expectedError)) {
+                report(test.name, 'sync', error instanceof Error ? error.stack : error, null, true, saveReport)
+                console.log(test.name + ' sync: ' + passed(true, 'sync'))
+                return
+            }
             report(test.name, 'sync', error instanceof Error ? error.stack : error, null, false, saveReport)
             console.log(test.name + ' sync: ' + passed(false, 'sync') + '. Error: ' + printError(error))
         })
@@ -201,17 +210,20 @@ function testAsync(test: Partial<Test>, testDirPath, saveReport, runOptions: Par
     return promise
         .then(result => {
             const output = result.output
-
             const expected = getExpected(test)
-
-            if (runOptions.showResult) {
-                printResult(output, expected)
-            }
             const res = expected === output && result.statisticsCheck && result.validated
+            if (runOptions.showResult) {
+                printResult(output, expected, res)
+            }
             report(test.name, 'async', output, null, res, saveReport)
             console.log(test.name + ' async: ' + passed(res, 'async'))
         })
         .catch(error => {
+            if (test.expectedError && JSON.stringify(error).includes(test.expectedError)) {
+                report(test.name, 'async', error instanceof Error ? error.stack : error, null, true, saveReport)
+                console.log(test.name + ' async: ' + passed(true, 'async'))
+                return
+            }
             report(test.name, 'async', error instanceof Error ? error.stack : error, null, false, saveReport)
             console.log(test.name + ' async: ' + passed(false, 'async') + '. Error: ' + printError(error))
         })
@@ -248,12 +260,12 @@ function endReport(saveReport) {
     }
 }
 
-function printResult(output, expected) {
+function printResult(output, expected, result: boolean) {
     console.log('Actual:')
     console.log(output)
     console.log('Expected:')
     console.log(expected)
-    console.log('Result: ' + (output === expected))
+    console.log('Result: ' + result)
 }
 
 function validatePlatform(test: Partial<Test>) {
