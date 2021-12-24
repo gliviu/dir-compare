@@ -82,19 +82,19 @@ compareSync(path1: string, path2: string, options?: Options): Result
 ```
 More details can be found in the reference documentation:
 * [compare](https://gliviu.github.io/dc-api/index.html#compare)
-* [compareSync](https://gliviu.github.io/dc-api/index.html#comparesync)
-* [Options](https://gliviu.github.io/dc-api/interfaces/options.html) 
-* [Result](https://gliviu.github.io/dc-api/interfaces/result.html)
+* [compareSync](https://gliviu.github.io/dc-api/index.html#compareSync)
+* [Options](https://gliviu.github.io/dc-api/interfaces/Options.html) 
+* [Result](https://gliviu.github.io/dc-api/interfaces/Result.html)
 
 Common options:
-* [compareSize](https://gliviu.github.io/dc-api/interfaces/options.html#comparesize)
-* [compareContent](https://gliviu.github.io/dc-api/interfaces/options.html#comparecontent)
-* [compareDate](https://gliviu.github.io/dc-api/interfaces/options.html#comparedate) 
-* [excludeFilter](https://gliviu.github.io/dc-api/interfaces/options.html#excludefilter)
-* [includeFilter](https://gliviu.github.io/dc-api/interfaces/options.html#includefilter) 
-* [ignoreCase](https://gliviu.github.io/dc-api/interfaces/options.html#ignorecase) 
-* [skipSubdirs](https://gliviu.github.io/dc-api/interfaces/options.html#skipsubdirs)
-* [skipEmptyDirs](https://gliviu.github.io/dc-api/interfaces/options.html#skipemptydirs)
+* [compareSize](https://gliviu.github.io/dc-api/interfaces/Options.html#compareSize)
+* [compareContent](https://gliviu.github.io/dc-api/interfaces/Options.html#compareContent)
+* [compareDate](https://gliviu.github.io/dc-api/interfaces/Options.html#compareDate) 
+* [excludeFilter](https://gliviu.github.io/dc-api/interfaces/Options.html#excludeFilter)
+* [includeFilter](https://gliviu.github.io/dc-api/interfaces/Options.html#includeFilter) 
+* [ignoreCase](https://gliviu.github.io/dc-api/interfaces/Options.html#ignoreCase) 
+* [skipSubdirs](https://gliviu.github.io/dc-api/interfaces/Options.html#skipSubdirs)
+* [skipEmptyDirs](https://gliviu.github.io/dc-api/interfaces/Options.html#skipEmptyDirs)
 
 ##  Glob patterns
 [Minimatch](https://www.npmjs.com/package/minimatch) patterns are used to include/exclude files to be compared.
@@ -129,7 +129,7 @@ A couple of handlers are included in the library:
 * text sync compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
 * text async compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
 
-Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/fileCompareHandler/default/defaultFileCompare.ts) as an example to create your own.
+Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/FileCompareHandler/default/defaultFileCompare.ts) as an example to create your own.
 
 ### Ignore line endings and white spaces
 Line based comparator can be used to ignore line ending and white space differences.
@@ -155,7 +155,7 @@ dircompare.compare(path1, path2, options)
 .then(res => console.log(res))
 ```
 ## Custom name comparators
-If [default](https://github.com/gliviu/dir-compare/blob/master/src/nameCompare/defaultNameCompare.js) name comparison is not enough, custom behavior can be specified with [compareNameHandler](https://gliviu.github.io/dc-api/index.html#comparenamehandler) option.
+If [default](https://github.com/gliviu/dir-compare/blob/master/src/NameCompare/defaultNameCompare.ts) name comparison is not enough, custom behavior can be specified with [compareNameHandler](https://gliviu.github.io/dc-api/interfaces/Options.html#compareNameHandler) option.
 Following example adds the possibility to ignore file extensions.
 ```typescript
 import { Options, compare } from 'dir-compare'
@@ -197,7 +197,7 @@ const res = compare(path1, path2, options).then(res => {
 ```
 
 ## Custom result builder
-[Result builder](https://gliviu.github.io/dc-api/index.html#resultbuilder) is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
+[Result builder](https://gliviu.github.io/dc-api/interfaces/Options.html#resultBuilder) is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
 
 If needed it can be replaced with custom implementation.
 
@@ -216,7 +216,7 @@ const res = dircompare.compareSync('...', '...', options)
 
 ```
 
-The [default](https://github.com/gliviu/dir-compare/blob/master/src/resultBuilder/defaultResultBuilderCallback.js) builder can be used as an example.
+The [default](https://github.com/gliviu/dir-compare/blob/master/src/ResultBuilder/defaultResultBuilderCallback.ts) builder can be used as an example.
 
 ## Symbolic links
 Unless `compareSymlink` option is used, symbolic links are resolved and any comparison is applied to the file/directory they point to.
@@ -237,26 +237,36 @@ If entries are different because of symlinks, `reason` will be `different-symlin
 
 ## Handling permission denied errors
 Unreadable files or directories are normally reported as errors. The comparison will be intrerrupted with an `EACCES` exception.
-This behavior can be altered with [Options.handlePermissionDenied](https://gliviu.github.io/dc-api/interfaces/options.html#handlepermissiondenied).
+This behavior can be altered with [Options.handlePermissionDenied](https://gliviu.github.io/dc-api/interfaces/Options.html#handlePermissionDenied).
 
 # UI tools
 * [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
 * [Visual Studio Code - Compare Folders](https://marketplace.visualstudio.com/items?itemName=moshfeu.compare-folders)
 
 # Changelog
+* v4.0.0
+    * Switched project to typescript
+    * [Async comparator](https://gliviu.github.io/dc-api/index.html#compare) improvements when comparing large directory structures
+      * Heap usage has decreased 3x compared to previous version
+      * Works 2x faster when comparing by content
+      * Better concurrency. UI apps will be more responsive while comparison is ongoing
+
+  Breaking changes:
+    * Using this library to compare two files will ignore the name of the files. More details in [#48](https://github.com/gliviu/dir-compare/issues/48)
+    * Removed support for node 8, 9
 * v3.3.0 Added `skipEmptyDirs` option
 * v3.2.0 [Handle permission denied errors](#handling-permission-denied-errors)
 * v3.1.0 Added `ignoreAllWhiteSpaces` and `ignoreEmptyLines` options
 * v3.0.0 Moved CLI component into separate project [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
-* v2.4.0 New option to customize file/folder name comparison
+* v2.4.0 [New option](https://gliviu.github.io/dc-api/interfaces/Options.html#compareNameHandler) to customize file/folder name comparison
 * v2.3.0 Fixes
-* v2.1.0 Removed [bluebird](https://github.com/petkaantonov/bluebird/#note) dependency
+* v2.1.0 Removed [bluebird](https://github.com/petkaantonov/bluebird/#%EF%B8%8Fnote%EF%B8%8F) dependency
 * v2.0.0
   * New option to compare symlinks.
   * New field indicating reason for two entries being distinct.
   * Improved command line output format.
   * Tests are no longer part of published package.
-  * Generated [Api](#api) documentation.
+  * Generated [Api](https://gliviu.github.io/dc-api/index.html) documentation.
   
   Breaking changes:
   * Broken links are no longer treated as errors. As a result there are new statistics (leftBrokenLinks, rightBrokenLinks, distinctBrokenLinks, totalBrokenLinks) and new entry type - broken-link.
@@ -275,7 +285,7 @@ This behavior can be altered with [Options.handlePermissionDenied](https://glivi
     * detect symlink loops
     * improved color scheme for command line utility
 * v1.0.0
-    * asynchronous processing
+    * asynchronous comparison
     * new library options: noDiffSet, resultBuilder
     * new statistics: distinctFiles, equalFiles, leftFiles, rightFiles, distinctDirs, equalDirs, leftDirs, rightDirs
     * new --async command line option
