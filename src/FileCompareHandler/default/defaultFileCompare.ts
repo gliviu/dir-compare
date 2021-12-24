@@ -59,7 +59,7 @@ function compareAsync(path1: string, stat1: fs.Stats, path2: string, stat2: fs.S
     if (stat1.size !== stat2.size) {
         return Promise.resolve(false)
     }
-    if (stat1.size < BUF_SIZE) {
+    if (stat1.size < BUF_SIZE && !options.forceAsyncContentCompare) {
         return Promise.resolve(compareSync(path1, stat1, path2, stat2, options))
     }
     return Promise.all([fdQueue.openPromise(path1, 'r'), fdQueue.openPromise(path2, 'r')])

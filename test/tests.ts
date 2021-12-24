@@ -105,13 +105,13 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         {
             name: 'test001_11', path1: 'd37', path2: 'd38',
             description: 'provides reason when entries are distinct',
-            options: { compareSize: true, compareContent: true, compareDate: true },
+            options: { compareSize: true, compareContent: true, forceAsyncContentCompare: true,compareDate: true },
             displayOptions: { showAll: true, reason: true, wholeReport: true },
         },
         {
             name: 'test001_12', path1: 'd37', path2: 'd38',
             description: 'provides reason when entries are distinct (csv)',
-            options: { compareSize: true, compareContent: true, compareDate: true },
+            options: { compareSize: true, compareContent: true, forceAsyncContentCompare: true,compareDate: true },
             displayOptions: { showAll: true, reason: true, wholeReport: true, csv: true },
         },
 
@@ -452,7 +452,7 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         {
             name: 'test005_56_2', path1: '#19/02/a', path2: '#19/02/b',
             description: "evaluate different file symlinks pointing to identical files as distinct when compare-symlink is used (comparing by content)",
-            options: { compareContent: true, compareSymlink: true },
+            options: { compareContent: true, forceAsyncContentCompare: true,compareSymlink: true },
             displayOptions: { showAll: true, wholeReport: true, reason: true },
             customValidator: stats => validateSymlinks(stats.symlinks, { distinctSymlinks: 1, equalSymlinks: 0, leftSymlinks: 0, rightSymlinks: 0, differencesSymlinks: 1, totalSymlinks: 1 }),
             excludePlatform: ['win32'],
@@ -1144,7 +1144,7 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         {
             name: 'test014_3', path1: '#48/01/index1.html', path2: '#48/01/index2.html',
             description: 'should compare two files by content',
-            options: { compareContent: true, },
+            options: { compareContent: true, forceAsyncContentCompare: true,},
             displayOptions: {wholeReport: true, showAll: true},
         },
         {
@@ -1156,7 +1156,7 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         {
             name: 'test014_5', path1: '#48/01/index1_symlink.html', path2: '#48/01/index2.html',
             description: 'should compare one symlink and one file by content',
-            options: { compareContent: true, },
+            options: { compareContent: true, forceAsyncContentCompare: true,},
             displayOptions: {wholeReport: true, showAll: true},
         },
         {
@@ -1168,7 +1168,7 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         {
             name: 'test014_7', path1: '#48/01/index1_symlink.html', path2: '#48/01/index2_symlink.html',
             description: 'should compare two symlinks pointing to files by content',
-            options: { compareContent: true, },
+            options: { compareContent: true, forceAsyncContentCompare: true,},
             displayOptions: {wholeReport: true, showAll: true},
         },
         {
