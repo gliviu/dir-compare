@@ -31,7 +31,7 @@
         "docs": "typedoc --includeVersion --excludeExternals --excludeInternal --readme none --gitRevision master --out docs ./src/index.ts"
     },
     "dependencies": {
-        "minimatch": "^3.0.4",
+        "minimatch": "^5.0.0",
         "p-limit": "^3.1.0 "
     },
     "devDependencies": {
