@@ -47,7 +47,7 @@
         "temp": "0.9.4",
         "ts-node": "10.4.0",
         "tsc-watch": "4.5.0",
-        "typedoc": "v0.22.10",
+        "typedoc": "v0.22.18",
         "typescript": "4.5.4"
     },
     "author": "Liviu Grigorescu",
