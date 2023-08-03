@@ -168,7 +168,7 @@ export type DiffSet = Array<Difference>
 export type OptionalDiffSet = DiffSet | undefined
 
 /**
- * Callback for constructing result. Called for each compared entry pair.
+ * Callback for constructing comparison result. Called for each compared entry pair.
  * 
  * Updates 'statistics' and 'diffSet'.
  */
@@ -197,10 +197,16 @@ export type ResultBuilder =
         permissionDeniedState: PermissionDeniedState
     ) => void
 
+export type EntryOrigin = 'left' | 'right'
+
 export interface Entry {
     name: string
     absolutePath: string
     path: string
+    /**
+     * Whether this entry originated from the left or the right dir.
+     */
+    origin: EntryOrigin
     stat: fs.Stats
     lstat: fs.Stats
     isDirectory: boolean

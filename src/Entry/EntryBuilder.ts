@@ -1,6 +1,6 @@
 import fs, { Stats } from 'fs'
 import pathUtils from 'path'
-import { Entry } from '..'
+import { Entry, EntryOrigin } from '..'
 import { ExtOptions } from '../ExtOptions'
 import { EntryComparator } from './EntryComparator'
 
@@ -10,14 +10,14 @@ export const EntryBuilder = {
 	/**
 	 * Returns the sorted list of entries in a directory.
 	 */
-	buildDirEntries(rootEntry: Entry, dirEntries: string[], relativePath: string, options: ExtOptions): Entry[] {
+	buildDirEntries(rootEntry: Entry, dirEntries: string[], relativePath: string, origin: EntryOrigin, options: ExtOptions): Entry[] {
 		const res: Entry[] = []
 		for (let i = 0; i < dirEntries.length; i++) {
 			const entryName = dirEntries[i]
 			const entryAbsolutePath = rootEntry.absolutePath + PATH_SEP + entryName
 			const entryPath = rootEntry.path + PATH_SEP + entryName
 
-			const entry = this.buildEntry(entryAbsolutePath, entryPath, entryName, options)
+			const entry = this.buildEntry(entryAbsolutePath, entryPath, entryName, origin, options)
 			if (options.skipSymlinks && entry.isSymlink) {
 				entry.stat = undefined
 			}
@@ -29,7 +29,7 @@ export const EntryBuilder = {
 		return res.sort((a, b) => EntryComparator.compareEntry(a, b, options))
 	},
 
-	buildEntry(absolutePath: string, path: string, name: string, options: ExtOptions): Entry {
+	buildEntry(absolutePath: string, path: string, name: string, origin: EntryOrigin, options: ExtOptions): Entry {
 		const stats = getStatIgnoreBrokenLink(absolutePath)
 		const isDirectory = stats.stat.isDirectory()
 
@@ -40,9 +40,10 @@ export const EntryBuilder = {
 		}
 
 		return {
-			name: name,
-			absolutePath: absolutePath,
-			path: path,
+			name,
+			absolutePath,
+			path,
+			origin,
 			stat: stats.stat,
 			lstat: stats.lstat,
 			isSymlink: stats.lstat.isSymbolicLink(),

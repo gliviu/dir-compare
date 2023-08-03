@@ -1,6 +1,6 @@
 import pathUtils from 'path'
 import { ExtOptions } from './ExtOptions'
-import { Difference, DiffSet, Entry, InitialStatistics } from '.'
+import { Difference, DiffSet, Entry, EntryOrigin, InitialStatistics } from '.'
 import { EntryEquality, FileEqualityAsync } from './Entry/EntryEquality'
 import { FsPromise } from './FileSystem/FsPromise'
 import { EntryBuilder } from './Entry/EntryBuilder'
@@ -26,7 +26,7 @@ export type AsyncDiffSet = Array<Difference | AsyncDiffSet>
  * Returns the sorted list of entries in a directory.
  */
 function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected: boolean,
-    options: ExtOptions): Promise<Entry[]> {
+    origin: EntryOrigin, options: ExtOptions): Promise<Entry[]> {
 
     if (!rootEntry || loopDetected) {
         return Promise.resolve([])
@@ -36,7 +36,7 @@ function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected
             return Promise.resolve([])
         }
         return FsPromise.readdir(rootEntry.absolutePath)
-            .then(entries => EntryBuilder.buildDirEntries(rootEntry, entries, relativePath, options))
+            .then(entries => EntryBuilder.buildDirEntries(rootEntry, entries, relativePath, origin, options))
     }
     return Promise.resolve([rootEntry])
 }
@@ -52,7 +52,7 @@ export function compareAsync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntr
     const loopDetected2 = LoopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     LoopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
 
-    return Promise.all([getEntries(rootEntry1, relativePath, loopDetected1, options), getEntries(rootEntry2, relativePath, loopDetected2, options)])
+    return Promise.all([getEntries(rootEntry1, relativePath, loopDetected1, 'left', options), getEntries(rootEntry2, relativePath, loopDetected2, 'right', options)])
         .then(entriesResult => {
             const entries1 = entriesResult[0]
             const entries2 = entriesResult[1]

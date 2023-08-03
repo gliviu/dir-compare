@@ -41,8 +41,8 @@ export function compareSync(path1: string, path2: string, options?: Options): Re
         compareMixedEntries(absolutePath1, absolutePath2, diffSet, initialStatistics, compareInfo)
     } else {
         compareSyncInternal(
-            EntryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), extOptions),
-            EntryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), extOptions),
+            EntryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), 'left', extOptions),
+            EntryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), 'right', extOptions),
             0, ROOT_PATH, extOptions, initialStatistics, diffSet, LoopDetector.initSymlinkCache())
     }
 
@@ -85,8 +85,8 @@ export function compare(path1: string, path2: string, options?: Options): Promis
                 return result
             }
             return compareAsyncInternal(
-                EntryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), extOptions),
-                EntryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), extOptions),
+                EntryBuilder.buildEntry(absolutePath1, path1, pathUtils.basename(absolutePath1), 'left', extOptions),
+                EntryBuilder.buildEntry(absolutePath2, path2, pathUtils.basename(absolutePath2), 'right', extOptions),
                 0, ROOT_PATH, extOptions, initialStatistics, asyncDiffSet, LoopDetector.initSymlinkCache())
                 .then(() => {
                     const result: Result = StatisticsLifecycle.completeStatistics(initialStatistics, extOptions)

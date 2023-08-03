@@ -1,6 +1,6 @@
 import fs from 'fs'
 import pathUtils from 'path'
-import { Entry, InitialStatistics, OptionalDiffSet } from '.'
+import { Entry, EntryOrigin, InitialStatistics, OptionalDiffSet } from '.'
 import { ExtOptions } from './ExtOptions'
 import { EntryEquality } from './Entry/EntryEquality'
 import { EntryBuilder } from './Entry/EntryBuilder'
@@ -14,7 +14,7 @@ import { StatisticsUpdate } from './Statistics/StatisticsUpdate'
  * Returns the sorted list of entries in a directory.
  */
 function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected: boolean,
-    options: ExtOptions): Entry[] {
+    origin: EntryOrigin, options: ExtOptions): Entry[] {
 
     if (!rootEntry || loopDetected) {
         return []
@@ -24,7 +24,7 @@ function getEntries(rootEntry: OptionalEntry, relativePath: string, loopDetected
             return []
         }
         const entries = fs.readdirSync(rootEntry.absolutePath)
-        return EntryBuilder.buildDirEntries(rootEntry, entries, relativePath, options)
+        return EntryBuilder.buildDirEntries(rootEntry, entries, relativePath, origin, options)
     }
     return [rootEntry]
 }
@@ -39,8 +39,8 @@ export function compareSync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntry
     const loopDetected2 = LoopDetector.detectLoop(rootEntry2, symlinkCache.dir2)
     LoopDetector.updateSymlinkCache(symlinkCache, rootEntry1, rootEntry2, loopDetected1, loopDetected2)
 
-    const entries1 = getEntries(rootEntry1, relativePath, loopDetected1, options)
-    const entries2 = getEntries(rootEntry2, relativePath, loopDetected2, options)
+    const entries1 = getEntries(rootEntry1, relativePath, loopDetected1, 'left', options)
+    const entries2 = getEntries(rootEntry2, relativePath, loopDetected2, 'right', options)
     let i1 = 0, i2 = 0
     while (i1 < entries1.length || i2 < entries2.length) {
         const entry1 = entries1[i1]
