@@ -1,0 +1,19 @@
+Directories are identical
+Statistics - equal entries: 17, distinct entries: 0, left only entries: 0, right only entries: 0, differences: 0
+/ subdir subdir equal
+/subdir y y equal
+/subdir/y t t equal
+/subdir/y/t .gitignore .gitignore equal
+/subdir/y/t a4.txt a4.txt equal
+/subdir/y z z equal
+/subdir/y/z a1.txt a1.txt equal
+/subdir/y/z a2.txt a2.txt equal
+/subdir/y/z a3.txt a3.txt equal
+/subdir/y/z a4.txt a4.txt equal
+/subdir/y .gitignore .gitignore equal
+/subdir/y a1.txt a1.txt equal
+/subdir/y a2.txt a2.txt equal
+/subdir/y a3.txt a3.txt equal
+/subdir/y a4.txt a4.txt equal
+/subdir .gitignore .gitignore equal
+/subdir a1.txt a1.txt equal

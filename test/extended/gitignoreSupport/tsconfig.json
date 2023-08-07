@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "module": "ESNext",
+      "moduleResolution": "Node",
+      "outDir": "build",
+      "sourceMap": true,
+      "strictNullChecks": true,
+      "allowJs": true,
+      "declaration": true,
+      "composite": true,
+      "declarationMap": true
+    },
+    "include": [
+      "**/*.ts",
+      "**/*.js"
+    ],
+    "exclude": [
+      "build"
+    ]
+  }

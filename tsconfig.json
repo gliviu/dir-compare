@@ -19,6 +19,7 @@
       "build",
       "test*.js",
       "test*.ts",
+      "test/extended/gitignoreSupport",
       "test/testdir",
       "coverage",
       "docs"

@@ -1,17 +1,21 @@
 #!/bin/bash
 
+set -euo pipefail
+
 CURRENT_DIR=$(dirname "$0")
-if [[ ! 'root' == $(whoami) ]]; then echo 'Run as root.'; exit 1; fi;
 
-#  todo: needed?
-# ROOTDIR=$(dirname "$0")/../..
-# TESTDIR=$ROOTDIR/build/test/testdir
-# if [ ! -d "$TESTDIR" ]; then
-#     echo "Testdir does not exist. Extracting into $TESTDIR"
-#     node $ROOTDIR/build/test/extract.js
-# fi
+echo Extract dir for permission denied tests
+mkdir -p /tmp/37-perms-test
+sudo tar -xf $CURRENT_DIR/res/37-perms-test.tar -C /tmp/37-perms-test
 
-# Download and extract linux kernels
+echo Generate large file
+mkdir -p /tmp/dircompare
+sudo fallocate -l 5G /tmp/dircompare/big_file
+
+echo Initialize gitignore tests
+./gitignoreSupport/init.sh
+
+echo Download and extract linux kernels
 l1=linux-4.3
 l2=linux-4.4
 mkdir -p /tmp/dircompare
@@ -40,14 +44,5 @@ if [ ! -d /tmp/$l2 ]; then
       exit 1
   fi
 fi
-
-# Extract dir for permission denied tests
-PERMISSION_DENIED_TEST_FILE=37-perms-test
-PERMISSION_DENIED_TEST_DIR=/tmp/$PERMISSION_DENIED_TEST_FILE
-mkdir -p $PERMISSION_DENIED_TEST_DIR
-tar -xf $CURRENT_DIR/res/$PERMISSION_DENIED_TEST_FILE.tar -C $PERMISSION_DENIED_TEST_DIR
-
-# Generate large file
-fallocate -l 5G /tmp/dircompare/big_file
 
 echo Init done

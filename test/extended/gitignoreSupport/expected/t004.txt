@@ -1,0 +1,4 @@
+Directories are identical
+Statistics - equal entries: 2, distinct entries: 0, left only entries: 0, right only entries: 0, differences: 0
+/ .gitignore .gitignore equal
+/ b.txt b.txt equal

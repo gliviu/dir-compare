@@ -1,0 +1,14 @@
+Directories are different
+Statistics - equal entries: 10, distinct entries: 0, left only entries: 1, right only entries: 1, differences: 2
+/ y y equal
+/y t t equal
+/y/t .gitignore .gitignore equal
+/y/t undefined a3.txt right
+/y/t a4.txt undefined left
+/y z z equal
+/y/z a1.txt a1.txt equal
+/y .gitignore .gitignore equal
+/y a1.txt a1.txt equal
+/y a2.txt a2.txt equal
+/ .gitignore .gitignore equal
+/ a1.txt a1.txt equal

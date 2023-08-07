@@ -1,0 +1,3 @@
+Directories are identical
+Statistics - equal entries: 1, distinct entries: 0, left only entries: 0, right only entries: 0, differences: 0
+/ b.txt b.txt equal
