@@ -2,6 +2,7 @@
     "name": "dir-compare",
     "version": "4.0.0",
     "description": "Node JS directory compare",
+    "type": "commonjs",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
     "repository": {
