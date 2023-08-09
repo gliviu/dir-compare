@@ -83,7 +83,7 @@ export interface Options {
     includeFilter?: string
 
     /**
-     * File/directory name exclude filter. Comma separated minimatch patterns. See [Glob patterns](https://github.com/gliviu/dir-compare#glob-patterns)
+     * File/directory name exclude filter. Comma separated minimatch patterns. See [Glob patterns](https://github.com/gliviu/dir-compare#glob-patterns).
      */
     excludeFilter?: string
 
@@ -128,31 +128,37 @@ export interface Options {
     handlePermissionDenied?: boolean
 
     /**
-     * Callback for constructing result. Called for each compared entry pair.
+     * Extension point used for constructing the {@link Result} object.
      * 
-     * Updates 'statistics' and 'diffSet'.
-     * 
-     * See [Custom result builder](https://github.com/gliviu/dir-compare#custom-result-builder).
+     * See [Result builder](https://github.com/gliviu/dir-compare#result-builder).
      */
     resultBuilder?: ResultBuilder
 
     /**
-     * File content comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
+     * Extension point used to perform sync file content comparison.
+     * 
+     * See [File comparators](https://github.com/gliviu/dir-compare#file-content-comparators).
      */
     compareFileSync?: CompareFileSync
 
     /**
-     * File content comparison handler. See [Custom file comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators).
+     * Extension point used to perform async file content comparison.
+     * 
+     * See [File comparators](https://github.com/gliviu/dir-compare#file-content-comparators).
      */
     compareFileAsync?: CompareFileAsync
 
     /**
-     * Entry name comparison handler. See [Custom name comparators](https://github.com/gliviu/dir-compare#custom-name-comparators).
+     * Extension point used to compare files or directories names.
+     * 
+     * See [Name comparators](https://github.com/gliviu/dir-compare#name-comparators).
      */
     compareNameHandler?: CompareNameHandler
 
     /**
-     * Filter handler. todo: See [Custom name comparators](https://github.com/gliviu/dir-compare#custom-name-comparators).
+     * Extension point used to control which files or directories should be included in the comparison.
+     * 
+     * See [Glob filter](https://github.com/gliviu/dir-compare#glob-filter).
      */
     filterHandler?: FilterHandler
 }
@@ -166,36 +172,6 @@ export type DiffSet = Array<Difference>
  * @internal
  */
 export type OptionalDiffSet = DiffSet | undefined
-
-/**
- * Callback for constructing comparison result. Called for each compared entry pair.
- * 
- * Updates 'statistics' and 'diffSet'.
- */
-export type ResultBuilder =
-    /**
-     * @param entry1 Left entry.
-     * @param entry2 Right entry.
-     * @param state See [[DifferenceState]].
-     * @param level Depth level relative to root dir.
-     * @param relativePath Path relative to root dir.
-     * @param statistics Statistics to be updated.
-     * @param diffSet Status per each entry to be appended.
-     * Do not append if [[Options.noDiffSet]] is false.
-     * @param reason See [[Reason]]. Not available if entries are equal.
-     */
-    (
-        entry1: Entry | undefined,
-        entry2: Entry | undefined,
-        state: DifferenceState,
-        level: number,
-        relativePath: string,
-        options: Options,
-        statistics: InitialStatistics,
-        diffSet: DiffSet | undefined,
-        reason: Reason | undefined,
-        permissionDeniedState: PermissionDeniedState
-    ) => void
 
 export type EntryOrigin = 'left' | 'right'
 
@@ -495,7 +471,7 @@ export interface Difference {
     path2?: string
 
     /**
-     * Path relative to root dir.
+     * Path relative to the root directory of the comparison.
      */
     relativePath: string
 
@@ -569,26 +545,35 @@ export interface Difference {
 }
 
 /**
- * Synchronous file content comparison handler.
+ * Extension point used for constructing the {@link Result} object.
+ * Called for each compared entry pair.
+ * Updates 'statistics' and 'diffSet'.
+ * @param entry1 Left entry.
+ * @param entry2 Right entry.
+ * @param state See [[DifferenceState]].
+ * @param level Depth level relative to root dir.
+ * @param relativePath Path relative to the root directory of the comparison.
+ * @param statistics Statistics to be updated.
+ * @param diffSet Status per each entry to be appended.
+ * Do not append if [[Options.noDiffSet]] is false.
+ * @param reason See [[Reason]]. Not available if entries are equal.
  */
-export type CompareFileSync = (
-    path1: string,
-    stat1: fs.Stats,
-    path2: string,
-    stat2: fs.Stats,
-    options: Options
-) => boolean
+export type ResultBuilder = (entry1: Entry | undefined, entry2: Entry | undefined, state: DifferenceState, level: number,
+    relativePath: string, options: Options, statistics: InitialStatistics, diffSet: DiffSet | undefined,
+    reason: Reason | undefined, permissionDeniedState: PermissionDeniedState
+) => void
 
 /**
- * Asynchronous file content comparison handler.
+ * Extension point used to perform sync file content comparison.
  */
-export type CompareFileAsync = (
-    path1: string,
-    stat1: fs.Stats,
-    path2: string,
-    stat2: fs.Stats,
-    options: Options
-) => Promise<boolean>
+export type CompareFileSync = (path1: string, stat1: fs.Stats,
+    path2: string, stat2: fs.Stats, options: Options) => boolean
+
+/**
+ * Extension point used to perform async file content comparison.
+ */
+export type CompareFileAsync = (path1: string, stat1: fs.Stats,
+    path2: string, stat2: fs.Stats, options: Options) => Promise<boolean>
 
 export interface CompareFileHandler {
     compareSync: CompareFileSync,
@@ -596,30 +581,29 @@ export interface CompareFileHandler {
 }
 
 /**
- * Compares the names of two entries.
+ * Extension point used to compare files or directories names.
  * The comparison should be dependent on received options (ie. case sensitive, ...).
  * Returns 0 if names are identical, -1 if name1<name2, 1 if name1>name2.
  */
-export type CompareNameHandler = (
-    name1: string,
-    name2: string,
-    options: Options
-) => 0 | 1 | -1
+export type CompareNameHandler = (name1: string, name2: string, options: Options) => 0 | 1 | -1
 
 /**
- * This is an extension point that provides the capability to determine which files should be included in the comparison.
- * Returns true if the entry is to be processed or false to ignore it.
+ * Extension point used to control which files or directories should be included in the comparison.
+ * 
+ * @param entry Filesystem entry to include or ignore.
+ * @param relativePath Path relative to the root directory of the comparison. It depends on {@link Entry.origin}.
+ * @param option Comparison options.
+ * @returns Returns true if the entry is to be processed or false to ignore it.
  */
-export type FilterHandler = (
-    entry: Entry,
-    relativePath: string,
-    options: Options
-) => boolean
+export type FilterHandler = (entry: Entry, relativePath: string, options: Options) => boolean
 
 export interface FileCompareHandlers {
     /**
-     * This comparison method evaluates files based on their binary content.
-     * It is used if {@link Options.compareFileAsync} or {@link Options.compareFileSync} are not specified.
+     * Compares files based on their binary content.
+     * 
+     * This is the default file content comparator.
+     * It is used when {@link Options.compareContent} is true and custom file comparator
+     * is not specified (ie. {@link Options.compareFileSync} or {@link Options.compareFileAsync} are 'undefined').
      */
     defaultFileCompare: CompareFileHandler;
     /**
@@ -644,7 +628,7 @@ export interface CompareNameHandlers {
 
 export interface FilterHandlers {
     /**
-     * Uses minimatch to accept/ignore files based on {@link Options.includeFilter} and {@link Options.excludeFilter}.
+     * Uses minimatch to include/ignore files based on {@link Options.includeFilter} and {@link Options.excludeFilter}.
      * It is used if {@link Options.filterHandler} is not specified.
      */
     defaultFilterHandler: FilterHandler

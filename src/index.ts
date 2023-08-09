@@ -101,13 +101,9 @@ export function compare(path1: string, path2: string, options?: Options): Promis
 }
 
 /**
- * File content comparison handlers.
- * These comparators are included with dir-compare.
+ * List of {@link CompareFileHandler}s included with dir-compare.
  * 
- * The `defaultFileCompare` is used when {@link Options.compareContent} is enabled 
- * and {@link Options.compareFileSync} or {@link Options.compareFileAsync} are sent as `undefined`.
- * 
- * See [Custom file content comparators](https://github.com/gliviu/dir-compare#custom-file-content-comparators) for details.
+ * See [File content comparators](https://github.com/gliviu/dir-compare#file-content-comparators) for details.
  */
 export const fileCompareHandlers: FileCompareHandlers = {
     defaultFileCompare,
@@ -115,14 +111,18 @@ export const fileCompareHandlers: FileCompareHandlers = {
 }
 
 /**
- * Name comparison included with dir-compare.
+ * List of {@link CompareNameHandler}s included with dir-compare.
+ * 
+ * See [Name comparators](https://github.com/gliviu/dir-compare#name-comparators) for details.
  */
 export const compareNameHandlers: CompareNameHandlers = {
     defaultNameCompare
 }
 
 /**
- * Filter handlers included with dir-compare.
+ * List of {@link FilterHandler}s included with dir-compare.
+ * 
+ * See [Glob filter](https://github.com/gliviu/dir-compare#glob-filter) for details.
  */
 export const filterHandlers: FilterHandlers = {
     defaultFilterHandler

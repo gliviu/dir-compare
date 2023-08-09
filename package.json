@@ -29,7 +29,7 @@
         "extest": "npm run pretest && ./test/extended/init.sh && test/extended/runall.sh",
         "coverage": "npx nyc --exclude \"build/test/**\" --reporter=lcov npm test && npx nyc report",
         "toc": "npx markdown-toc README.md; echo \n",
-        "docs": "typedoc --includeVersion --excludeExternals --excludeInternal --readme none --gitRevision master --out docs ./src/index.ts"
+        "docs": "typedoc --includeVersion --excludeExternals --excludeInternal --readme none --gitRevision master -cleanOutputDir --sort source-order --out docs ./src/index.ts"
     },
     "dependencies": {
         "minimatch": "^3.0.4",
