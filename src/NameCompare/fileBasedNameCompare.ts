@@ -2,7 +2,7 @@ import { ExtOptions } from "../ExtOptions"
 import { StringCompareResult } from "./StringCompareResult"
 
 /**
- * Name comparator used when dir-compare is called to compare two files.
+ * Name comparator used when dir-compare is called to compare two files by content.
  * In this case the file name is ignored (ie. comparing a1.txt and a2.txt 
  * will return true if file contents are identical).
  */

@@ -2,7 +2,7 @@ dir-compare
 ==========
 Node JS directory compare
 
-**!! Important !!** Starting with v3.0.0 the CLI utility has been moved to [dir-compare-cli](https://www.npmjs.com/package/dir-compare-cli). 
+**Starting with v3.0.0 the CLI utility moved to [dir-compare-cli](https://www.npmjs.com/package/dir-compare-cli).**
 
 [![Build status](https://ci.appveyor.com/api/projects/status/fpnqkr2gfg7pwkxk/branch/master?svg=true)](https://ci.appveyor.com/project/gliviu/dir-compare)
 [![codecov.io](http://codecov.io/github/gliviu/dir-compare/coverage.svg?branch=master)](http://codecov.io/github/gliviu/dir-compare?branch=master)
@@ -12,12 +12,15 @@ Node JS directory compare
   * [Use](#use)
   * [Api](#api)
   * [Glob patterns](#glob-patterns)
-  * [Custom file content comparators](#custom-file-content-comparators)
-    + [Ignore line endings and white spaces](#ignore-line-endings-and-white-spaces)
-  * [Custom name comparators](#custom-name-comparators)
-  * [Custom result builder](#custom-result-builder)
   * [Symbolic links](#symbolic-links)
   * [Handling permission denied errors](#handling-permission-denied-errors)
+- [Extension points](#extension-points)
+  * [File content comparators](#file-content-comparators)
+    + [Ignore line endings and white spaces](#ignore-line-endings-and-white-spaces)
+  * [Name comparators](#name-comparators)
+  * [Result builder](#result-builder)
+  * [Glob filter](#glob-filter)
+    + [Implement .gitignore filter](#implement-gitignore-filter)
 - [UI tools](#ui-tools)
 - [Changelog](#changelog)
 
@@ -47,15 +50,14 @@ dircompare.compare(path1, path2, options)
   .then(res => print(res))
   .catch(error => console.error(error));
 
-
 function print(result) {
   console.log('Directories are %s', result.same ? 'identical' : 'different')
 
   console.log('Statistics - equal entries: %s, distinct entries: %s, left only entries: %s, right only entries: %s, differences: %s',
     result.equal, result.distinct, result.left, result.right, result.differences)
 
-  result.diffSet.forEach(dif => console.log('Difference - name1: %s, type1: %s, name2: %s, type2: %s, state: %s',
-    dif.name1, dif.type1, dif.name2, dif.type2, dif.state))
+  result.diffSet.forEach(dif => console.log('Difference - path: %s, name1: %s, type1: %s, name2: %s, type2: %s, state: %s',
+    dif.relativePath, dif.name1, dif.type1, dif.name2, dif.type2, dif.state))
 }
 ```
 
@@ -103,7 +105,6 @@ The pattern is matched against the relative path of the entry being compared.
 
 Following examples assume we are comparing two [dir-compare](https://github.com/gliviu/dir-compare) code bases.
 
-
 ```javascript
 const options = { 
   excludeFilter: ".git,node_modules",   //  exclude git and node modules directories  
@@ -117,8 +118,33 @@ const options = {
   includeFilter: "**/tests/**/*.ts"     //  include all js files in '/tests' directory and subdirectories  
 }
 ```
+This behavior can be changed with [Glob filter extensions](#glob-filter).
 
-## Custom file content comparators
+
+## Symbolic links
+Unless `compareSymlink` option is used, symbolic links are resolved and any comparison is applied to the file/directory they point to.
+
+Circular loops are handled by breaking the loop as soon as it is detected.
+
+Version `1.x` treats broken links as `ENOENT: no such file or directory`.  
+Since `2.0` they are treated as a special type of entry - `broken-link` - and are available as stats (`totalBrokenLinks`, `distinctBrokenLinks`, ...).
+
+Using `compareSymlink` option causes `dircompare` to check symlink values for equality.
+In this mode two entries with identical names are considered different if
+* one is symlink, the other is not
+* both are symlinks but point to different locations
+
+These rules are applied in addition to the other comparison modes; ie. by content, by size...
+
+If entries are different because of symlinks, `reason` will be `different-symlink`. Also statistics summarize differences caused by symbolic links.
+
+## Handling permission denied errors
+Unreadable files or directories are normally reported as errors. The comparison will be interrupted with an `EACCES` exception.
+This behavior can be altered with [Options.handlePermissionDenied](https://gliviu.github.io/dc-api/interfaces/Options.html#handlePermissionDenied).
+
+# Extension points
+
+## File content comparators
 By default file content is binary compared. As of version 1.5.0 custom file comparison handlers may be specified.
 
 Custom handlers are specified by `compareFileSync` and `compareFileAsync` options which correspond to `dircompare.compareSync()` or `dircompare.compare()` methods.
@@ -141,7 +167,7 @@ const options = {
   compareFileSync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync,
   compareFileAsync: dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync,
   ignoreLineEnding: true,      // Ignore crlf/lf line ending differences
-  ignoreWhiteSpaces: true,     // Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
+  ignoreWhiteSpaces: true,     // Ignore white spaces at the beginning and end of a line (similar to 'diff -b')
   ignoreAllWhiteSpaces: true,  // Ignore all white space differences (similar to 'diff -w')
   ignoreEmptyLines: true       // Ignores differences caused by empty lines (similar to 'diff -B')
 };
@@ -154,7 +180,7 @@ console.log(res)
 dircompare.compare(path1, path2, options)
 .then(res => console.log(res))
 ```
-## Custom name comparators
+## Name comparators
 If [default](https://github.com/gliviu/dir-compare/blob/master/src/NameCompare/defaultNameCompare.ts) name comparison is not enough, custom behavior can be specified with [compareNameHandler](https://gliviu.github.io/dc-api/interfaces/Options.html#compareNameHandler) option.
 Following example adds the possibility to ignore file extensions.
 ```typescript
@@ -196,7 +222,7 @@ const res = compare(path1, path2, options).then(res => {
 // logo.svg logo.jpg equal
 ```
 
-## Custom result builder
+## Result builder
 [Result builder](https://gliviu.github.io/dc-api/interfaces/Options.html#resultBuilder) is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
 
 If needed it can be replaced with custom implementation.
@@ -218,32 +244,71 @@ const res = dircompare.compareSync('...', '...', options)
 
 The [default](https://github.com/gliviu/dir-compare/blob/master/src/ResultBuilder/defaultResultBuilderCallback.ts) builder can be used as an example.
 
-## Symbolic links
-Unless `compareSymlink` option is used, symbolic links are resolved and any comparison is applied to the file/directory they point to.
+## Glob filter
+The current implementation of the glob filter uses minimatch and is based on [includeFilter and excludeFilter options](#glob-patterns). While it is meant to fit most use cases, [some scenarios](https://github.com/gliviu/dir-compare/issues/67) are not addressed.
 
-Circular loops are handled by breaking the loop as soon as it is detected.
+Use [filterHandler option](https://gliviu.github.io/dc-api/interfaces/Options.html#filterHandler) to alter this behavior.
 
-Version `1.x` treats broken links as `ENOENT: no such file or directory`.  
-Since `2.0` they are treated as a special type of entry - `broken-link` - and are available as stats (`totalBrokenLinks`, `distinctBrokenLinks`, ...).
+The following example demonstrates how to include only files with a specific extension in our comparison.
+```typescript
+import { Options, compareSync, Result, FilterHandler, Entry, filterHandlers } from './'
+import { extname } from 'path'
 
-Using `compareSymlink` option causes `dircompare` to check symlink values for equality.
-In this mode two entries with identical name are considered different if
-* one is symlink, the other is not
-* both are symlinks but point to different locations
+var d1 = '...';
+var d2 = '...';
 
-These rules are applied in addition to the other comparison modes; ie. by content, by size...
+const filterByfileExtension: FilterHandler = (entry: Entry, relativePath: string, options: Options): boolean => {
+  if (!options.fileExtension) {
+    // Fallback on the default 'minimatch' implementation
+    return filterHandlers.defaultFilterHandler(entry, relativePath, options)
+  }
 
-If entries are different because of symlinks, `reason` will be `different-symlink`. Also statistics summarizes differences caused by symbolik links.
+  return options.fileExtension === extname(entry.name)
+}
 
-## Handling permission denied errors
-Unreadable files or directories are normally reported as errors. The comparison will be intrerrupted with an `EACCES` exception.
-This behavior can be altered with [Options.handlePermissionDenied](https://gliviu.github.io/dc-api/interfaces/Options.html#handlePermissionDenied).
+const options: Options = {
+  compareSize: true,
+  fileExtension: '.txt',
+  filterHandler: filterByfileExtension
+}
+
+const res: Result = compareSync(d1, d2, options)
+```
+
+For reference, the default minimatch filter can be found in [defaultFilterHandler](https://github.com/gliviu/dir-compare/blob/master/src/FilterHandler/defaultFilterHandler.ts) which is exposed by [filterHandlers property](https://gliviu.github.io/dc-api/index.html#filterHandlers).
+
+### Implement .gitignore filter
+[Globby](https://github.com/sindresorhus/globby) library provides the functionality to parse and apply `.gitignore` rules.
+This is a [sample implementation](https://github.com/gliviu/dir-compare/blob/master/test/extended/gitignoreSupport/gitignoreFilter.ts) that uses globby and dir-compare filter extension.
+
+Usage:
+```typescript
+import { Options, compareSync, Result} from 'dir-compare'
+import { getGitignoreFilter } from './gitignoreFilter.js'
+
+var d1 = '...';
+var d2 = '...';
+
+const options: Options = {
+  compareSize: true,
+  filterHandler: getGitignoreFilter(d1, d2),
+  includeFilter: '*.js'  // if present, regular filters are applied after .gitignore rules.
+}
+
+const res: Result = compareSync(d1, d2, options)
+
+```
 
 # UI tools
 * [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
 * [Visual Studio Code - Compare Folders](https://marketplace.visualstudio.com/items?itemName=moshfeu.compare-folders)
 
 # Changelog
+* v4.1.0
+  * Possibility to alter the default [Glob filter](#glob-filter) behavior
+  * [Ignore files and directories according to .gitignore rules](#implement-gitignore-filter).
+  * New [origin](https://gliviu.github.io/dc-api/interfaces/Entry.html#origin) field in Entry to distinguish between the left or right directory
+  * Improved api documentation
 * v4.0.0
     * Switched project to typescript
     * [Async comparator](https://gliviu.github.io/dc-api/index.html#compare) improvements when comparing large directory structures
@@ -290,5 +355,5 @@ This behavior can be altered with [Options.handlePermissionDenied](https://glivi
     * new statistics: distinctFiles, equalFiles, leftFiles, rightFiles, distinctDirs, equalDirs, leftDirs, rightDirs
     * new --async command line option
     * Fix for https://github.com/tj/commander.js/issues/125
-* v0.0.3 Fix fille ordering issue for newer node versions
+* v0.0.3 Fix file ordering issue for newer node versions
 
