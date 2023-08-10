@@ -5,13 +5,14 @@ import { AsyncDiffSet, compareAsync as compareAsyncInternal } from './compareAsy
 import { defaultFileCompare } from './FileCompareHandler/default/defaultFileCompare'
 import { lineBasedFileCompare } from './FileCompareHandler/lines/lineBasedFileCompare'
 import { defaultNameCompare } from './NameCompare/defaultNameCompare'
-import { Options, Result, Statistics, InitialStatistics, DiffSet, OptionalDiffSet, FileCompareHandlers, DifferenceType } from './types'
+import { Options, Result, Statistics, InitialStatistics, DiffSet, OptionalDiffSet, FileCompareHandlers, DifferenceType, FilterHandlers, CompareNameHandlers } from './types'
 import { ExtOptions } from './ExtOptions'
 import { EntryBuilder } from './Entry/EntryBuilder'
 import { StatisticsLifecycle } from './Statistics/StatisticsLifecycle'
 import { LoopDetector } from './Symlink/LoopDetector'
 import { defaultResultBuilderCallback } from './ResultBuilder/defaultResultBuilderCallback'
 import { fileBasedNameCompare } from './NameCompare/fileBasedNameCompare'
+import { defaultFilterHandler } from './FilterHandler/defaultFilterHandler'
 
 const ROOT_PATH = pathUtils.sep
 
@@ -113,6 +114,20 @@ export const fileCompareHandlers: FileCompareHandlers = {
     lineBasedFileCompare
 }
 
+/**
+ * Name comparison included with dir-compare.
+ */
+export const compareNameHandlers: CompareNameHandlers = {
+    defaultNameCompare
+}
+
+/**
+ * Filter handlers included with dir-compare.
+ */
+export const filterHandlers: FilterHandlers = {
+    defaultFilterHandler
+}
+
 type RealPathOptions = { encoding?: BufferEncoding | null } | BufferEncoding
 
 const wrapper = {
@@ -136,6 +151,7 @@ function prepareOptions(compareInfo: CompareInfo, options?: Options): ExtOptions
     clone.compareFileSync = options.compareFileSync
     clone.compareFileAsync = options.compareFileAsync
     clone.compareNameHandler = options.compareNameHandler
+    clone.filterHandler = options.filterHandler
     if (!clone.resultBuilder) {
         clone.resultBuilder = defaultResultBuilderCallback
     }
@@ -148,6 +164,9 @@ function prepareOptions(compareInfo: CompareInfo, options?: Options): ExtOptions
     if (!clone.compareNameHandler) {
         const isFileBasedCompare = compareInfo.mode === 'files'
         clone.compareNameHandler = isFileBasedCompare ? fileBasedNameCompare : defaultNameCompare
+    }
+    if (!clone.filterHandler) {
+        clone.filterHandler = defaultFilterHandler
     }
     clone.dateTolerance = clone.dateTolerance || 1000
     clone.dateTolerance = Number(clone.dateTolerance)
@@ -219,7 +238,7 @@ function getCompareInfo(path1: string, path2: string): CompareInfo {
 
 /**
  * Normally dir-compare is used to compare either two directories or two files.
- * This method is used when one directory needs to be compared to a file.
+ * This method is used when one directory is compared to a file.
  */
 function compareMixedEntries(path1: string, path2: string, diffSet: OptionalDiffSet,
     initialStatistics: InitialStatistics, compareInfo: CompareInfo): void {

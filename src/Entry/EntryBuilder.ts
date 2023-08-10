@@ -1,5 +1,4 @@
 import fs, { Stats } from 'fs'
-import minimatch from 'minimatch'
 import pathUtils from 'path'
 import { Entry } from '..'
 import { ExtOptions } from '../ExtOptions'
@@ -94,45 +93,22 @@ function getStatIgnoreBrokenLink(absolutePath: string): CombinedStats {
 }
 
 /**
- * Filter entries by file name. Returns true if the file is to be processed.
+ * Filter entries by name. Returns true if the entry is to be processed.
  */
 function filterEntry(entry: Entry, relativePath: string, options: ExtOptions): boolean {
 	if (entry.isSymlink && options.skipSymlinks) {
 		return false
 	}
 
-	const path = pathUtils.join(relativePath, entry.name)
-
 	if (options.skipEmptyDirs && entry.stat.isDirectory() && isEmptyDir(entry.absolutePath)) {
 		return false
 	}
 
-	if ((entry.stat.isFile() && options.includeFilter) && (!match(path, options.includeFilter))) {
-		return false
-	}
-
-	if ((options.excludeFilter) && (match(path, options.excludeFilter))) {
-		return false
-	}
-
-	return true
+	return options.filterHandler(entry, relativePath, options)
 }
 
 function isEmptyDir(path: string): boolean {
 	return fs.readdirSync(path).length === 0
 }
 
-/**
- * Matches path by pattern.
- */
-function match(path: string, pattern: string): boolean {
-	const patternArray = pattern.split(',')
-	for (let i = 0; i < patternArray.length; i++) {
-		const pat = patternArray[i]
-		if (minimatch(path, pat, { dot: true, matchBase: true })) { //nocase
-			return true
-		}
-	}
-	return false
-}
 

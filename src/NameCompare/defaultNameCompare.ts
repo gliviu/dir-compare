@@ -1,10 +1,11 @@
 import { ExtOptions } from "../ExtOptions"
+import { CompareNameHandler } from "../types"
 import { StringCompareResult } from "./StringCompareResult"
 
 /**
- * Name comparator used when dir-compare is called to compare two directories.
+ * The default implementation uses the 'strcmp' function for comparing file or directory names.
  */
-export function defaultNameCompare(name1: string, name2: string, options: ExtOptions): StringCompareResult {
+export const defaultNameCompare: CompareNameHandler = (name1: string, name2: string, options: ExtOptions): StringCompareResult => {
 	if (options.ignoreCase) {
 		name1 = name1.toLowerCase()
 		name2 = name2.toLowerCase()

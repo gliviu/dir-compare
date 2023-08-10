@@ -150,6 +150,11 @@ export interface Options {
      * Entry name comparison handler. See [Custom name comparators](https://github.com/gliviu/dir-compare#custom-name-comparators).
      */
     compareNameHandler?: CompareNameHandler
+
+    /**
+     * Filter handler. todo: See [Custom name comparators](https://github.com/gliviu/dir-compare#custom-name-comparators).
+     */
+    filterHandler?: FilterHandler
 }
 
 /**
@@ -595,21 +600,46 @@ export type CompareNameHandler = (
     options: Options
 ) => 0 | 1 | -1
 
+/**
+ * This is an extension point that provides the capability to determine which files should be included in the comparison.
+ * Returns true if the entry is to be processed or false to ignore it.
+ */
+export type FilterHandler = (
+    entry: Entry,
+    relativePath: string,
+    options: Options
+) => boolean
+
 export interface FileCompareHandlers {
     /**
-     * Default file content comparison handlers, used if [[Options.compareFileAsync]] or [[Options.compareFileSync]] are not specified.
-     *
-     * Performs binary comparison.
+     * This comparison method evaluates files based on their binary content.
+     * It is used if {@link Options.compareFileAsync} or {@link Options.compareFileSync} are not specified.
      */
     defaultFileCompare: CompareFileHandler;
     /**
      * Compares files line by line.
      *
-     * Options:
+     * These additional options are available:
      * * ignoreLineEnding - true/false (default: false) - Ignore cr/lf line endings
      * * ignoreWhiteSpaces - true/false (default: false) - Ignore white spaces at the beginning and ending of a line (similar to 'diff -b')
      * * ignoreAllWhiteSpaces - true/false (default: false) - Ignore all white space differences (similar to 'diff -w')
      * * ignoreEmptyLines - true/false (default: false) - Ignores differences caused by empty lines (similar to 'diff -B')
      */
     lineBasedFileCompare: CompareFileHandler;
+}
+
+export interface CompareNameHandlers {
+    /**
+     * Compares file or directory names using the 'strcmp' function.
+     * It is used if {@link Options.compareNameHandler} is not specified.
+     */
+    defaultNameCompare: CompareNameHandler
+}
+
+export interface FilterHandlers {
+    /**
+     * Uses minimatch to accept/ignore files based on {@link Options.includeFilter} and {@link Options.excludeFilter}.
+     * It is used if {@link Options.filterHandler} is not specified.
+     */
+    defaultFilterHandler: FilterHandler
 }

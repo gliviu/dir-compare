@@ -1,4 +1,4 @@
-import { CompareFileAsync, CompareFileSync, CompareNameHandler, Options, ResultBuilder } from "./types";
+import { CompareFileAsync, CompareFileSync, CompareNameHandler, FilterHandler, Options, ResultBuilder } from "./types";
 
 
 /**
@@ -11,4 +11,5 @@ export interface ExtOptions extends Options {
     compareFileSync: CompareFileSync
     compareFileAsync: CompareFileAsync
     compareNameHandler: CompareNameHandler
+    filterHandler: FilterHandler
 }
