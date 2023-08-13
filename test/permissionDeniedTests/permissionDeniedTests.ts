@@ -3,7 +3,7 @@ import print from '../print'
 import Streams from 'memory-streams'
 import { readFileSync } from "fs"
 import { join } from "path"
-import { CompareFn } from "./CompareFn"
+import { CompareFn } from "../extended/CompareFn"
 
 interface Test {
     testId: string,
@@ -74,13 +74,15 @@ async function runSingleTest(test: Test, compareFn: CompareFn): Promise<void> {
         outputWriter.write(error.toString())
     }
     const compareResultStr = outputWriter.toString()
-    const expectedFilePath = join(__dirname, 'res', '37-perms-expected', `${test.testId}.txt`)
+    const expectedFilePath = join(__dirname, 'expected', `${test.testId}.txt`)
     const expected = readFileSync(expectedFilePath).toString()
     const ok = compareResultStr === expected
     const testResult = ok ? `OK` : 'FAIL ' + compareResultStr
     console.log(`${test.testId} ${test.description}: ${testResult}`)
     if (test.testId === '001') {
+        // console.log()
         // console.log(compareResultStr)
+        // console.log()
         // console.log(expected)
     }
     if (!ok) {

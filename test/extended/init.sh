@@ -4,10 +4,6 @@ set -euo pipefail
 
 CURRENT_DIR=$(dirname "$0")
 
-echo Extract dir for permission denied tests
-mkdir -p /tmp/37-perms-test
-sudo tar -xf $CURRENT_DIR/res/37-perms-test.tar -C /tmp/37-perms-test
-
 echo Generate large file
 mkdir -p /tmp/dircompare
 sudo fallocate -l 5G /tmp/dircompare/big_file
