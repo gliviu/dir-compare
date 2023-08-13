@@ -1,4 +1,4 @@
-export function deepCompare<T>(obj1: T, obj2: T): boolean {
+export function deepCompare<T extends object>(obj1: T, obj2: T): boolean {
     const obj1Keys = Object.keys(obj1);
     const obj2Keys = Object.keys(obj2);
     const allKeys = new Set([...obj1Keys, ...obj2Keys]);

@@ -3,12 +3,12 @@ import colors from 'colors/safe'
 import util from 'util'
 import fs from 'fs'
 import os from 'os'
-import temp from 'temp'
 import defaultPrint from './print'
 import Streams from 'memory-streams'
 import { compare as compareAsync, compareSync as compareSync, Statistics, Result } from "../src"
 import untar from './untar'
 import semver from 'semver'
+import { join } from 'path'
 
 
 // Usage: node runTests [unpacked] [test001_1] [showresult] [skipasync] [noReport]
@@ -38,10 +38,6 @@ interface RunOptions {
 let count = 0, failed = 0, successful = 0
 let syncCount = 0, syncFailed = 0, syncSuccessful = 0
 let asyncCount = 0, asyncFailed = 0, asyncSuccessful = 0
-
-// Automatically track and cleanup files at exit
-temp.track()
-
 
 function passed(value, type) {
     count++
@@ -369,16 +365,11 @@ function main() {
         executeTests(__dirname + '/testdir', runOptions)
     }
     else {
-        temp.mkdir('dircompare-test', (err, testDirPath) => {
-            if (err) {
-                throw err
-            }
-
-            const onError = (error) => {
-                console.error('Error occurred:', error)
-            }
-            untar(__dirname + "/testdir.tar", testDirPath, () => { executeTests(testDirPath, runOptions) }, onError)
-        })
+        const testDirPath= fs.mkdtempSync(join(os.tmpdir(), 'dircompare-test-'))
+        const onError = (error) => {
+            console.error('Error occurred:', error)
+        }
+        untar(__dirname + "/testdir.tar", testDirPath, () => { executeTests(testDirPath, runOptions) }, onError)
     }
 }
 
