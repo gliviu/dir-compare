@@ -13,7 +13,7 @@ mkdir -p /tmp/dircompare
 sudo fallocate -l 5G /tmp/dircompare/big_file
 
 echo Initialize gitignore tests
-./gitignoreSupport/init.sh
+$CURRENT_DIR/gitignoreSupport/init.sh
 
 echo Download and extract linux kernels
 l1=linux-4.3
