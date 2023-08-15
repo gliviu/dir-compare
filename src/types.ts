@@ -31,7 +31,7 @@ export interface Options {
     /**
      * Compares files by date of modification (stat.mtime). Defaults to 'false'.
      * 
-     * Also see [[Options.dateTolerance]].
+     * Also see {@link Options.dateTolerance}.
      */
     compareDate?: boolean
 
@@ -95,7 +95,7 @@ export interface Options {
      * 
      * If `handlePermissionDenied` is set to true the comparison will continue when unreadable entries are encountered.
      * 
-     * Offending entries will be reported within [[Difference.permissionDeniedState]], [[Difference.reason]] and [[Result.permissionDenied]].
+     * Offending entries will be reported within {@link Difference.permissionDeniedState}, {@link Difference.reason} and {@link Result.permissionDenied}.
      * 
      * Lets consider we want to compare two identical folders `A` and `B` with `B/dir2` being unreadable for the current user.
      * ```
@@ -106,7 +106,7 @@ export interface Options {
      * └─────file2          └─────file2
      * ```
      * 
-     * [[Result.diffSet]] will look like:
+     * {@link Result.diffSet} will look like:
      * 
      * |relativePath  |path1    |path2    | state      |reason                  |permissionDeniedState|
      * |--------------|---------|---------|------------|------------------------|---------------------|
@@ -115,7 +115,7 @@ export interface Options {
      * |[/]           |dir2     |dir2     |`distinct`  |  `permission-denied`   |`access-error-right` |  
      * |[/dir2]       |file2    |missing  |`left`      |                        |                     |  
      * 
-     * And [[Result.permissionDenied]] statistics look like 
+     * And {@link Result.permissionDenied} statistics look like 
      * ```json
      * {
      *   leftPermissionDenied: 0, 
@@ -190,7 +190,7 @@ export interface Entry {
     isBrokenLink: boolean
     /**
      * True when this entry is not readable.
-     * This value is set only when [[Options.handlePermissionDenied]] is enabled.
+     * This value is set only when {@link Options.handlePermissionDenied} is enabled.
      */
     isPermissionDenied: boolean
 }
@@ -201,7 +201,7 @@ export interface Entry {
 export interface Result extends Statistics {
     /**
      * Detailed list of comparison results.
-     * Present if [[Options.noDiffSet]] is false.
+     * Present if {@link Options.noDiffSet} is false.
      */
     diffSet?: DiffSet
 }
@@ -419,12 +419,12 @@ export interface SymlinkStatistics {
  * * `equal` - Identical entries are found in both left/right dirs.
  * * `left` - Entry is found only in left dir.
  * * `right` - Entry is found only in right dir.
- * * `distinct` - Entries exist in both left/right dir but have different content. See [[Difference.reason]] to understan why entries are considered distinct.
+ * * `distinct` - Entries exist in both left/right dir but have different content. See {@link Difference.reason} to understan why entries are considered distinct.
  */
 export type DifferenceState = "equal" | "left" | "right" | "distinct"
 
 /**
- * Permission related state of left/right entries. Available only when [[Options.handlePermissionDenied]] is enabled.
+ * Permission related state of left/right entries. Available only when {@link Options.handlePermissionDenied} is enabled.
  * * `access-ok`          - Both entries are accessible.
  * * `access-error-both`  - Neither entry can be accessed.
  * * `access-error-left`  - Left entry cannot be accessed.
@@ -443,11 +443,11 @@ export type DifferenceType = "missing" | "file" | "directory" | "broken-link"
  * Not available if entries are equal.
  * 
  * * `different-size` - Files differ in size.
- * * `different-date - Entry dates are different. Used when [[Options.compareDate]] is `true`.
- * * `different-content` - File contents are different. Used when [[Options.compareContent]] is `true`.
+ * * `different-date - Entry dates are different. Used when {@link Options.compareDate} is `true`.
+ * * `different-content` - File contents are different. Used when {@link Options.compareContent} is `true`.
  * * `broken-link` - Both left/right entries are broken links.
- * * `different-symlink` - Symlinks are different. See [[Options.compareSymlink]] for details.
- * * `permission-denied` - One or both left/right entries are not accessible. See [[Options.handlePermissionDenied]] for details.
+ * * `different-symlink` - Symlinks are different. See {@link Options.compareSymlink} for details.
+ * * `permission-denied` - One or both left/right entries are not accessible. See {@link Options.handlePermissionDenied} for details.
  */
 export type Reason = undefined | "different-size" | "different-date" | "different-content" | "broken-link" | 'different-symlink' | 'permission-denied'
 
@@ -488,7 +488,7 @@ export interface Difference {
     name2?: string
 
     /**
-     * See [[DifferenceState]]
+     * See {@link DifferenceState}
      */
     state: DifferenceState
 
@@ -550,13 +550,13 @@ export interface Difference {
  * Updates 'statistics' and 'diffSet'.
  * @param entry1 Left entry.
  * @param entry2 Right entry.
- * @param state See [[DifferenceState]].
+ * @param state See {@link DifferenceState}.
  * @param level Depth level relative to root dir.
  * @param relativePath Path relative to the root directory of the comparison.
  * @param statistics Statistics to be updated.
  * @param diffSet Status per each entry to be appended.
- * Do not append if [[Options.noDiffSet]] is false.
- * @param reason See [[Reason]]. Not available if entries are equal.
+ * Do not append if {@link Options.noDiffSet} is false.
+ * @param reason See {@link Reason}. Not available if entries are equal.
  */
 export type ResultBuilder = (entry1: Entry | undefined, entry2: Entry | undefined, state: DifferenceState, level: number,
     relativePath: string, options: Options, statistics: InitialStatistics, diffSet: DiffSet | undefined,
