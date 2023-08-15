@@ -17,10 +17,10 @@ Node JS directory compare
 - [Extension points](#extension-points)
   * [File content comparators](#file-content-comparators)
     + [Ignore line endings and white spaces](#ignore-line-endings-and-white-spaces)
-  * [Name comparators](#name-comparators)
-  * [Result builder](#result-builder)
   * [Glob filter](#glob-filter)
     + [Implement .gitignore filter](#implement-gitignore-filter)
+  * [Name comparators](#name-comparators)
+  * [Result builder](#result-builder)
 - [UI tools](#ui-tools)
 - [Changelog](#changelog)
 
@@ -83,8 +83,8 @@ compare(path1: string, path2: string, options?: Options): Promise<Result>
 compareSync(path1: string, path2: string, options?: Options): Result
 ```
 More details can be found in the reference documentation:
-* [compare](https://gliviu.github.io/dc-api/index.html#compare)
-* [compareSync](https://gliviu.github.io/dc-api/index.html#compareSync)
+* [compare](https://gliviu.github.io/dc-api/functions/compare.html)
+* [compareSync](https://gliviu.github.io/dc-api/functions/compareSync.html)
 * [Options](https://gliviu.github.io/dc-api/interfaces/Options.html) 
 * [Result](https://gliviu.github.io/dc-api/interfaces/Result.html)
 
@@ -155,7 +155,7 @@ A couple of handlers are included in the library:
 * text sync compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareSync`
 * text async compare - `dircompare.fileCompareHandlers.lineBasedFileCompare.compareAsync`
 
-Use [defaultFileCompare.js](https://github.com/gliviu/dir-compare/blob/master/src/FileCompareHandler/default/defaultFileCompare.ts) as an example to create your own.
+Use [defaultFileCompare](https://github.com/gliviu/dir-compare/blob/master/src/FileCompareHandler/default/defaultFileCompare.ts) as an example to create your own.
 
 ### Ignore line endings and white spaces
 Line based comparator can be used to ignore line ending and white space differences.
@@ -180,6 +180,62 @@ console.log(res)
 dircompare.compare(path1, path2, options)
 .then(res => console.log(res))
 ```
+
+## Glob filter
+The current implementation of the glob filter uses minimatch and is based on [includeFilter and excludeFilter options](#glob-patterns). While it is meant to fit most use cases, [some scenarios](https://github.com/gliviu/dir-compare/issues/67) are not addressed.
+
+Use [filterHandler option](https://gliviu.github.io/dc-api/interfaces/Options.html#filterHandler) to alter this behavior.
+
+The following example demonstrates how to include only files with a specific extension in our comparison.
+```typescript
+import { Options, compareSync, Result, FilterHandler, Entry, filterHandlers } from 'dir-compare'
+import { extname } from 'path'
+
+var d1 = '...';
+var d2 = '...';
+
+const filterByfileExtension: FilterHandler = (entry: Entry, relativePath: string, options: Options): boolean => {
+  if (!options.fileExtension) {
+    // Fallback on the default 'minimatch' implementation
+    return filterHandlers.defaultFilterHandler(entry, relativePath, options)
+  }
+
+  return options.fileExtension === extname(entry.name)
+}
+
+const options: Options = {
+  compareSize: true,
+  fileExtension: '.txt',
+  filterHandler: filterByfileExtension
+}
+
+const res: Result = compareSync(d1, d2, options)
+```
+
+For reference, the default minimatch filter can be found in [defaultFilterHandler](https://github.com/gliviu/dir-compare/blob/master/src/FilterHandler/defaultFilterHandler.ts) which is exposed by [filterHandlers property](https://gliviu.github.io/dc-api/variables/filterHandlers.html).
+
+### Implement .gitignore filter
+[Globby](https://www.npmjs.com/package/globby) library provides the functionality to parse and apply `.gitignore` rules.
+This is a [sample implementation](https://github.com/gliviu/dir-compare/blob/master/test/extended/gitignoreSupport/gitignoreFilter.ts) that uses globby and dir-compare filter extension.
+
+Usage:
+```typescript
+import { Options, compareSync, Result} from 'dir-compare'
+import { getGitignoreFilter } from './gitignoreFilter.js'
+
+var d1 = '...';
+var d2 = '...';
+
+const options: Options = {
+  compareSize: true,
+  filterHandler: getGitignoreFilter(d1, d2),
+  includeFilter: '*.js'  // if present, regular filters are applied after .gitignore rules.
+}
+
+const res: Result = compareSync(d1, d2, options)
+
+```
+
 ## Name comparators
 If [default](https://github.com/gliviu/dir-compare/blob/master/src/NameCompare/defaultNameCompare.ts) name comparison is not enough, custom behavior can be specified with [compareNameHandler](https://gliviu.github.io/dc-api/interfaces/Options.html#compareNameHandler) option.
 Following example adds the possibility to ignore file extensions.
@@ -221,6 +277,8 @@ const res = compare(path1, path2, options).then(res => {
 // icon.svg icon.png equal
 // logo.svg logo.jpg equal
 ```
+For reference, the default name comparator can be found in [defaultNameCompare](https://github.com/gliviu/dir-compare/blob/master/src/NameCompare/defaultNameCompare.ts) which is exposed by [compareNameHandlers property](https://gliviu.github.io/dc-api/variables/compareNameHandlers.html).
+
 
 ## Result builder
 [Result builder](https://gliviu.github.io/dc-api/interfaces/Options.html#resultBuilder) is called for each pair of entries encountered during comparison. Its purpose is to append entries in `diffSet` and eventually update `statistics` object with new stats.
@@ -244,66 +302,14 @@ const res = dircompare.compareSync('...', '...', options)
 
 The [default](https://github.com/gliviu/dir-compare/blob/master/src/ResultBuilder/defaultResultBuilderCallback.ts) builder can be used as an example.
 
-## Glob filter
-The current implementation of the glob filter uses minimatch and is based on [includeFilter and excludeFilter options](#glob-patterns). While it is meant to fit most use cases, [some scenarios](https://github.com/gliviu/dir-compare/issues/67) are not addressed.
-
-Use [filterHandler option](https://gliviu.github.io/dc-api/interfaces/Options.html#filterHandler) to alter this behavior.
-
-The following example demonstrates how to include only files with a specific extension in our comparison.
-```typescript
-import { Options, compareSync, Result, FilterHandler, Entry, filterHandlers } from './'
-import { extname } from 'path'
-
-var d1 = '...';
-var d2 = '...';
-
-const filterByfileExtension: FilterHandler = (entry: Entry, relativePath: string, options: Options): boolean => {
-  if (!options.fileExtension) {
-    // Fallback on the default 'minimatch' implementation
-    return filterHandlers.defaultFilterHandler(entry, relativePath, options)
-  }
-
-  return options.fileExtension === extname(entry.name)
-}
-
-const options: Options = {
-  compareSize: true,
-  fileExtension: '.txt',
-  filterHandler: filterByfileExtension
-}
-
-const res: Result = compareSync(d1, d2, options)
-```
-
-For reference, the default minimatch filter can be found in [defaultFilterHandler](https://github.com/gliviu/dir-compare/blob/master/src/FilterHandler/defaultFilterHandler.ts) which is exposed by [filterHandlers property](https://gliviu.github.io/dc-api/index.html#filterHandlers).
-
-### Implement .gitignore filter
-[Globby](https://github.com/sindresorhus/globby) library provides the functionality to parse and apply `.gitignore` rules.
-This is a [sample implementation](https://github.com/gliviu/dir-compare/blob/master/test/extended/gitignoreSupport/gitignoreFilter.ts) that uses globby and dir-compare filter extension.
-
-Usage:
-```typescript
-import { Options, compareSync, Result} from 'dir-compare'
-import { getGitignoreFilter } from './gitignoreFilter.js'
-
-var d1 = '...';
-var d2 = '...';
-
-const options: Options = {
-  compareSize: true,
-  filterHandler: getGitignoreFilter(d1, d2),
-  includeFilter: '*.js'  // if present, regular filters are applied after .gitignore rules.
-}
-
-const res: Result = compareSync(d1, d2, options)
-
-```
-
 # UI tools
 * [dir-compare-cli](https://github.com/gliviu/dir-compare-cli)
 * [Visual Studio Code - Compare Folders](https://marketplace.visualstudio.com/items?itemName=moshfeu.compare-folders)
 
 # Changelog
+* v4.2.0
+  * Updated dependencies
+  * Increased test coverage
 * v4.1.0
   * Possibility to alter the default [Glob filter](#glob-filter) behavior
   * [Ignore files and directories according to .gitignore rules](#implement-gitignore-filter).
@@ -311,7 +317,7 @@ const res: Result = compareSync(d1, d2, options)
   * Improved api documentation
 * v4.0.0
     * Switched project to typescript
-    * [Async comparator](https://gliviu.github.io/dc-api/index.html#compare) improvements when comparing large directory structures
+    * [Async comparator](https://gliviu.github.io/dc-api/functions/compare.html) improvements when comparing large directory structures
       * Heap usage has decreased 3x compared to previous version
       * Works 2x faster when comparing by content
       * Better concurrency. UI apps will be more responsive while comparison is ongoing
@@ -331,7 +337,7 @@ const res: Result = compareSync(d1, d2, options)
   * New field indicating reason for two entries being distinct.
   * Improved command line output format.
   * Tests are no longer part of published package.
-  * Generated [Api](https://gliviu.github.io/dc-api/index.html) documentation.
+  * Generated [Api](https://gliviu.github.io/dc-api) documentation.
   
   Breaking changes:
   * Broken links are no longer treated as errors. As a result there are new statistics (leftBrokenLinks, rightBrokenLinks, distinctBrokenLinks, totalBrokenLinks) and new entry type - broken-link.
