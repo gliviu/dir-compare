@@ -11,7 +11,7 @@ import semver from 'semver'
 import { join } from 'path'
 
 
-// Usage: node runTests [unpacked] [test001_1] [showresult] [skipasync] [noReport]
+// Usage: ts-node runTests.ts [unpacked] [test001_1] [showresult] [skipasync] [noReport]
 interface RunOptions {
     // Use ./testdir instead of testdir.tar as test data.
     // Run 'node extract.js' to initialize ./testdir.

@@ -307,6 +307,9 @@ The [default](https://github.com/gliviu/dir-compare/blob/master/src/ResultBuilde
 * [Visual Studio Code - Compare Folders](https://marketplace.visualstudio.com/items?itemName=moshfeu.compare-folders)
 
 # Changelog
+* v5.0.0
+  Breaking changes:
+    * `skipSubdirs` option has slightly different behavior. More details in [#77](https://github.com/gliviu/dir-compare/issues/77#issuecomment-2094375352)
 * v4.2.0
   * Updated dependencies
   * Increased test coverage
