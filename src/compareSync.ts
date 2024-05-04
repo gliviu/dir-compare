@@ -93,22 +93,28 @@ export function compareSync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntry
             i2++
         } else if (cmp < 0) {
             // Right missing
-            const permissionDeniedState = Permission.getPermissionDeniedStateWhenRightMissing(entry1)
-            options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
-            StatisticsUpdate.updateStatisticsLeft(entry1, type1, permissionDeniedState, statistics, options)
-            i1++
-            if (type1 === 'directory' && !options.skipSubdirs) {
-                compareSync(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, LoopDetector.cloneSymlinkCache(symlinkCache))
+            const skipEntry = options.skipSubdirs && type1 === 'directory'
+            if (!skipEntry) {
+                const permissionDeniedState = Permission.getPermissionDeniedStateWhenRightMissing(entry1)
+                options.resultBuilder(entry1, undefined, 'left', level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
+                StatisticsUpdate.updateStatisticsLeft(entry1, type1, permissionDeniedState, statistics, options)
+                if (type1 === 'directory') {
+                    compareSync(entry1, undefined, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, LoopDetector.cloneSymlinkCache(symlinkCache))
+                }
             }
+            i1++
         } else {
             // Left missing
-            const permissionDeniedState = Permission.getPermissionDeniedStateWhenLeftMissing(entry2)
-            options.resultBuilder(undefined, entry2, "right", level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
-            StatisticsUpdate.updateStatisticsRight(entry2, type2, permissionDeniedState, statistics, options)
-            i2++
-            if (type2 === 'directory' && !options.skipSubdirs) {
-                compareSync(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, LoopDetector.cloneSymlinkCache(symlinkCache))
+            const skipEntry = options.skipSubdirs && type2 === 'directory'
+            if (!skipEntry) {
+                const permissionDeniedState = Permission.getPermissionDeniedStateWhenLeftMissing(entry2)
+                options.resultBuilder(undefined, entry2, "right", level, relativePath, options, statistics, diffSet, undefined, permissionDeniedState)
+                StatisticsUpdate.updateStatisticsRight(entry2, type2, permissionDeniedState, statistics, options)
+                if (type2 === 'directory') {
+                    compareSync(undefined, entry2, level + 1, pathUtils.join(relativePath, entry2.name), options, statistics, diffSet, LoopDetector.cloneSymlinkCache(symlinkCache))
+                }
             }
+            i2++
         }
     }
 }
