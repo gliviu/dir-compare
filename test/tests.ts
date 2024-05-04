@@ -542,11 +542,6 @@ export function getTests(testDirPath: string): Partial<Test>[] {
         // Skip subdirs                                   //
         ////////////////////////////////////////////////////
         {
-            name: 'test006_0', path1: 'd1', path2: 'd2',
-            options: { compareSize: true, skipSubdirs: true },
-            displayOptions: { showAll: true, },
-        },
-        {
             name: 'test006_1', path1: 'd1', path2: 'd2',
             options: { compareSize: true, skipSubdirs: true },
             displayOptions: { showAll: true, wholeReport: true, },

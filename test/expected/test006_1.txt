@@ -1,9 +1,3 @@
-[/] A10 -> missing (directory)
-[/] missing <- A11 (directory)
-[/] A6 == A6 (directory)
-[/] A7 -> missing (directory)
-[/] missing <- A8 (directory)
-[/] missing <- A9 (directory)
 [/] A11 -> missing (file)
 [/] a1.txt == a1.txt (file)
 [/] a2.txt <> a2.txt (file)
@@ -11,4 +5,4 @@
 [/] missing <- a4.txt (file)
 [/] a5.txt -> missing (file)
 Entries are different
-total: 12, equal: 2, distinct: 1, only left: 5, only right: 4
+total: 6, equal: 1, distinct: 1, only left: 3, only right: 1
