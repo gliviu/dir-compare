@@ -9,21 +9,21 @@ image:
 
 environment:
   matrix:
-    - nodejs_version: 24
-    - nodejs_version: 23
+    # - nodejs_version: 24
+    # - nodejs_version: 23
     - nodejs_version: 22
-    - nodejs_version: 21
-    - nodejs_version: 20
-    - nodejs_version: 19
-    - nodejs_version: 18
-    - nodejs_version: 17
-    - nodejs_version: 16
-    - nodejs_version: 15
-    - nodejs_version: 14
-    - nodejs_version: 13
-    - nodejs_version: 12
-    - nodejs_version: 11
-    - nodejs_version: 10
+    # - nodejs_version: 21
+    # - nodejs_version: 20
+    # - nodejs_version: 19
+    # - nodejs_version: 18
+    # - nodejs_version: 17
+    # - nodejs_version: 16
+    # - nodejs_version: 15
+    # - nodejs_version: 14
+    # - nodejs_version: 13
+    # - nodejs_version: 12
+    # - nodejs_version: 11
+    # - nodejs_version: 10
 
 for:
   - matrix:
@@ -53,6 +53,7 @@ for:
       only:
         - image: Ubuntu2004
     install:
+      - nvm install $nodejs_version
       - nvm use $nodejs_version
     test_script:
       - node --version
