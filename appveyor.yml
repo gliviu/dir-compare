@@ -49,7 +49,6 @@ for:
       only:
         - image: Ubuntu2004
     install:
-      - nvm install $nodejs_version
       - nvm use $nodejs_version
     test_script:
       - node --version
