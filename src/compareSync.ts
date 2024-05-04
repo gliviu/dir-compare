@@ -66,28 +66,31 @@ export function compareSync(rootEntry1: OptionalEntry, rootEntry2: OptionalEntry
         // process entry
         if (cmp === 0) {
             // Both left/right exist and have the same name and type
-            let same, reason, state
-            const permissionDeniedState = Permission.getPermissionDeniedState(entry1, entry2)
+            const skipEntry = options.skipSubdirs && type1 === 'directory'
+            if (!skipEntry) {
+                let same, reason, state
+                const permissionDeniedState = Permission.getPermissionDeniedState(entry1, entry2)
 
-            if (permissionDeniedState === "access-ok") {
-                const compareEntryRes = EntryEquality.isEntryEqualSync(entry1, entry2, type1, options)
-                state = compareEntryRes.same ? 'equal' : 'distinct'
-                same = compareEntryRes.same
-                reason = compareEntryRes.reason
-            } else {
-                state = 'distinct'
-                same = false
-                reason = "permission-denied"
+                if (permissionDeniedState === "access-ok") {
+                    const compareEntryRes = EntryEquality.isEntryEqualSync(entry1, entry2, type1, options)
+                    state = compareEntryRes.same ? 'equal' : 'distinct'
+                    same = compareEntryRes.same
+                    reason = compareEntryRes.reason
+                } else {
+                    state = 'distinct'
+                    same = false
+                    reason = "permission-denied"
+                }
+
+
+                options.resultBuilder(entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason, permissionDeniedState)
+                StatisticsUpdate.updateStatisticsBoth(entry1, entry2, same, reason, type1, permissionDeniedState, statistics, options)
+                if (type1 === 'directory') {
+                    compareSync(entry1, entry2, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, LoopDetector.cloneSymlinkCache(symlinkCache))
+                }
             }
-
-
-            options.resultBuilder(entry1, entry2, state, level, relativePath, options, statistics, diffSet, reason, permissionDeniedState)
-            StatisticsUpdate.updateStatisticsBoth(entry1, entry2, same, reason, type1, permissionDeniedState, statistics, options)
             i1++
             i2++
-            if (!options.skipSubdirs && type1 === 'directory') {
-                compareSync(entry1, entry2, level + 1, pathUtils.join(relativePath, entry1.name), options, statistics, diffSet, LoopDetector.cloneSymlinkCache(symlinkCache))
-            }
         } else if (cmp < 0) {
             // Right missing
             const permissionDeniedState = Permission.getPermissionDeniedStateWhenRightMissing(entry1)
