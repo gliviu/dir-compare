@@ -1,6 +1,7 @@
 branches:
   only:
     - master
+    - 77
 image:
   - Visual Studio 2019
   - Ubuntu2004
